@@ -5,7 +5,8 @@ using UnityEngine;
 public class PlayerMove : MonoBehaviour
 {
     public static bool isPaused=false;
-
+    public GameObject prefabBlockOutline;
+    public GameObject blockOutline;
     public Transform cameraPos;
     public Camera mainCam;
     public CharacterController cc;
@@ -22,7 +23,10 @@ public class PlayerMove : MonoBehaviour
     public GameObject pauseMenu;
 
     void Start()
-    {
+    {   
+
+        prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
+        blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         pauseMenu=GameObject.Find("pausemenuUI");
         pauseMenu.SetActive(false);
         viewRange=32;
@@ -38,6 +42,15 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {      
         
+          Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        RaycastHit info;
+        if(Physics.Raycast(ray,out info,10f)){
+                blockOutline.GetComponent<MeshRenderer>().enabled=true;
+            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,0.999f);
+           blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
+        }else{
+            blockOutline.GetComponent<MeshRenderer>().enabled=false;
+        }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -115,7 +128,10 @@ public class PlayerMove : MonoBehaviour
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
-            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,0.99f);
+            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,0.999f);
+            if(blockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true){
+                return;
+            }
             Chunk.SetBlock(blockPoint,1);
         }
     }

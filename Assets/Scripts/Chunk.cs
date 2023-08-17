@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
 using System.Threading;
+using System.Threading.Tasks;
 public class Chunk : MonoBehaviour
 {   
 
@@ -83,8 +84,10 @@ public class Chunk : MonoBehaviour
         childThread.Start();
 
          StartCoroutine(BuildChunk());
+         //StartCoroutine(BuildChunk());
       //  InitMap(pos);
-      //  BuildChunk();
+      isChunkMapUpdated=true;
+     
     }
     void InitMap(Vector3 pos){
         System.Random random=new System.Random();
@@ -131,42 +134,276 @@ public class Chunk : MonoBehaviour
             for (int y = 0; y < chunkHeight; y++){
                 for (int z = 0; z < chunkWidth; z++){
                    //     BuildBlock(x, y, z, verts, uvs, tris, vertsNS, uvsNS, trisNS);
-
         if (map[x, y, z] == 0) continue;
         int typeid = map[x, y, z];
         if(0<typeid&&typeid<100){
+
+
+
+
            //Left
-        if (CheckNeedBuildFace(x - 1, y, z))
-            BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
+        if (CheckNeedBuildFace(x - 1, y, z)){
+      //   BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0); 
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up=Vector3.up;
+        var right=Vector3.forward;
+        bool reversed=false;
+     //   var verts=verts;
+     //   var uvs=uvs;
+     //   var tris=tris;
+        var side=0;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+            
+
+
         //Right
-        if (CheckNeedBuildFace(x + 1, y, z))
-            BuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
+        if (CheckNeedBuildFace(x + 1, y, z)){
+        //   BuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1); 
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x + 1, y, z);
+        var up=Vector3.up;
+        var right=Vector3.forward;
+        bool reversed=true;
+     //   var verts=verts;
+      //  var uvs=uvs;
+     //   var tris=tris;
+        var side=1;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+            
+
 
         //Bottom
-        if (CheckNeedBuildFace(x, y - 1, z))
-            BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
+        if (CheckNeedBuildFace(x, y - 1, z)){
+  //        BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);  
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up=Vector3.forward;
+        var right=Vector3.right;
+        bool reversed=false;
+     //   var verts=verts;
+ //       var uvs=uvs;
+  //      var tris=tris;
+        var side=2;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+            
+
+
+
+
         //Top
-        if (CheckNeedBuildFace(x, y + 1, z))
-            BuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
+        if (CheckNeedBuildFace(x, y + 1, z)){
+    //       BuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3); 
+
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y + 1, z);
+        var up=Vector3.forward;
+        var right=Vector3.right;
+        bool reversed=true;
+    //    var verts=verts;
+    //    var uvs=uvs;
+    //    var tris=tris;
+        var side=3;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+            
+
+
+
 
         //Back
-        if (CheckNeedBuildFace(x, y, z - 1))
-            BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
+        if (CheckNeedBuildFace(x, y, z - 1)){
+      //    BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);  
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up=Vector3.up;
+        var right=Vector3.right;
+        bool reversed=true;
+    //    var verts=verts;
+     //   var uvs=uvs;
+    //    var tris=tris;
+        var side=4;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+
+
+
+
+
         //Front
-        if (CheckNeedBuildFace(x, y, z + 1))
-            BuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
+        if (CheckNeedBuildFace(x, y, z + 1)){
+       //    BuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5);  
+
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z + 1);
+        var up=Vector3.up;
+        var right=Vector3.right;
+        bool reversed=false;
+     //   var verts=verts;
+    //    var uvs=uvs;
+    //    var tris=tris;
+        var side=5;
+        int index = verts.Count;
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){tris.Add(index + 0);tris.Add(index + 1);tris.Add(index + 2);tris.Add(index + 2);tris.Add(index + 3);tris.Add(index + 0);}else{tris.Add(index + 1);tris.Add(index + 0);tris.Add(index + 2);tris.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+            
+
+
 
         }else if(100<=typeid&&typeid<200){
 
     if(typeid==100){
 
 
+
+        //water
         //left
         if (CheckNeedBuildFace(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-                    BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+            //        BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up=new Vector3(0f,0.8f,0f);
+        var right=Vector3.forward;
+        bool reversed=false;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }else{
-                BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+        //        BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up=new Vector3(0f,1f,0f);
+        var right=Vector3.forward;
+        bool reversed=false;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }
            
         }
@@ -174,9 +411,56 @@ public class Chunk : MonoBehaviour
         //Right
         if (CheckNeedBuildFace(x + 1, y, z)&&GetBlockType(x+1,y,z)!=100){
                 if(GetBlockType(x,y+1,z)!=100){
-                    BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+      //              BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x + 1, y, z);
+        var up= new Vector3(0f,0.8f,0f);
+        var right=Vector3.forward;
+        bool reversed=true;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
                 }else{
-                        BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+                //        BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+
+
+
+
+
+        var faceTypeID=typeid;
+        var corner=new Vector3(x + 1, y, z);
+        var up= new Vector3(0f,1f,0f);
+        var right=Vector3.forward;
+        bool reversed=true;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }  
 
         }
@@ -184,20 +468,118 @@ public class Chunk : MonoBehaviour
             
 
         //Bottom
-        if (CheckNeedBuildFace(x, y - 1, z)&&GetBlockType(x,y-1,z)!=100)
-            BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
+        if (CheckNeedBuildFace(x, y - 1, z)&&GetBlockType(x,y-1,z)!=100){
+        //    BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
+
+
+
+
+            var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up= Vector3.forward;
+        var right=Vector3.right;
+        bool reversed=false;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
+        }
+            
         //Top
-        if (CheckNeedBuildFace(x, y + 1, z)&&GetBlockType(x,y+1,z)!=100)
-            BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
+        if (CheckNeedBuildFace(x, y + 1, z)&&GetBlockType(x,y+1,z)!=100){
+           //  BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
+
+
+
+
+             var faceTypeID=typeid;
+        var corner=new Vector3(x, y + 0.8f, z);
+        var up= Vector3.forward;
+        var right=Vector3.right;
+        bool reversed=true;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
+        }
+           
 
 
 
         //Back
         if (CheckNeedBuildFace(x, y, z - 1)&&GetBlockType(x,y,z-1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-                BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+               // BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+
+
+
+               
+               var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up= new Vector3(0f,0.8f,0f);
+        var right=Vector3.right;
+        bool reversed=true;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }else{
-                BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+              //  BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+
+
+
+
+
+
+            var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z);
+        var up= new Vector3(0f,1f,0f);
+        var right=Vector3.right;
+        bool reversed=true;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }
             
         }
@@ -206,9 +588,55 @@ public class Chunk : MonoBehaviour
         //Front
         if (CheckNeedBuildFace(x, y, z + 1)&&GetBlockType(x,y,z+1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-                BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5); 
+             //   BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5); 
+
+
+
+
+             var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z + 1);
+        var up= new Vector3(0f,0.8f,0f);
+        var right=Vector3.right;
+        bool reversed=false;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }else{
-                BuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
+               // BuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
+
+
+
+
+               var faceTypeID=typeid;
+        var corner=new Vector3(x, y, z+1);
+        var up= new Vector3(0f,1f,0f);
+        var right= Vector3.right;
+        bool reversed=false;
+        var side=0;
+        int index = vertsNS.Count;
+        vertsNS.Add (corner);
+        vertsNS.Add (corner + up);
+        vertsNS.Add (corner + up + right);
+        vertsNS.Add (corner + right);
+        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+        uvCorner=blockInfo[typeid][side];
+        uvsNS.Add(uvCorner);
+        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }
              
         }   
@@ -218,9 +646,19 @@ public class Chunk : MonoBehaviour
             Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
             BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
             
+
+
             BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
+
+
+
             BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
+
+
+
             BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
+
+
         }
 
                         
@@ -230,6 +668,10 @@ public class Chunk : MonoBehaviour
         }
         isMeshBuildCompleted=true;
     }
+
+
+
+
 
     public IEnumerator BuildChunk(){
         isMeshBuildCompleted=false;
@@ -251,7 +693,7 @@ public class Chunk : MonoBehaviour
       leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
       rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
 
-
+      //  yield return new WaitUntil(()=>frontChunk!=null&&backChunk!=null&&leftChunk!=null&&rightChunk!=null);
      //   for (int x = 0; x < chunkWidth; x++){
       //      for (int y = 0; y < chunkHeight; y++){
        //         for (int z = 0; z < chunkWidth; z++){
@@ -259,10 +701,12 @@ public class Chunk : MonoBehaviour
          //       }
        //     }
        // }
-        ThreadStart childref = new ThreadStart(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-        Thread childThread=new Thread(childref);
-        childThread.Start();
-        childThread.Join();
+       // ThreadStart childref = new ThreadStart(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+     //   Thread childThread=new Thread(childref);
+       // childThread.Start();
+        //childThread.Join();
+        Task t1 = Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+       
         yield return new WaitUntil(()=>isMeshBuildCompleted==true);
         chunkMesh.vertices = verts.ToArray();
         chunkMesh.uv = uvs.ToArray();
@@ -286,7 +730,7 @@ public class Chunk : MonoBehaviour
     }
 
 
-    void BuildBlock(int x, int y, int z, List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS){
+   /* void BuildBlock(int x, int y, int z, List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS){
 
 
         if (map[x, y, z] == 0) return;
@@ -375,14 +819,13 @@ public class Chunk : MonoBehaviour
         if(typeid>=101&&typeid<150){
             Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
             BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
-            
             BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
             BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
             BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
         }
         }
         
-    }
+    }*/
 
 
     bool CheckNeedBuildFace(int x, int y, int z){
@@ -501,7 +944,10 @@ public class Chunk : MonoBehaviour
             return (int)f-1;
         }
     }
-
+    public static Vector3Int Vec3ToBlockPos(Vector3 pos){
+        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        return intPos;
+    }
     public static void SetBlock(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));

@@ -1048,7 +1048,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -1509,9 +1509,9 @@ GameObject:
   - component: {fileID: 1766484983}
   - component: {fileID: 1766484982}
   - component: {fileID: 1766484986}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1620,6 +1620,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d92ec001835ebe40881cd37e678effd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prefabBlockOutline: {fileID: 0}
+  blockOutline: {fileID: 0}
   cameraPos: {fileID: 0}
   mainCam: {fileID: 0}
   cc: {fileID: 0}
