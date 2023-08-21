@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 public class PlayerMove : MonoBehaviour
 {
+    public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
+    public static bool isBlockNameDicAdded=false;
+    public int blockOnHandID=0;
     public static bool isPaused=false;
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
     public Transform cameraPos;
+    public Text blockOnHandText;
     public Camera mainCam;
     public CharacterController cc;
     public float cameraX;
@@ -21,13 +26,29 @@ public class PlayerMove : MonoBehaviour
     public Chunk chunkPrefab;
     public float viewRange=32;
     public GameObject pauseMenu;
+    void Awake(){
+        if(isBlockNameDicAdded==false){
+        blockNameDic.Add(0,"None");
+        blockNameDic.Add(1,"Stone");
+        blockNameDic.Add(2,"Grass");
+        blockNameDic.Add(3,"Dirt");
+        blockNameDic.Add(4,"Side Grass Block");
+        blockNameDic.Add(5,"Bedrock");
+        blockNameDic.Add(6,"WoodX");
+        blockNameDic.Add(7,"WoodY");
+        blockNameDic.Add(8,"WoodZ");
+        blockNameDic.Add(9,"Leaves");
+        isBlockNameDicAdded=true;
+        }
 
+    }
     void Start()
     {   
 
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         pauseMenu=GameObject.Find("pausemenuUI");
+        blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
         pauseMenu.SetActive(false);
         viewRange=32;
         cc=GetComponent<CharacterController>();
@@ -41,16 +62,24 @@ public class PlayerMove : MonoBehaviour
     }
     void Update()
     {      
-        
-          Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        if(Input.GetKeyDown(KeyCode.U)){
+                Chunk.SaveWorldData();
+        }
+        Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
-                blockOutline.GetComponent<MeshRenderer>().enabled=true;
-            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,0.999f);
-           blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
+        blockOutline.GetComponent<MeshRenderer>().enabled=true;
+        Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
+        blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
         }else{
             blockOutline.GetComponent<MeshRenderer>().enabled=false;
         }
+           // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
+            blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
+            blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
+            blockOnHandText.text="Block On Hand ID: "+blockOnHandID+" "+blockNameDic[blockOnHandID];
+       
+        
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -97,7 +126,7 @@ public class PlayerMove : MonoBehaviour
     }
 
 
-    void UpdateWorld()
+    void  UpdateWorld()
     {
         for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
         {
@@ -109,9 +138,13 @@ public class PlayerMove : MonoBehaviour
                 Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null) continue;
-                chunk = (Chunk)Instantiate(chunkPrefab, pos, Quaternion.identity);
+                chunk=(Chunk)Instantiate(chunkPrefab,pos,Quaternion.identity);
+               
+             
+               
             }
         }
+     
     }
 
 
@@ -119,7 +152,7 @@ public class PlayerMove : MonoBehaviour
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
-            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,1.01f);
+            Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
             Chunk.SetBlock(blockPoint,0);
         }
     }
@@ -128,11 +161,11 @@ public class PlayerMove : MonoBehaviour
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
-            Vector3 blockPoint=Vector3.LerpUnclamped(cameraPos.position,info.point,0.999f);
+            Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
             if(blockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true){
                 return;
             }
-            Chunk.SetBlock(blockPoint,1);
+            Chunk.SetBlock(blockPoint,blockOnHandID);
         }
     }
     
@@ -146,4 +179,5 @@ public class PlayerMove : MonoBehaviour
         Time.timeScale=1;
         pauseMenu.SetActive(false);
     }
+ 
 }
