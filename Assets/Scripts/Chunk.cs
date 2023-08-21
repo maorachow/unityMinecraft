@@ -32,6 +32,8 @@ public class Chunk : MonoBehaviour
   //0-99solid blocks
   //100-199no hitbox blocks
   //200-299hitbox nonsolid blocks
+    public static RuntimePlatform platform = Application.platform;
+    public static string gameWorldDataPath;
     public delegate bool TmpCheckFace(int x,int y,int z);
     public delegate void TmpBuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side);
     public static bool isBlockInfoAdded=false;
@@ -41,17 +43,20 @@ public class Chunk : MonoBehaviour
     public bool isMeshBuildCompleted=false;
     public bool isChunkMapUpdated=false;
     public bool isSavedInDisk=false;
+    public bool isModifiedInGame=false;
+
     public static Dictionary<int,List<Vector2>> blockInfo=new Dictionary<int,List<Vector2>>();
     public Mesh chunkMesh;
     public Mesh chunkHitboxNonSolidMesh;
     public Mesh chunkNonSolidMesh;
-    public static int worldGenType=1;
+    public static int worldGenType=0;
     //0Inf 1Superflat
     public static int chunkWidth=16;
     public static int chunkHeight=256;
     public static int chunkSeaLevel=63;
     public static Dictionary<Vector2Int,Chunk> Chunks=new Dictionary<Vector2Int,Chunk>();
     public static Dictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new Dictionary<Vector2Int,WorldData>();
+
     public MeshCollider meshCollider;
     public MeshRenderer meshRenderer;
     public MeshFilter meshFilter;
@@ -63,6 +68,7 @@ public class Chunk : MonoBehaviour
     public Chunk backChunk;
     public Chunk leftChunk;
     public Chunk rightChunk;
+    public Vector2Int chunkPos;
     public static void AddBlockInfo(){
         //left right bottom top back front
         blockInfo.Add(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
@@ -80,7 +86,25 @@ public class Chunk : MonoBehaviour
 
     }
     public static void ReadJson(){
-        string[] worldData=File.ReadAllLines(Application.dataPath+"/GameData/world.json");
+      if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
+        gameWorldDataPath="C:/";
+      }else{
+        gameWorldDataPath=Application.persistentDataPath;
+      }
+         
+         if (!Directory.Exists(gameWorldDataPath+"unityMinecraftData")){
+                Directory.CreateDirectory(gameWorldDataPath+"unityMinecraftData");
+               
+            }
+          if(!Directory.Exists(gameWorldDataPath+"unityMinecraftData/GameData")){
+                    Directory.CreateDirectory(gameWorldDataPath+"unityMinecraftData/GameData");
+                }
+       
+        if(!File.Exists(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json")){
+            File.Create(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json");
+        }
+       
+        string[] worldData=File.ReadAllLines(gameWorldDataPath+"unityMinecraftData/GameData/world.json");
         List<WorldData> tmpList=new List<WorldData>();
         foreach(string s in worldData){
             WorldData tmp=JsonMapper.ToObject<WorldData>(s);
@@ -97,12 +121,23 @@ public class Chunk : MonoBehaviour
         }
         if(isJsonReadFromDisk==false){
             ReadJson();
-
         }
     }
-    void Start(){
-        Chunks.Add(new Vector2Int((int)transform.position.x,(int)transform.position.z),this); 
-        if(chunkDataReadFromDisk.ContainsKey(new Vector2Int((int)transform.position.x,(int)transform.position.z))){
+
+    void OnEnable(){
+   //     StartCoroutine(ReInitData());
+    }
+
+
+
+    void ReInitData(){
+      
+          chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+     //     if(isChunkPosInited&&!Chunks.ContainsKey(chunkPos)){
+          Chunks.Add(chunkPos,this);  
+   //       }
+         
+        if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             isSavedInDisk=true;
         }
         meshRenderer = GetComponent<MeshRenderer>();
@@ -111,20 +146,49 @@ public class Chunk : MonoBehaviour
         meshRendererNS = transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
 	    meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
 	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
+        StartLoadChunk();
+     //   yield break;
+    }
+
+
+    void OnDisable(){
+        SaveSingleChunk();
+        Chunks.Remove(chunkPos);
+        chunkPos=new Vector2Int(0,0);
+     //   isChunkPosInited=false;
+    }
+
+
+    void Start(){
+ /*       chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+        Chunks.Add(chunkPos,this); 
+        if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
+            isSavedInDisk=true;
+        }
+        meshRenderer = GetComponent<MeshRenderer>();
+	    meshCollider = GetComponent<MeshCollider>();
+	    meshFilter = GetComponent<MeshFilter>();
+        meshRendererNS = transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
+	    meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
+	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
+        StartLoadChunk();*/
+     //   StartCoroutine(ReInitData());
+    }
+
+
+
+    public void StartLoadChunk(){
         Vector3 pos=transform.position;
         ThreadStart childref = new ThreadStart(() => InitMap(pos));
         Thread childThread=new Thread(childref);
         childThread.Start();
-
-         StartCoroutine(BuildChunk());
-         //StartCoroutine(BuildChunk());
-      //  InitMap(pos);
-    
-     
+        StartCoroutine(BuildChunk());
     }
+
+
+
     public static int[,,] WorldDataTo3DMap(WorldData wd){
        //x->y->z
-        Debug.Log(wd.map[3]);
         int[,,] returnValue=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         //for(int i=0;i<wd.map.Length;i++){
        //     returnValue[i/(chunkHeight*chunkWidth),i%chunkHeight,(i/chunkHeight)%chunkWidth]=wd.map[i];
@@ -142,6 +206,8 @@ public class Chunk : MonoBehaviour
         return returnValue;
     }
 
+
+
     public static int[] ThreeDMapToWorldData(int[,,] map){
         int[] returnValue=new int[chunkWidth*chunkHeight*chunkWidth+5];
         int index=0;
@@ -154,34 +220,58 @@ public class Chunk : MonoBehaviour
             }
 
         }
-        Debug.Log(returnValue);
+      
         return returnValue;
     }
-
+    public void SaveSingleChunk(){
+        if(!isModifiedInGame){
+            return;
+        }
+        if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
+            chunkDataReadFromDisk.Remove(chunkPos);
+            int[] worldDataMap=ThreeDMapToWorldData(map);
+            WorldData wd=new WorldData();
+            wd.map=worldDataMap;
+            wd.posX=chunkPos.x;
+            wd.posZ=chunkPos.y;
+            chunkDataReadFromDisk.Add(chunkPos,wd);
+        }else{
+            int[] worldDataMap=ThreeDMapToWorldData(map);
+            WorldData wd=new WorldData();
+            wd.map=worldDataMap;
+            wd.posX=chunkPos.x;
+            wd.posZ=chunkPos.y;
+            chunkDataReadFromDisk.Add(chunkPos,wd);
+        }
+    }
     public static void SaveWorldData(){
         
         FileStream fs;
-             if (File.Exists(Application.dataPath+"/GameData/world.json"))
-             {
-                 fs = new FileStream(Application.dataPath+"/GameData/world.json", FileMode.Truncate, FileAccess.Write);//Truncate模式打开文件可以清空。
-             }
-             else
-             {
-                 fs = new FileStream(Application.dataPath+"/GameData/world.json", FileMode.Create, FileAccess.Write);
-            }
-             fs.Close();
-        foreach(KeyValuePair<Vector2Int,Chunk> c in Chunks){
-             int[] worldDataMap=ThreeDMapToWorldData(c.Value.map);
-        int x=(int)c.Value.transform.position.x;
-        int z=(int)c.Value.transform.position.z;
-        WorldData wd=new WorldData();
-        wd.map=worldDataMap;
-        wd.posX=x;
-        wd.posZ=z;
-        string tmpData=JsonMapper.ToJson(wd);
-        File.AppendAllText(Application.dataPath+"/GameData/world.json",tmpData+"\n");
+        if (File.Exists(gameWorldDataPath+"unityMinecraftData/GameData/world.json"))
+        {
+                 fs = new FileStream(gameWorldDataPath+"unityMinecraftData/GameData/world.json", FileMode.Truncate, FileAccess.Write);//Truncate模式打开文件可以清空。
         }
-       
+        else
+        {
+                 fs = new FileStream(gameWorldDataPath+"unityMinecraftData/GameData/world.json", FileMode.Create, FileAccess.Write);
+        }
+        fs.Close();
+        foreach(KeyValuePair<Vector2Int,Chunk> c in Chunks){
+       // int[] worldDataMap=ThreeDMapToWorldData(c.Value.map);
+     //   int x=(int)c.Value.transform.position.x;
+      //  int z=(int)c.Value.transform.position.z;
+     //   WorldData wd=new WorldData();
+     //   wd.map=worldDataMap;
+     //   wd.posX=x;
+     //   wd.posZ=z;
+     //   string tmpData=JsonMapper.ToJson(wd);
+     //   File.AppendAllText(Application.dataPath+"/GameData/world.json",tmpData+"\n");
+        c.Value.SaveSingleChunk();
+        }
+       foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
+        string tmpData=JsonMapper.ToJson(wd.Value);
+        File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
+       }
         isWorldDataSaved=true;
     }
 
@@ -293,9 +383,9 @@ public class Chunk : MonoBehaviour
 
 
     public void GenerateMesh(List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS){
-        
+       // Thread.Sleep(100);
          TmpCheckFace tmp=new TmpCheckFace(CheckNeedBuildFace);
-         TmpBuildFace TmpBuildFace=new TmpBuildFace(BuildFace);
+        TmpBuildFace TmpBuildFace=new TmpBuildFace(BuildFace);
         for (int x = 0; x < chunkWidth; x++){
             for (int y = 0; y < chunkHeight; y++){
                 for (int z = 0; z < chunkWidth; z++){
@@ -305,24 +395,24 @@ public class Chunk : MonoBehaviour
         if(0<typeid&&typeid<100){
     //Left
         if (tmp(x - 1, y, z))
-            TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
+          TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
         //Right
         if (tmp(x + 1, y, z))
-            TmpBuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
+         TmpBuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
 
         //Bottom
         if (tmp(x, y - 1, z))
-            TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
+         TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
         //Top
         if (tmp(x, y + 1, z))
-            TmpBuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
+        TmpBuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
 
         //Back
         if (tmp(x, y, z - 1))
-            TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
+        TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
         //Front
         if (tmp(x, y, z + 1))
-            TmpBuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
+        TmpBuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
 
 
 
@@ -336,56 +426,19 @@ public class Chunk : MonoBehaviour
         //left
         if (tmp(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-            //        BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
 
 
 
 
-        var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z);
-        var up=new Vector3(0f,0.8f,0f);
-        var right=Vector3.forward;
-        bool reversed=false;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }else{
-        //        BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+     TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
 
 
 
 
 
-        var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z);
-        var up=new Vector3(0f,1f,0f);
-        var right=Vector3.forward;
-        bool reversed=false;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
+      
             }
            
         }
@@ -393,56 +446,15 @@ public class Chunk : MonoBehaviour
         //Right
         if (tmp(x + 1, y, z)&&GetBlockType(x+1,y,z)!=100){
                 if(GetBlockType(x,y+1,z)!=100){
-      //              BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+     TmpBuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
 
 
 
-
-        var faceTypeID=typeid;
-        var corner=new Vector3(x + 1, y, z);
-        var up= new Vector3(0f,0.8f,0f);
-        var right=Vector3.forward;
-        bool reversed=true;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
                 }else{
-                //        BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+         TmpBuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
 
 
 
-
-
-        var faceTypeID=typeid;
-        var corner=new Vector3(x + 1, y, z);
-        var up= new Vector3(0f,1f,0f);
-        var right=Vector3.forward;
-        bool reversed=true;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }  
 
         }
@@ -451,58 +463,20 @@ public class Chunk : MonoBehaviour
 
         //Bottom
         if (tmp(x, y - 1, z)&&GetBlockType(x,y-1,z)!=100){
-        //    BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
+       TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
 
 
 
 
-            var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z);
-        var up= Vector3.forward;
-        var right=Vector3.right;
-        bool reversed=false;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
         }
             
         //Top
         if (tmp(x, y + 1, z)&&GetBlockType(x,y+1,z)!=100){
-           //  BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
+        TmpBuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
 
 
 
 
-             var faceTypeID=typeid;
-        var corner=new Vector3(x, y + 0.8f, z);
-        var up= Vector3.forward;
-        var right=Vector3.right;
-        bool reversed=true;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); tris.Add(index + 2);tris.Add(index + 0);}
         }
            
 
@@ -511,57 +485,20 @@ public class Chunk : MonoBehaviour
         //Back
         if (tmp(x, y, z - 1)&&GetBlockType(x,y,z-1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-               // BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
 
 
 
-               
-               var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z);
-        var up= new Vector3(0f,0.8f,0f);
-        var right=Vector3.right;
-        bool reversed=true;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
+       
             }else{
-              //  BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
 
 
 
 
 
 
-            var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z);
-        var up= new Vector3(0f,1f,0f);
-        var right=Vector3.right;
-        bool reversed=true;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
+ 
             }
             
         }
@@ -570,55 +507,12 @@ public class Chunk : MonoBehaviour
         //Front
         if (tmp(x, y, z + 1)&&GetBlockType(x,y,z+1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-             //   BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5); 
+            TmpBuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5) ;
 
 
-
-
-             var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z + 1);
-        var up= new Vector3(0f,0.8f,0f);
-        var right=Vector3.right;
-        bool reversed=false;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }else{
-               // BuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
+            TmpBuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
 
-
-
-
-               var faceTypeID=typeid;
-        var corner=new Vector3(x, y, z+1);
-        var up= new Vector3(0f,1f,0f);
-        var right= Vector3.right;
-        bool reversed=false;
-        var side=0;
-        int index = vertsNS.Count;
-        vertsNS.Add (corner);
-        vertsNS.Add (corner + up);
-        vertsNS.Add (corner + up + right);
-        vertsNS.Add (corner + right);
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-        uvCorner=blockInfo[typeid][side];
-        uvsNS.Add(uvCorner);
-        uvsNS.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvsNS.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-        if (reversed){trisNS.Add(index + 0);trisNS.Add(index + 1);trisNS.Add(index + 2);trisNS.Add(index + 2);trisNS.Add(index + 3);trisNS.Add(index + 0);}else{trisNS.Add(index + 1);trisNS.Add(index + 0);trisNS.Add(index + 2);trisNS.Add(index + 3); trisNS.Add(index + 2);trisNS.Add(index + 0);}
             }
              
         }   
@@ -634,11 +528,11 @@ public class Chunk : MonoBehaviour
 
 
 
-            TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
+          TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
 
 
 
-            TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
+         TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
 
 
         }
@@ -661,6 +555,7 @@ public class Chunk : MonoBehaviour
    // if(!isMapGenCompleted){
     ///    yield return 10;
    // }
+ 
         chunkMesh=new Mesh();
         chunkNonSolidMesh=new Mesh();
         
@@ -683,15 +578,17 @@ public class Chunk : MonoBehaviour
          //       }
        //     }
        // }
-       // ThreadStart childref = new ThreadStart(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-     //   Thread childThread=new Thread(childref);
-       // childThread.Start();
+        
+   //     Thread childThread=new Thread(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+     //   childThread.Start();
+     // ThreadPool.QueueUserWorkItem(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
         //childThread.Join();
-        Task t1 = new Task(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-        t1.Start();
+        //Task t1 = new Task(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+        Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
-        yield return new WaitUntil(()=>isMeshBuildCompleted==true);
-        chunkMesh.vertices = verts.ToArray();
+        yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
+    
+                chunkMesh.vertices = verts.ToArray();
         chunkMesh.uv = uvs.ToArray();
         chunkMesh.triangles = tris.ToArray();
         chunkMesh.RecalculateBounds();
@@ -711,6 +608,8 @@ public class Chunk : MonoBehaviour
         isChunkMapUpdated=false;
         yield break;
     }
+
+    
 
 
    /* void BuildBlock(int x, int y, int z, List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS){
@@ -864,7 +763,7 @@ public class Chunk : MonoBehaviour
 
 
 
-    void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
+     void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
         int index = verts.Count;
     
         verts.Add (corner);
@@ -900,6 +799,7 @@ public class Chunk : MonoBehaviour
             tris.Add(index + 2);
             tris.Add(index + 0);
         }
+    
     }
 
     public static Chunk GetChunk(Vector2Int chunkPos){
@@ -964,12 +864,10 @@ public class Chunk : MonoBehaviour
     }
     void Update(){
         if(isChunkMapUpdated==true){
+            isModifiedInGame=true;
             StartCoroutine(BuildChunk());
             isChunkMapUpdated=false;
         }
     }
-    void OnDestroy(){
-      //  SaveWorldData();
-    }
-}
 
+}

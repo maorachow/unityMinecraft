@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class pauseMenuUI : MonoBehaviour
 {
     public Button rebuildAllChunksButton;
+    public Button SaveWorldButton;
     public Text viewRangeText;
     public Slider viewRangeSlider;
     public PlayerMove player;
@@ -16,11 +17,16 @@ public class pauseMenuUI : MonoBehaviour
         rebuildAllChunksButton=GameObject.Find("rebuildallchunksbutton").GetComponent<Button>();
         viewRangeSlider.onValueChanged.AddListener(ViewRangeSliderOnValueChanged);
         rebuildAllChunksButton.onClick.AddListener(RebuildAllChunksButtonOnClick);
+        SaveWorldButton=GameObject.Find("saveworldbutton").GetComponent<Button>();
+        SaveWorldButton.onClick.AddListener(SaveWorldButtonOnClick);
     }
     void ViewRangeSliderOnValueChanged(float f){
         player.viewRange=viewRangeSlider.value;
         viewRangeText.text=viewRangeSlider.value.ToString();
 
+    }
+    void SaveWorldButtonOnClick(){
+        Chunk.SaveWorldData();
     }
     void RebuildAllChunksButtonOnClick(){
         foreach(KeyValuePair<Vector2Int,Chunk> kvp in Chunk.Chunks){

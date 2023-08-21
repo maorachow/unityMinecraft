@@ -50,7 +50,7 @@ public class PlayerMove : MonoBehaviour
         pauseMenu=GameObject.Find("pausemenuUI");
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
         pauseMenu.SetActive(false);
-        viewRange=32;
+        viewRange=64;
         cc=GetComponent<CharacterController>();
         cameraPos=transform.GetChild(0);
         mainCam=cameraPos.gameObject.GetComponent<Camera>();
@@ -122,11 +122,13 @@ public class PlayerMove : MonoBehaviour
             PlaceBlock();
             breakBlockCD=0.2f;
         }
-        UpdateWorld();
+       
+    }
+    void FixedUpdate(){
+         UpdateWorld();
     }
 
-
-    void  UpdateWorld()
+    void UpdateWorld()
     {
         for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
         {
@@ -137,11 +139,12 @@ public class PlayerMove : MonoBehaviour
                 pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
                 Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-                if (chunk != null) continue;
-                chunk=(Chunk)Instantiate(chunkPrefab,pos,Quaternion.identity);
-               
-             
-               
+                if (chunk != null) {continue;}else{
+                    chunk=ObjectPools.chunkPool.Get().GetComponent<Chunk>();
+                    chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
+               //     chunk.isChunkPosInited=true;
+                    chunk.SendMessage("ReInitData");
+                }
             }
         }
      
