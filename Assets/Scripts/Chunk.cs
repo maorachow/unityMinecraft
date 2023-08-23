@@ -10,10 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using System.IO;
+using Utf8Json;
 public class WorldData{
     public int posX;
     public int posZ;
-    public int[] map;
+    public int[,,] map;
     
 }
 public class Chunk : MonoBehaviour
@@ -32,6 +33,7 @@ public class Chunk : MonoBehaviour
   //0-99solid blocks
   //100-199no hitbox blocks
   //200-299hitbox nonsolid blocks
+    public static FastNoise noiseGenerator=new FastNoise();
     public static RuntimePlatform platform = Application.platform;
     public static string gameWorldDataPath;
     public delegate bool TmpCheckFace(int x,int y,int z);
@@ -44,7 +46,7 @@ public class Chunk : MonoBehaviour
     public bool isChunkMapUpdated=false;
     public bool isSavedInDisk=false;
     public bool isModifiedInGame=false;
-
+    public bool isChunkPosInited=false;
     public static Dictionary<int,List<Vector2>> blockInfo=new Dictionary<int,List<Vector2>>();
     public Mesh chunkMesh;
     public Mesh chunkHitboxNonSolidMesh;
@@ -54,6 +56,7 @@ public class Chunk : MonoBehaviour
     public static int chunkWidth=16;
     public static int chunkHeight=256;
     public static int chunkSeaLevel=63;
+
     public static Dictionary<Vector2Int,Chunk> Chunks=new Dictionary<Vector2Int,Chunk>();
     public static Dictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new Dictionary<Vector2Int,WorldData>();
 
@@ -69,6 +72,18 @@ public class Chunk : MonoBehaviour
     public Chunk leftChunk;
     public Chunk rightChunk;
     public Vector2Int chunkPos;
+    public Transform playerPos;
+    public float playerDistance;
+
+
+
+
+    public Vector3[] opqVerts;
+    public Vector2[] opqUVs;
+    public int[] opqTris;
+    public Vector3[] NSVerts;
+    public Vector2[] NSUVs;
+    public int[] NSTris;
     public static void AddBlockInfo(){
         //left right bottom top back front
         blockInfo.Add(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
@@ -107,7 +122,7 @@ public class Chunk : MonoBehaviour
         string[] worldData=File.ReadAllLines(gameWorldDataPath+"unityMinecraftData/GameData/world.json");
         List<WorldData> tmpList=new List<WorldData>();
         foreach(string s in worldData){
-            WorldData tmp=JsonMapper.ToObject<WorldData>(s);
+            WorldData tmp=JsonSerializer.Deserialize<WorldData>(s);
             tmpList.Add(tmp);
         }
         foreach(WorldData w in tmpList){
@@ -124,42 +139,53 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    void OnEnable(){
-   //     StartCoroutine(ReInitData());
-    }
 
 
 
     void ReInitData(){
-      
-          chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
-     //     if(isChunkPosInited&&!Chunks.ContainsKey(chunkPos)){
+
+       chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+       isChunkPosInited=true;
           Chunks.Add(chunkPos,this);  
-   //       }
-         
+
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             isSavedInDisk=true;
+            Debug.Log(chunkPos);
         }
-        meshRenderer = GetComponent<MeshRenderer>();
-	    meshCollider = GetComponent<MeshCollider>();
-	    meshFilter = GetComponent<MeshFilter>();
-        meshRendererNS = transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
-	    meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
-	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
         StartLoadChunk();
-     //   yield break;
     }
 
 
     void OnDisable(){
         SaveSingleChunk();
         Chunks.Remove(chunkPos);
+        map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         chunkPos=new Vector2Int(0,0);
+        isChunkPosInited=false;
+        isSavedInDisk=false;
+
+	    meshCollider.sharedMesh= null;
+	    meshFilter.mesh=null;
+      
+	    meshColliderNS.sharedMesh=null;
+	    meshFilterNS.mesh=null;
+        chunkMesh=null;
+        chunkNonSolidMesh=null;
+        isModifiedInGame=false;
      //   isChunkPosInited=false;
     }
 
 
     void Start(){
+        playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+         meshRenderer = GetComponent<MeshRenderer>();
+	    meshCollider = GetComponent<MeshCollider>();
+	    meshFilter = GetComponent<MeshFilter>();
+        meshRendererNS = transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
+	    meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
+	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
+    //     chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+      //    Chunks.Add(chunkPos,this); 
  /*       chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
         Chunks.Add(chunkPos,this); 
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
@@ -178,16 +204,21 @@ public class Chunk : MonoBehaviour
 
 
     public void StartLoadChunk(){
-        Vector3 pos=transform.position;
-        ThreadStart childref = new ThreadStart(() => InitMap(pos));
+      //  Vector3 pos=transform.position;
+       frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
+        backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
+        leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
+        rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
+        ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
         Thread childThread=new Thread(childref);
         childThread.Start();
+        
         StartCoroutine(BuildChunk());
     }
 
 
 
-    public static int[,,] WorldDataTo3DMap(WorldData wd){
+ /*   public static int[,,] WorldDataTo3DMap(WorldData wd){
        //x->y->z
         int[,,] returnValue=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         //for(int i=0;i<wd.map.Length;i++){
@@ -205,10 +236,10 @@ public class Chunk : MonoBehaviour
        // Debug.Log(returnValue[2,2,2]);
         return returnValue;
     }
+*/
 
 
-
-    public static int[] ThreeDMapToWorldData(int[,,] map){
+  /*  public static int[] ThreeDMapToWorldData(int[,,] map){
         int[] returnValue=new int[chunkWidth*chunkHeight*chunkWidth+5];
         int index=0;
         for(int x=0;x<chunkWidth;x++){
@@ -222,21 +253,25 @@ public class Chunk : MonoBehaviour
         }
       
         return returnValue;
-    }
+    }*/
     public void SaveSingleChunk(){
+        if(!isChunkPosInited){
+            return;
+        }
         if(!isModifiedInGame){
+
             return;
         }
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             chunkDataReadFromDisk.Remove(chunkPos);
-            int[] worldDataMap=ThreeDMapToWorldData(map);
+         int[,,] worldDataMap=map;
             WorldData wd=new WorldData();
             wd.map=worldDataMap;
             wd.posX=chunkPos.x;
             wd.posZ=chunkPos.y;
             chunkDataReadFromDisk.Add(chunkPos,wd);
         }else{
-            int[] worldDataMap=ThreeDMapToWorldData(map);
+            int[,,] worldDataMap=map;
             WorldData wd=new WorldData();
             wd.map=worldDataMap;
             wd.posX=chunkPos.x;
@@ -269,7 +304,7 @@ public class Chunk : MonoBehaviour
         c.Value.SaveSingleChunk();
         }
        foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
-        string tmpData=JsonMapper.ToJson(wd.Value);
+        string tmpData=JsonSerializer.ToJsonString(wd.Value);
         File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
        }
         isWorldDataSaved=true;
@@ -277,22 +312,27 @@ public class Chunk : MonoBehaviour
 
 
     
-    void InitMap(Vector3 pos){
-
+    void InitMap(Vector2Int pos){
+       
         if(isSavedInDisk==true){
-            map=WorldDataTo3DMap(chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.z)]);
+            if(isChunkPosInited==false){
+                 isMapGenCompleted=true;
+                return;
+            }
+            map=chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.y)].map;
             isMapGenCompleted=true;
             return;
         }
         if(worldGenType==0){
-        System.Random random=new System.Random();
+        System.Random random=new System.Random(pos.x+pos.y);
         int treeCount=10;
         for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
-                float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.z*0.01f+j*0.01f);
+              //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.y*0.01f+j*0.01f);
+               float noiseValue=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+i,pos.y+j)*20f;
                 for(int k=0;k<chunkHeight;k++){
                     if(noiseValue>k){
-                     map[i,k,j]=(int)3;   
+                     map[i,k,j]=3;   
                     }else{
                         map[i,k,j]=0;
                     }
@@ -307,7 +347,7 @@ public class Chunk : MonoBehaviour
        
                 for(int k=chunkHeight-1;k>=0;k--){
                 
-                     if(map[i,k,j]!=0&&k>chunkSeaLevel){
+                     if(map[i,k,j]!=0&&k>=chunkSeaLevel){
                             map[i,k,j]=4;
                             break;
                     }
@@ -315,7 +355,7 @@ public class Chunk : MonoBehaviour
                     if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&random.Next(100)>70){
                         map[i,k,j]=101;
                     }
-                        if(k<=chunkSeaLevel&&map[i,k,j]==0){
+                        if(k<chunkSeaLevel&&map[i,k,j]==0){
                                 map[i,k,j]=100;
                         }
                        
@@ -330,7 +370,7 @@ public class Chunk : MonoBehaviour
               
                     if(map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100&&k>chunkSeaLevel){
                     if(treeCount>0){
-                            if(random.Next(100)>97){
+                            if(random.Next(100)>98){
                                 map[i,k,j]=7;
                                 map[i,k+1,j]=7;
                                map[i,k+2,j]=7;
@@ -341,21 +381,45 @@ public class Chunk : MonoBehaviour
                                 map[i+1,k+4,j]=9;
                                  map[i+1,k+3,j]=9;
                                   map[i+1,k+2,j]=9;
+                               }else{
+                                if(rightChunk!=null){
+                                    rightChunk.map[0,k+4,j]=9;
+                                 rightChunk.map[0,k+3,j]=9;
+                                  rightChunk.map[0,k+2,j]=9;
+                                }
                                }
                                if(i-1>=0){
                                 map[i-1,k+4,j]=9;
                                 map[i-1,k+3,j]=9;
                                 map[i-1,k+2,j]=9;
+                               }else{
+                                if(leftChunk!=null){
+                                      leftChunk.map[chunkWidth-1,k+4,j]=9;
+                                 leftChunk.map[chunkWidth-1,k+3,j]=9;
+                                  leftChunk.map[chunkWidth-1,k+2,j]=9;
+                                }
                                }
                                if(j+1<chunkWidth){
                                 map[i,k+4,j+1]=9;
                                 map[i,k+3,j+1]=9;
                                 map[i,k+2,j+1]=9;
+                               }else{
+                                if(frontChunk!=null){
+                                frontChunk.map[i,k+4,0]=9;
+                                frontChunk.map[i,k+3,0]=9;
+                                frontChunk.map[i,k+2,0]=9;
+                                }
                                }
                                if(j-1>=0){
                                 map[i,k+4,j-1]=9;
                                 map[i,k+3,j-1]=9;
                                 map[i,k+2,j-1]=9;
+                               }else{
+                                if(backChunk!=null){
+                                backChunk.map[i,k+4,chunkWidth-1]=9;
+                                backChunk.map[i,k+3,chunkWidth-1]=9;
+                                backChunk.map[i,k+2,chunkWidth-1]=9;
+                                }
                                }
                                treeCount--;
                             }
@@ -542,6 +606,13 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
+        opqVerts=verts.ToArray();
+        opqUVs=uvs.ToArray();
+        opqTris=tris.ToArray();
+        NSVerts=vertsNS.ToArray();
+        NSUVs=uvsNS.ToArray();
+        NSTris=trisNS.ToArray();
+        
         isMeshBuildCompleted=true;
     }
 
@@ -555,7 +626,8 @@ public class Chunk : MonoBehaviour
    // if(!isMapGenCompleted){
     ///    yield return 10;
    // }
- 
+
+
         chunkMesh=new Mesh();
         chunkNonSolidMesh=new Mesh();
         
@@ -565,42 +637,34 @@ public class Chunk : MonoBehaviour
         List<Vector3> verts = new List<Vector3>();
         List<Vector2> uvs = new List<Vector2>();
         List<int> tris = new List<int>();
-        frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
+          frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
         backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
         leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
         rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
 
-      //  yield return new WaitUntil(()=>frontChunk!=null&&backChunk!=null&&leftChunk!=null&&rightChunk!=null);
-     //   for (int x = 0; x < chunkWidth; x++){
-      //      for (int y = 0; y < chunkHeight; y++){
-       //         for (int z = 0; z < chunkWidth; z++){
-        //                BuildBlock(x, y, z, verts, uvs, tris, vertsNS, uvsNS, trisNS);
-         //       }
-       //     }
-       // }
+
+
         
-   //     Thread childThread=new Thread(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-     //   childThread.Start();
+        Thread childThread=new Thread(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+        childThread.Start();
      // ThreadPool.QueueUserWorkItem(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
         //childThread.Join();
         //Task t1 = new Task(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-        Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+       // ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS)));
+       // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
         yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
     
-                chunkMesh.vertices = verts.ToArray();
-        chunkMesh.uv = uvs.ToArray();
-        chunkMesh.triangles = tris.ToArray();
+        chunkMesh.vertices = opqVerts;
+        chunkMesh.uv = opqUVs;
+        chunkMesh.triangles = opqTris;
         chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
         meshFilter.mesh = chunkMesh;
         meshCollider.sharedMesh = chunkMesh;
-
-
-
-        chunkNonSolidMesh.vertices = vertsNS.ToArray();
-        chunkNonSolidMesh.uv = uvsNS.ToArray();
-        chunkNonSolidMesh.triangles = trisNS.ToArray();
+        chunkNonSolidMesh.vertices = NSVerts;
+        chunkNonSolidMesh.uv = NSUVs;
+        chunkNonSolidMesh.triangles = NSTris;
         chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();
         meshFilterNS.mesh = chunkNonSolidMesh;
@@ -711,7 +775,7 @@ public class Chunk : MonoBehaviour
 
 
     bool CheckNeedBuildFace(int x, int y, int z){
-        if (y < 0) return true;
+        if (y < 0) return false;
         var type = GetBlockType(x, y, z);
         bool isNonSolid=false;
         if(type<200&&type>=100){
@@ -729,7 +793,17 @@ public class Chunk : MonoBehaviour
                 return false;
         }
     }
-
+    public int GenerateBlockType(int x, int y, int z,Vector2Int pos){
+        float noiseValue=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+x,pos.y+z)*20f;
+        if(noiseValue>y){
+            return 1;
+        }else{
+            if(y<chunkSeaLevel){
+                     return 1;       
+                }
+                return 1;
+        }
+    }
     public int GetBlockType(int x, int y, int z){
         if (y < 0 || y > chunkHeight - 1)
         {
@@ -741,20 +815,20 @@ public class Chunk : MonoBehaviour
             if(x>=chunkWidth){
                 if(rightChunk!=null){
                 return rightChunk.map[0,y,z];    
-                }else return 1;
+                }else return GenerateBlockType(x,y,z,chunkPos);
                 
             }else if(z>=chunkWidth){
                 if(frontChunk!=null){
                 return frontChunk.map[x,y,0];
-                 }else return 1;
+                 }else return GenerateBlockType(x,y,z,chunkPos);
             }else if(x<0){
                 if(leftChunk!=null){
                 return leftChunk.map[chunkWidth-1,y,z];
-                 }else return 1;
+                 }else return GenerateBlockType(x,y,z,chunkPos);
             }else if(z<0){
                 if(backChunk!=null){
                 return backChunk.map[x,y,chunkWidth-1];
-                 }else return 1;
+                 }else return GenerateBlockType(x,y,z,chunkPos);
             }
            
         }
@@ -835,10 +909,28 @@ public class Chunk : MonoBehaviour
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
-    //   Debug.Log(chunkNeededUpdate.frontChunk);
-     //   Debug.Log(chunkNeededUpdate.backChunk);
-      //  Debug.Log(chunkNeededUpdate.leftChunk);
-      //  Debug.Log(chunkNeededUpdate.rightChunk);
+
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+        chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
+        chunkNeededUpdate.isChunkMapUpdated=true;
+        if(chunkNeededUpdate.frontChunk!=null){
+           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
+        }
+        if(chunkNeededUpdate.backChunk!=null){
+            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
+        }
+        if(chunkNeededUpdate.leftChunk!=null){
+            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
+        }
+        if(chunkNeededUpdate.rightChunk!=null){
+            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
+        }
+    }
+    public static void SetBlockByHand(Vector3 pos,int blockID){
+
+        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
+
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         chunkNeededUpdate.isChunkMapUpdated=true;
@@ -868,6 +960,85 @@ public class Chunk : MonoBehaviour
             StartCoroutine(BuildChunk());
             isChunkMapUpdated=false;
         }
+      
     }
-
+    void FixedUpdate(){
+         TryReleaseChunk();
+    }
+    void TryReleaseChunk(){
+        if(Mathf.Abs(chunkPos.x-playerPos.position.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(chunkPos.y-playerPos.position.z)>PlayerMove.viewRange+Chunk.chunkWidth+3){
+            Chunk.Chunks.Remove(chunkPos);
+            ObjectPools.chunkPool.Remove(gameObject);
+           
+        }
+    }
+    public int updateCount=0;
+    public bool BFSIsWorking=false;
+    public bool[,,] mapIsSearched;
+    public void BFSInit(int x,int y,int z, int ignoreSide,int GainedUpdateCount){
+        updateCount=GainedUpdateCount;
+        mapIsSearched=new bool[chunkWidth+2,chunkHeight+2,chunkWidth+2];
+        BFSIsWorking=true;
+        StartCoroutine(BFSMapUpdate(x,y,z,ignoreSide));
+    }
+    IEnumerator BFSMapUpdate(int x,int y,int z, int ignoreSide){
+        //left right bottom top back front
+        //left x-1 right x+1 top y+1 bottom y-1 back z-1 front z+1
+        yield return new WaitForSeconds(0.2f);
+        if(!BFSIsWorking){
+            yield break;
+        }
+        if(updateCount>256){
+            BFSIsWorking=false;
+            yield break;
+        }
+        mapIsSearched[x,y,z]=true;
+        SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z),0);
+        updateCount++;
+        if(!(ignoreSide==0)&&x-1>=0){
+            if(!mapIsSearched[x-1,y,z]&&map[x-1,y,z]!=0)
+           StartCoroutine(BFSMapUpdate(x-1,y,z,ignoreSide));
+        }else if(x-1<0){
+            if(leftChunk!=null){
+                leftChunk.BFSInit(chunkWidth-1,y,z,ignoreSide,updateCount);
+            }
+        }
+        if(!(ignoreSide==1)&&x+1<chunkWidth){
+             if(!mapIsSearched[x+1,y,z]&&map[x+1,y,z]!=0)
+            StartCoroutine(BFSMapUpdate(x+1,y,z,ignoreSide));
+        }else if(x+1>=chunkWidth){
+            if(rightChunk!=null){
+                rightChunk.BFSInit(0,y,z,ignoreSide,updateCount);
+            }
+        }
+        if(!(ignoreSide==2)&&y-1>=0){
+             if(!mapIsSearched[x,y-1,z]&&map[x,y-1,z]!=0)
+            StartCoroutine(BFSMapUpdate(x,y-1,z,ignoreSide));
+        }
+        if(!(ignoreSide==3)&&y+1<chunkHeight){
+             if(!mapIsSearched[x,y+1,z]&&map[x,y+1,z]!=0)
+            StartCoroutine(BFSMapUpdate(x,y+1,z,ignoreSide));
+        }
+        if(!(ignoreSide==4)&&z-1>=0){
+             if(!mapIsSearched[x,y,z-1]&&map[x,y,z-1]!=0)
+            StartCoroutine(BFSMapUpdate(x,y,z-1,ignoreSide));
+        }else if(z-1<0){
+            if(backChunk!=null){
+                backChunk.BFSInit(x,y,chunkWidth-1,ignoreSide,updateCount);
+            }
+        }
+        if(!(ignoreSide==5)&&z+1<chunkWidth){
+             if(!mapIsSearched[x,y,z+1]&&map[x,y,z+1]!=0)
+            StartCoroutine(BFSMapUpdate(x,y,z+1,ignoreSide));
+        }else if(z+1>=chunkWidth){
+            if(frontChunk!=null){
+                frontChunk.BFSInit(x,y,0,ignoreSide,updateCount);
+            }
+        }
+        
+    }
+ //   void UpdatePlayerDistance(){
+//        playerDistance = (chunkPos - new Vector2(playerPos.position.x,playerPos.position.z)).sqrMagnitude;
+//
+  //  }
 }

@@ -21,7 +21,7 @@ public class pauseMenuUI : MonoBehaviour
         SaveWorldButton.onClick.AddListener(SaveWorldButtonOnClick);
     }
     void ViewRangeSliderOnValueChanged(float f){
-        player.viewRange=viewRangeSlider.value;
+        PlayerMove.viewRange=viewRangeSlider.value;
         viewRangeText.text=viewRangeSlider.value.ToString();
 
     }

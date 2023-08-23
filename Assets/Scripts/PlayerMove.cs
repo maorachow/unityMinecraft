@@ -11,6 +11,7 @@ public class PlayerMove : MonoBehaviour
     public static bool isPaused=false;
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
+    public GameObject collidingBlockOutline;
     public Transform cameraPos;
     public Text blockOnHandText;
     public Camera mainCam;
@@ -24,7 +25,8 @@ public class PlayerMove : MonoBehaviour
     public float mouseSens=10f;
     public Vector3 playerVec;
     public Chunk chunkPrefab;
-    public float viewRange=32;
+    
+    public static float viewRange=32;
     public GameObject pauseMenu;
     void Awake(){
         if(isBlockNameDicAdded==false){
@@ -44,9 +46,10 @@ public class PlayerMove : MonoBehaviour
     }
     void Start()
     {   
-
+        Application.targetFrameRate = 1024;
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
+        collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         pauseMenu=GameObject.Find("pausemenuUI");
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
         pauseMenu.SetActive(false);
@@ -55,11 +58,21 @@ public class PlayerMove : MonoBehaviour
         cameraPos=transform.GetChild(0);
         mainCam=cameraPos.gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
+      //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
     }
+
+
+  //  void SendChunkReleaseMessage(){
+  //      foreach(var c in Chunk.Chunks){
+   //         c.Value.SendMessage("TryReleaseChunk");
+  //      }
+  //  }
     void OnApplicationFocus(bool focus)
     {
     Cursor.lockState = CursorLockMode.Locked;
     }
+
+
     void Update()
     {      
         if(Input.GetKeyDown(KeyCode.U)){
@@ -69,10 +82,15 @@ public class PlayerMove : MonoBehaviour
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
         blockOutline.GetComponent<MeshRenderer>().enabled=true;
-        Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
+        collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
+       
+        Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
+        Vector3 blockPoint2=info.point-cameraPos.forward*0.01f;
         blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
+        collidingBlockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint2).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).z+0.5f);
         }else{
             blockOutline.GetComponent<MeshRenderer>().enabled=false;
+            collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
         }
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
             blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
@@ -130,7 +148,8 @@ public class PlayerMove : MonoBehaviour
 
     void UpdateWorld()
     {
-        for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
+     
+    for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
         {
             for (float z = transform.position.z - viewRange; z < transform.position.z + viewRange; z += Chunk.chunkWidth)
             {
@@ -140,23 +159,34 @@ public class PlayerMove : MonoBehaviour
                 Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null) {continue;}else{
-                    chunk=ObjectPools.chunkPool.Get().GetComponent<Chunk>();
-                    chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
+                    chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
+               //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
                //     chunk.isChunkPosInited=true;
                     chunk.SendMessage("ReInitData");
+         //          WorldManager.chunksToLoad.Add(chunk);
                 }
             }
         }
      
     }
 
-
+    
     void BreakBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
             Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
-            Chunk.SetBlock(blockPoint,0);
+            int tmpID=Chunk.GetBlock(blockPoint);
+            Chunk.SetBlockByHand(blockPoint,0);
+            GameObject a=ObjectPools.particleEffectPool.Get();
+
+            a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
+            a.GetComponent<particleAndEffectBeh>().blockID=tmpID;
+            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+           Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
+        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
         }
     }
 
@@ -165,10 +195,10 @@ public class PlayerMove : MonoBehaviour
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
             Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
-            if(blockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true){
+            if(collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true){
                 return;
             }
-            Chunk.SetBlock(blockPoint,blockOnHandID);
+            Chunk.SetBlockByHand(blockPoint,blockOnHandID);
         }
     }
     
@@ -182,5 +212,5 @@ public class PlayerMove : MonoBehaviour
         Time.timeScale=1;
         pauseMenu.SetActive(false);
     }
- 
+    
 }
