@@ -313,6 +313,9 @@ MonoBehaviour:
   isMapGenCompleted: 0
   isMeshBuildCompleted: 0
   isChunkMapUpdated: 0
+  isSavedInDisk: 0
+  isModifiedInGame: 0
+  isChunkPosInited: 0
   chunkMesh: {fileID: 0}
   chunkHitboxNonSolidMesh: {fileID: 0}
   chunkNonSolidMesh: {fileID: 0}
@@ -326,3 +329,14 @@ MonoBehaviour:
   backChunk: {fileID: 0}
   leftChunk: {fileID: 0}
   rightChunk: {fileID: 0}
+  chunkPos: {x: 0, y: 0}
+  playerPos: {fileID: 0}
+  playerDistance: 0
+  opqVerts: []
+  opqUVs: []
+  opqTris: 
+  NSVerts: []
+  NSUVs: []
+  NSTris: 
+  updateCount: 0
+  BFSIsWorking: 0

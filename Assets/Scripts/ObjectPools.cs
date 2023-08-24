@@ -69,9 +69,12 @@ public class ObjectPools : MonoBehaviour
 {
         public static GameObject chunkPrefab;
         public static GameObject particlePrefab;
+        public static GameObject creeperPrefab;
+        public static GameObject zombiePrefab;
     public static ObjectPool<GameObject> particleEffectPool;
     public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
-
+    public static ObjectPool<GameObject> creeperEntityPool;
+    public static ObjectPool<GameObject> zombieEntityPool;
     public void Awake(){
         particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
@@ -103,5 +106,30 @@ public class ObjectPools : MonoBehaviour
     
         Destroy(gameObject);
     }
+    
 
+
+    public GameObject CreateCreeper()
+    {
+        GameObject gameObject = Instantiate(particlePrefab, transform.position, Quaternion.identity);
+ 
+        return gameObject;
+    }
+    
+    void GetCreeper(GameObject gameObject)
+    {
+ 
+        gameObject.SetActive(true);
+   
+    }
+    void ReleaseCreeper(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+  
+    }
+    void DestroyCreeper(GameObject gameObject)
+    {
+    
+        Destroy(gameObject);
+    }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
-using LitJson;
+
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -947,7 +947,21 @@ public class Chunk : MonoBehaviour
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
         }
     }
+    public static int GetChunkLandingPoint(float x, float z){
+       Vector2Int intPos=new Vector2Int(FloatToInt(x),FloatToInt(z));
 
+        Chunk locChunk=Chunk.GetChunk(Vec3ToChunkPos(new Vector3(x,0f,z)));
+        if(locChunk==null){
+            return 0;
+        }
+        Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
+        for(int i=chunkHeight-1;i>=0;i--){
+            if(locChunk.map[chunkSpacePos.x,i-1,chunkSpacePos.y]!=0){
+                return i;
+            }
+        }
+        return 0;
+    }
     public static int GetBlock(Vector3 pos){
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
@@ -972,6 +986,7 @@ public class Chunk : MonoBehaviour
            
         }
     }
+    
     public int updateCount=0;
     public bool BFSIsWorking=false;
     public bool[,,] mapIsSearched;

@@ -78,6 +78,11 @@ public class PlayerMove : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.U)){
                 Chunk.SaveWorldData();
         }
+        if(Input.GetKey(KeyCode.LeftShift)){
+            moveSpeed=10f;
+        }else{
+            moveSpeed=5f;
+        }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
@@ -186,7 +191,7 @@ public class PlayerMove : MonoBehaviour
            Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-        chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
+     //   chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
         }
     }
 

@@ -27,6 +27,7 @@ public class pauseMenuUI : MonoBehaviour
     }
     void SaveWorldButtonOnClick(){
         Chunk.SaveWorldData();
+        EntityBeh.SaveWorldEntityData();
     }
     void RebuildAllChunksButtonOnClick(){
         foreach(KeyValuePair<Vector2Int,Chunk> kvp in Chunk.Chunks){
