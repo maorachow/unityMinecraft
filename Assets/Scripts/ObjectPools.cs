@@ -69,15 +69,19 @@ public class ObjectPools : MonoBehaviour
 {
         public static GameObject chunkPrefab;
         public static GameObject particlePrefab;
-        public static GameObject creeperPrefab;
-        public static GameObject zombiePrefab;
-    public static ObjectPool<GameObject> particleEffectPool;
-    public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
-    public static ObjectPool<GameObject> creeperEntityPool;
-    public static ObjectPool<GameObject> zombieEntityPool;
-    public void Awake(){
+        public static GameObject itemPrefab;
+        public static ObjectPool<GameObject> particleEffectPool;
+        public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
+        public static ObjectPool<GameObject> creeperEntityPool;
+        public static ObjectPool<GameObject> zombieEntityPool;
+        public static ObjectPool<GameObject> itemEntityPool;
+        public void Awake(){
         particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
+        itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
+        creeperEntityPool=new ObjectPool<GameObject>(CreateCreeper,GetCreeper,ReleaseCreeper,DestroyCreeper,true,10,300);
+        zombieEntityPool=new ObjectPool<GameObject>(CreateZombie,GetZombie,ReleaseZombie,DestroyZombie,true,10,300);
+        itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
         chunkPrefab=Resources.Load<GameObject>("Prefabs/chunk");
         chunkPool.Object=chunkPrefab;
         chunkPool.maxCount=100;
@@ -111,7 +115,7 @@ public class ObjectPools : MonoBehaviour
 
     public GameObject CreateCreeper()
     {
-        GameObject gameObject = Instantiate(particlePrefab, transform.position, Quaternion.identity);
+        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[0], transform.position, Quaternion.identity);
  
         return gameObject;
     }
@@ -128,6 +132,56 @@ public class ObjectPools : MonoBehaviour
   
     }
     void DestroyCreeper(GameObject gameObject)
+    {
+    
+        Destroy(gameObject);
+    }
+    public GameObject CreateZombie()
+    {
+        GameObject gameObject =Instantiate(EntityBeh.worldEntityTypes[1], new Vector3(100f,0f,100f), Quaternion.identity);
+ 
+        return gameObject;
+    }
+    
+    void GetZombie(GameObject gameObject)
+    {
+ 
+        gameObject.SetActive(true);
+   
+    }
+    void ReleaseZombie(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+  
+    }
+    void DestroyZombie(GameObject gameObject)
+    {
+    
+        Destroy(gameObject);
+    }
+
+
+
+
+    public GameObject CreateItem()
+    {
+        GameObject gameObject =Instantiate(itemPrefab, new Vector3(0f,100f,0f), Quaternion.identity);
+ 
+        return gameObject;
+    }
+    
+    void GetItem(GameObject gameObject)
+    {
+ 
+        gameObject.SetActive(true);
+   
+    }
+    void ReleaseItem(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+  
+    }
+    void DestroyItem(GameObject gameObject)
     {
     
         Destroy(gameObject);

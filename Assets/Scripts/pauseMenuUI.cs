@@ -9,6 +9,7 @@ public class pauseMenuUI : MonoBehaviour
     public Text viewRangeText;
     public Slider viewRangeSlider;
     public PlayerMove player;
+    
     void Start()
     {
         player=GameObject.Find("player").GetComponent<PlayerMove>();
@@ -26,6 +27,7 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void SaveWorldButtonOnClick(){
+        player.SavePlayerData();
         Chunk.SaveWorldData();
         EntityBeh.SaveWorldEntityData();
     }

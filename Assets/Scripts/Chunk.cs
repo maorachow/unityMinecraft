@@ -146,11 +146,11 @@ public class Chunk : MonoBehaviour
 
        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
        isChunkPosInited=true;
-          Chunks.Add(chunkPos,this);  
+       Chunks.Add(chunkPos,this);  
 
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             isSavedInDisk=true;
-            Debug.Log(chunkPos);
+           // Debug.Log(chunkPos);
         }
         StartLoadChunk();
     }
@@ -163,14 +163,15 @@ public class Chunk : MonoBehaviour
         chunkPos=new Vector2Int(0,0);
         isChunkPosInited=false;
         isSavedInDisk=false;
-
-	    meshCollider.sharedMesh= null;
-	    meshFilter.mesh=null;
+        isMapGenCompleted=false;
+        isMeshBuildCompleted=false;
+	//    meshCollider.sharedMesh= null;
+	//    meshFilter.mesh=null;
       
-	    meshColliderNS.sharedMesh=null;
-	    meshFilterNS.mesh=null;
-        chunkMesh=null;
-        chunkNonSolidMesh=null;
+	 //   meshColliderNS.sharedMesh=null;
+	 //   meshFilterNS.mesh=null;
+      //  chunkMesh=null;
+     //   chunkNonSolidMesh=null;
         isModifiedInGame=false;
      //   isChunkPosInited=false;
     }
@@ -205,13 +206,10 @@ public class Chunk : MonoBehaviour
 
     public void StartLoadChunk(){
       //  Vector3 pos=transform.position;
-       frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
-        backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
-        leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
-        rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
-        ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
-        Thread childThread=new Thread(childref);
-        childThread.Start();
+
+   //     ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
+      ///  Thread childThread=new Thread(childref);
+     //   childThread.Start();
         
         StartCoroutine(BuildChunk());
     }
@@ -313,17 +311,35 @@ public class Chunk : MonoBehaviour
 
     
     void InitMap(Vector2Int pos){
-       
+        frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
+        backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
+        leftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
+        rightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
+                  List<Vector3> vertsNS = new List<Vector3>();
+        List<Vector2> uvsNS = new List<Vector2>();
+        List<int> trisNS = new List<int>();
+        List<Vector3> verts = new List<Vector3>();
+        List<Vector2> uvs = new List<Vector2>();
+        List<int> tris = new List<int>();
+        if(isMapGenCompleted==true){
+        GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
+            return;
+        }
         if(isSavedInDisk==true){
             if(isChunkPosInited==false){
+                FreshGenMap(pos);
                  isMapGenCompleted=true;
+                GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
                 return;
             }
             map=chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.y)].map;
             isMapGenCompleted=true;
+            GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
             return;
         }
-        if(worldGenType==0){
+            FreshGenMap(pos);
+        void FreshGenMap(Vector2Int pos){
+            if(worldGenType==0){
         System.Random random=new System.Random(pos.x+pos.y);
         int treeCount=10;
         for(int i=0;i<chunkWidth;i++){
@@ -441,7 +457,10 @@ public class Chunk : MonoBehaviour
         }
         }
         isMapGenCompleted=true;
-       
+        }
+        
+
+        GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
     }
 
 
@@ -622,7 +641,14 @@ public class Chunk : MonoBehaviour
 
     public IEnumerator BuildChunk(){
         isMeshBuildCompleted=false;
-        yield return new WaitUntil(()=>isMapGenCompleted==true);
+
+        ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
+        Thread childThread=new Thread(childref);
+        childThread.Start();
+
+
+
+        yield return new WaitUntil(()=>isMapGenCompleted==true&&isMeshBuildCompleted==true);
    // if(!isMapGenCompleted){
     ///    yield return 10;
    // }
@@ -631,29 +657,24 @@ public class Chunk : MonoBehaviour
         chunkMesh=new Mesh();
         chunkNonSolidMesh=new Mesh();
         
-        List<Vector3> vertsNS = new List<Vector3>();
-        List<Vector2> uvsNS = new List<Vector2>();
-        List<int> trisNS = new List<int>();
-        List<Vector3> verts = new List<Vector3>();
-        List<Vector2> uvs = new List<Vector2>();
-        List<int> tris = new List<int>();
-          frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
-        backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
-        leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
-        rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
+     
+     //     frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
+      //  backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
+      //  leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
+      //  rightChunk=GetChunk(new Vector2Int((int)transform.position.x+chunkWidth,(int)transform.position.z));
 
 
 
         
-        Thread childThread=new Thread(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
-        childThread.Start();
+      //  Thread childThread=new Thread(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
+     //   childThread.Start();
      // ThreadPool.QueueUserWorkItem(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
         //childThread.Join();
         //Task t1 = new Task(() => GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // ThreadPool.QueueUserWorkItem(new WaitCallback(GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS)));
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
-        yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
+     //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
     
         chunkMesh.vertices = opqVerts;
         chunkMesh.uv = opqUVs;
@@ -799,9 +820,9 @@ public class Chunk : MonoBehaviour
             return 1;
         }else{
             if(y<chunkSeaLevel){
-                     return 1;       
-                }
-                return 1;
+                     return 100;       
+            }
+                return 0;
         }
     }
     public int GetBlockType(int x, int y, int z){
@@ -952,7 +973,7 @@ public class Chunk : MonoBehaviour
 
         Chunk locChunk=Chunk.GetChunk(Vec3ToChunkPos(new Vector3(x,0f,z)));
         if(locChunk==null){
-            return 0;
+            return 100;
         }
         Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
         for(int i=chunkHeight-1;i>=0;i--){
@@ -960,7 +981,7 @@ public class Chunk : MonoBehaviour
                 return i;
             }
         }
-        return 0;
+        return 100;
     }
     public static int GetBlock(Vector3 pos){
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
@@ -972,6 +993,7 @@ public class Chunk : MonoBehaviour
         if(isChunkMapUpdated==true){
             isModifiedInGame=true;
             StartCoroutine(BuildChunk());
+           //InitMap(chunkPos);
             isChunkMapUpdated=false;
         }
       

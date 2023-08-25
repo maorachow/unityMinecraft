@@ -3,8 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using System.IO;
+using Utf8Json;
+public class PlayerData{
+    public float posX;
+    public float posY;
+    public float posZ;
+    public int[] inventoryDic;
+    public int[] inventoryItemNumberDic;
+}
 public class PlayerMove : MonoBehaviour
 {
+    public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
+    public static string gameWorldPlayerDataPath;
     public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
@@ -25,7 +36,9 @@ public class PlayerMove : MonoBehaviour
     public float mouseSens=10f;
     public Vector3 playerVec;
     public Chunk chunkPrefab;
-    
+    public int currentSelectedHotbar;
+    public int[] inventoryDic=new int[9];
+    public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
     public GameObject pauseMenu;
     void Awake(){
@@ -42,10 +55,11 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(9,"Leaves");
         isBlockNameDicAdded=true;
         }
-
+        ReadPlayerJson();
     }
     void Start()
     {   
+
         Application.targetFrameRate = 1024;
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -72,9 +86,44 @@ public class PlayerMove : MonoBehaviour
     Cursor.lockState = CursorLockMode.Locked;
     }
 
+    void AddItem(int itemTypeID,int itemCount){
+       // inventoryDic[0]=1;
+      //  inventoryItemNumberDic[0]=100;
+        int itemCountTmp=itemCount;
+        for(int i=0;i<inventoryDic.Length;i++){
+            if(inventoryItemNumberDic[i]==64){
+                continue;
+            }else if(inventoryDic[i]==0||inventoryDic[i]==itemTypeID&&inventoryItemNumberDic[i]<64){
+                inventoryDic[i]=itemTypeID;
 
+                while(inventoryItemNumberDic[i]<64){
+  
+                       inventoryItemNumberDic[i]+=1;
+                    itemCountTmp--;
+                    if(itemCountTmp==0){
+                        return;
+                    } 
+                }
+              
+                  
+                 continue;   
+                    
+                
+                
+            }
+
+        }
+    }
     void Update()
     {      
+       
+        if(Input.GetKeyDown(KeyCode.K)){
+             AddItem(2,10);
+             AddItem(3,10);
+             AddItem(4,10);
+             AddItem(5,10);
+             AddItem(6,10);
+        }
         if(Input.GetKeyDown(KeyCode.U)){
                 Chunk.SaveWorldData();
         }
@@ -85,22 +134,36 @@ public class PlayerMove : MonoBehaviour
         }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
-        if(Physics.Raycast(ray,out info,10f)){
-        blockOutline.GetComponent<MeshRenderer>().enabled=true;
+        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"){
+           
+        
+            blockOutline.GetComponent<MeshRenderer>().enabled=true;
+           
+                
+            
+        
         collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
        
         Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
         Vector3 blockPoint2=info.point-cameraPos.forward*0.01f;
         blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
         collidingBlockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint2).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).z+0.5f);
-        }else{
+        }else if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag=="Entity"){
+            Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
+        Vector3 blockPoint2=info.point-cameraPos.forward*0.01f;
+            collidingBlockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint2).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).z+0.5f);
             blockOutline.GetComponent<MeshRenderer>().enabled=false;
+            collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
+        }else{
+             blockOutline.GetComponent<MeshRenderer>().enabled=false;
             collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
         }
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
-            blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
-            blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
-            blockOnHandText.text="Block On Hand ID: "+blockOnHandID+" "+blockNameDic[blockOnHandID];
+       //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
+            currentSelectedHotbar+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
+            currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
+        //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
+            blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
        
         
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -139,18 +202,29 @@ public class PlayerMove : MonoBehaviour
         }
         if(Input.GetMouseButton(0)&&breakBlockCD<=0f){
             BreakBlock();
-            breakBlockCD=0.2f;
+            breakBlockCD=0.15f;
         }
         if(Input.GetMouseButton(1)&&breakBlockCD<=0f){
             PlaceBlock();
-            breakBlockCD=0.2f;
+            breakBlockCD=0.15f;
         }
        
     }
     void FixedUpdate(){
          UpdateWorld();
+         UpdateInventory();
     }
-
+    void UpdateInventory(){
+        for(int i=0;i<inventoryItemNumberDic.Length;i++){
+        inventoryItemNumberDic[i]=Mathf.Clamp(inventoryItemNumberDic[i],0,64);
+       }
+        for(int i=0;i<inventoryDic.Length;i++){
+            if(inventoryItemNumberDic[i]<=0){
+                inventoryDic[i]=0;
+            }
+        
+       }
+    }
     void UpdateWorld()
     {
      
@@ -198,12 +272,14 @@ public class PlayerMove : MonoBehaviour
     void PlaceBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
-        if(Physics.Raycast(ray,out info,10f)){
+        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"){
             Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
-            if(collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true){
-                return;
+            if(collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true||collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithEntity==true){
+               return;
             }
-            Chunk.SetBlockByHand(blockPoint,blockOnHandID);
+           
+            Chunk.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
+            inventoryItemNumberDic[currentSelectedHotbar-1]--;
         }
     }
     
@@ -217,5 +293,63 @@ public class PlayerMove : MonoBehaviour
         Time.timeScale=1;
         pauseMenu.SetActive(false);
     }
-    
+    public void ReadPlayerJson(){
+     if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
+        gameWorldPlayerDataPath="C:/";
+      }else{
+        gameWorldPlayerDataPath=Application.persistentDataPath;
+      }
+         
+         if (!Directory.Exists(gameWorldPlayerDataPath+"unityMinecraftData")){
+                Directory.CreateDirectory(gameWorldPlayerDataPath+"unityMinecraftData");
+               
+            }
+          if(!Directory.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData")){
+                    Directory.CreateDirectory(gameWorldPlayerDataPath+"unityMinecraftData/GameData");
+                }
+       
+        if(!File.Exists(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json")){
+            File.Create(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json");
+        }
+       
+        string[] worldPlayerData=File.ReadAllLines(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json");
+         //   isEntitiesReadFromDisk=true;
+
+          PlayerData pd=new PlayerData();
+         if(worldPlayerData.Length>0){
+                pd=JsonSerializer.Deserialize<PlayerData>(worldPlayerData[0]);  
+         }
+         
+         if(pd.posX!=0f&&pd.posY!=0f&&pd.posZ!=0f&&pd.inventoryDic!=null&&pd.inventoryItemNumberDic!=null){
+           transform.position=new Vector3(pd.posX,pd.posY,pd.posZ); 
+           inventoryDic=pd.inventoryDic;
+           inventoryItemNumberDic=pd.inventoryItemNumberDic;
+         }else{
+            transform.position=new Vector3(0f,150f,0f);
+            inventoryDic=new int[9];
+            inventoryItemNumberDic=new int[9];
+
+         }
+         
+    }
+    public void SavePlayerData(){
+        PlayerData pd=new PlayerData();
+        pd.posX=transform.position.x;
+        pd.posY=transform.position.y;
+        pd.posZ=transform.position.z;
+        pd.inventoryDic=inventoryDic;
+        pd.inventoryItemNumberDic=inventoryItemNumberDic;
+        FileStream fs;
+        if (File.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json"))
+        {
+                 fs = new FileStream(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json", FileMode.Truncate, FileAccess.Write);//Truncate模式打开文件可以清空。
+        }
+        else
+        {
+                 fs = new FileStream(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json", FileMode.Create, FileAccess.Write);
+        }
+        fs.Close();
+        string tmpData=JsonSerializer.ToJsonString(pd);
+        File.AppendAllText(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json",tmpData+"\n");
+    }
 }

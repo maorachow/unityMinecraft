@@ -20,6 +20,7 @@ public class ZombieBeh : MonoBehaviour
     public float nextWaypointDistance =6f;
     Vector2 curpos;
     Vector2 lastpos;
+    public bool isPosInited=false;
     public float attackCD=1.2f;
     public bool isJumping=false;
     public float entitySpeed;
@@ -32,6 +33,16 @@ public class ZombieBeh : MonoBehaviour
         am=GetComponent<Animator>();
     
     }
+    public void InitPos(){
+        Invoke("InvokeInitPos",0.1f);
+    }
+    public void InvokeInitPos(){
+        isPosInited=true;
+    }
+    public void OnDisable(){
+            isPosInited=false;
+    }
+    
        public void Attack(){
         if(attackCD<=0f){
                am.SetBool("attack",true);
@@ -54,10 +65,12 @@ public class ZombieBeh : MonoBehaviour
 
     float Speed()
 	{
+        if(PlayerMove.isPaused==true){
+            return 1f;
+        }
 		curpos = new Vector2(gameObject.transform.position.x,gameObject.transform.position.z);
-		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/4f);
+		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/3f);
 		lastpos = curpos;
-        Debug.Log(_speed);
 		return _speed;
 	}
 
@@ -65,9 +78,12 @@ public class ZombieBeh : MonoBehaviour
 
 
     public void Update () {
+        if(!isPosInited){
+            return;
+        }
         entitySpeed=Speed();
         if(transform.position.y<-40f){
-            Destroy(gameObject);
+            ObjectPools.zombieEntityPool.Release(gameObject);
         }
           if(attackCD>0f){
          attackCD-=Time.deltaTime;
@@ -89,14 +105,16 @@ public class ZombieBeh : MonoBehaviour
             Attack();
           
         }else{
-             if(entitySpeed<=0.18f){
+             if(entitySpeed<=0.28f){
                 Jump();
             }
         if(cc.enabled==true){
         cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime);    
+        }else return;
         }
-        }
+        if(cc.enabled==true){
         cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*Time.deltaTime);
+        }else return;
         if(cc.isGrounded!=true){
             if(!GetComponent<EntityBeh>().isInUnloadedChunks){
              entityY+=gravity*Time.deltaTime;   

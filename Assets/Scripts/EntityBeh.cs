@@ -35,7 +35,7 @@ public class EntityData{
 }
 public class EntityBeh : MonoBehaviour
 {
-      public Chunk currentChunk;
+    public Chunk currentChunk;
     public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
     //0Creeper 1zombie
     public static RuntimePlatform platform = Application.platform;
@@ -50,12 +50,14 @@ public class EntityBeh : MonoBehaviour
     public static bool isWorldEntityDataSaved=false;
     public bool isInUnloadedChunks=false;
     public void OnDisable(){
-        RemoveEntityFromSave();
-        worldEntities.Remove(this);
-
+     
+            RemoveEntityFromSave();
+            worldEntities.Remove(this);  
+        
+        
     }
     public void OnDestroy(){
- RemoveEntityFromSave();
+        RemoveEntityFromSave();
         worldEntities.Remove(this);
     }
     public static void ReadEntityJson(){
@@ -139,17 +141,51 @@ public class EntityBeh : MonoBehaviour
     }
     public static void SpawnNewEntity(float posX,float posY,float posZ,int entityID){
       
-            GameObject a=Instantiate(worldEntityTypes[entityID],new Vector3(posX,posY,posZ),Quaternion.identity);
-            a.GetComponent<EntityBeh>().entityTypeID=entityID;
-            a.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
+                switch(entityID){
+                case 0:
+                GameObject a=ObjectPools.creeperEntityPool.Get();
+                a.transform.position=new Vector3(posX,posY,posZ);
+         
+
+          
+                a.GetComponent<EntityBeh>().entityTypeID=entityID;
+                a.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
+                break;
+                case 1:
+                GameObject b=ObjectPools.zombieEntityPool.Get();
+                b.transform.position=new Vector3(posX,posY,posZ);
+                b.GetComponent<EntityBeh>().entityTypeID=entityID;
+                b.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
+
+                b.GetComponent<ZombieBeh>().SendMessage("InitPos");
+   
+
+                 
+                break;
+            }
         
     }
     public static void SpawnEntityFromFile(){
         foreach(EntityData ed in entityDataReadFromDisk){
             Debug.Log(ed.guid);
-                GameObject a=Instantiate(worldEntityTypes[ed.entityTypeID],new Vector3(ed.posX,ed.posY,ed.posZ),Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ));
+            switch(ed.entityTypeID){
+                case 0:
+                GameObject a=ObjectPools.creeperEntityPool.Get();
+                a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
+                a.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
                 a.GetComponent<EntityBeh>().entityTypeID=ed.entityTypeID;
                 a.GetComponent<EntityBeh>().guid=ed.guid;
+                break;
+                case 1:
+                GameObject b=ObjectPools.zombieEntityPool.Get();
+                b.GetComponent<ZombieBeh>().SendMessage("InitPos");
+                b.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
+                b.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
+                b.GetComponent<EntityBeh>().entityTypeID=ed.entityTypeID;
+                b.GetComponent<EntityBeh>().guid=ed.guid;
+                break;
+            }
+
             
         }
     }
@@ -158,9 +194,12 @@ public class EntityBeh : MonoBehaviour
         worldEntityTypes.Add(1,Resources.Load<GameObject>("Prefabs/zombie"));
         isEntitiesLoad=true;
     }
-    void Awake(){
-        worldEntities.Add(this);
+    void OnEnable(){
+        worldEntities.Add(this); 
     }
+   // void Awake(){
+    //    worldEntities.Add(this);
+   // }
     void FixedUpdate(){
         currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
         if(currentChunk==null){

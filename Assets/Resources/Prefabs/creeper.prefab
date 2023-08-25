@@ -590,7 +590,7 @@ GameObject:
   - component: {fileID: 7200608411719612595}
   m_Layer: 0
   m_Name: creeper
-  m_TagString: Untagged
+  m_TagString: Entity
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -702,7 +702,6 @@ MonoBehaviour:
   entityFacingPos: {x: 0, y: 0, z: 0}
   nextWaypointDistance: 3
   isJumping: 0
-  reachedEndOfPath: 0
   entitySpeed: 0
 --- !u!1 &8909377126261627311
 GameObject:
