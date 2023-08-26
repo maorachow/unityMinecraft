@@ -15,6 +15,9 @@ public class WorldManager : MonoBehaviour
         }
             EntityBeh.SpawnEntityFromFile();
             ItemEntityBeh.ReadItemEntityJson();
+            ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+            StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
+            
     }
     void FixedUpdate(){
         if(Random.Range(0f,100f)>99f&&EntityBeh.worldEntities.Count<70){
@@ -32,12 +35,16 @@ public class WorldManager : MonoBehaviour
        StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));
         }
                 if(Input.GetKeyDown(KeyCode.L)){
+
+                        StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,101,Vector3.up));
+
+                }
      //   EntityBeh.SpawnNewEntity(0,100,0,0);
        // EntityBeh.SpawnNewEntity(0,100,0,1);
      //  StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));
-     foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){
-        i.AddForceInvoke(Vector3.up*10f);
-     }
-        }
+    // foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){
+     //   i.AddForceInvoke(Vector3.up*10f);
+   //  }
+     //   }
     }
 }

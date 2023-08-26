@@ -65,6 +65,72 @@ public class MyChunkObjectPool{
 
 }
 
+
+
+
+public class MyItemObjectPool{
+ 
+    public GameObject Object;
+ 
+    public Queue<GameObject> objectPool = new Queue<GameObject>();
+   
+ //   public int defaultCount = 16;
+ 
+    public int maxCount = 25;
+ 
+ /*   public void Init()
+    {
+        GameObject obj;
+        for (int i = 0; i < defaultCount; i++)
+        {
+            obj = Instantiate(Object, this.transform);
+            objectPool.Enqueue(obj);
+            obj.SetActive(false);
+        }
+    }*/
+    // 从池子中取出物体
+    public GameObject Get(Vector3 pos)
+    {
+        GameObject tmp;
+    
+        if (objectPool.Count > 0)
+        {
+            // 将对象出队
+            tmp = objectPool.Dequeue();
+            tmp.transform.position=pos;
+            tmp.SetActive(true);
+        }
+  
+        else
+        {
+            return GameObject.Instantiate(Object, pos,Quaternion.identity);
+            
+        }
+        return tmp;
+    }
+    // 将物体回收进池子
+    public void Remove(GameObject obj)
+    {
+        // 池子中的物体数目不超过最大容量
+        if (objectPool.Count <= maxCount)
+        {
+        	// 该对象没有在队列中
+            if (!objectPool.Contains(obj))
+            {
+                // 将对象入队
+                objectPool.Enqueue(obj);
+                obj.SetActive(false);
+            }
+        }
+        // 超过最大容量就销毁
+        else
+        {
+            GameObject.Destroy(obj);
+        }
+    }
+
+}
+
 public class ObjectPools : MonoBehaviour
 {
         public static GameObject chunkPrefab;
@@ -74,17 +140,20 @@ public class ObjectPools : MonoBehaviour
         public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
         public static ObjectPool<GameObject> creeperEntityPool;
         public static ObjectPool<GameObject> zombieEntityPool;
-        public static ObjectPool<GameObject> itemEntityPool;
+       // public static ObjectPool<GameObject> itemEntityPool;
+        public static MyItemObjectPool itemEntityPool=new MyItemObjectPool();
         public void Awake(){
         particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
         itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
         creeperEntityPool=new ObjectPool<GameObject>(CreateCreeper,GetCreeper,ReleaseCreeper,DestroyCreeper,true,10,300);
         zombieEntityPool=new ObjectPool<GameObject>(CreateZombie,GetZombie,ReleaseZombie,DestroyZombie,true,10,300);
-        itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
+     //   itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
         chunkPrefab=Resources.Load<GameObject>("Prefabs/chunk");
         chunkPool.Object=chunkPrefab;
         chunkPool.maxCount=100;
+        itemEntityPool.Object=itemPrefab;
+        itemEntityPool.maxCount=300;
     }
   
     public GameObject CreateEffect()
@@ -163,27 +232,5 @@ public class ObjectPools : MonoBehaviour
 
 
 
-    public GameObject CreateItem()
-    {
-        GameObject gameObject =Instantiate(itemPrefab, new Vector3(0f,100f,0f), Quaternion.identity);
- 
-        return gameObject;
-    }
-    
-    void GetItem(GameObject gameObject)
-    {
- 
-        gameObject.SetActive(true);
    
-    }
-    void ReleaseItem(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-  
-    }
-    void DestroyItem(GameObject gameObject)
-    {
-    
-        Destroy(gameObject);
-    }
 }

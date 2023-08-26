@@ -32,6 +32,8 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.Add(7,Resources.Load<Sprite>("Textures/log_oak"));
     blockImageDic.Add(8,Resources.Load<Sprite>("Textures/log_oak"));
     blockImageDic.Add(9,Resources.Load<Sprite>("Textures/leaves"));
+    blockImageDic.Add(100,Resources.Load<Sprite>("Textures/water"));
+    blockImageDic.Add(101,Resources.Load<Sprite>("Textures/grass"));
     for(int i=1;i<=9;i++){
         hotbarImageDic.Add(i-1,GameObject.Find("hotbarItem"+i.ToString()).GetComponent<Image>());
     }

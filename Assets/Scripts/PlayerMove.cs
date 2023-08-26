@@ -13,7 +13,8 @@ public class PlayerData{
     public int[] inventoryItemNumberDic;
 }
 public class PlayerMove : MonoBehaviour
-{
+{   
+    public Animator am;
     public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
     public static string gameWorldPlayerDataPath;
     public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
@@ -24,6 +25,8 @@ public class PlayerMove : MonoBehaviour
     public GameObject blockOutline;
     public GameObject collidingBlockOutline;
     public Transform cameraPos;
+    public Transform playerMoveRef;
+    public Transform playerBodyPos;
     public Text blockOnHandText;
     public Camera mainCam;
     public CharacterController cc;
@@ -34,8 +37,12 @@ public class PlayerMove : MonoBehaviour
     public float playerY=0f;
     public float jumpHeight=2f;
     public float mouseSens=10f;
+    public float currentSpeed;
     public Vector3 playerVec;
+    public Vector2 curpos;
+    public Vector2 lastpos;
     public Chunk chunkPrefab;
+    public ItemOnHandBeh playerHandItem;
     public int currentSelectedHotbar;
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
@@ -53,13 +60,15 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(7,"WoodY");
         blockNameDic.Add(8,"WoodZ");
         blockNameDic.Add(9,"Leaves");
+        blockNameDic.Add(100,"Water");
+        blockNameDic.Add(101,"Grass Crop");
         isBlockNameDicAdded=true;
         }
         ReadPlayerJson();
     }
     void Start()
     {   
-
+        playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         Application.targetFrameRate = 1024;
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -68,9 +77,12 @@ public class PlayerMove : MonoBehaviour
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
         pauseMenu.SetActive(false);
         viewRange=64;
+        am=transform.GetChild(0).GetComponent<Animator>();
         cc=GetComponent<CharacterController>();
-        cameraPos=transform.GetChild(0);
-        mainCam=cameraPos.gameObject.GetComponent<Camera>();
+        cameraPos=transform.GetChild(0).GetChild(0);
+        playerMoveRef=cameraPos.GetChild(1);
+        playerBodyPos=transform.GetChild(0).GetChild(1);
+        mainCam=cameraPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
     }
@@ -86,7 +98,7 @@ public class PlayerMove : MonoBehaviour
     Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void AddItem(int itemTypeID,int itemCount){
+    public void AddItem(int itemTypeID,int itemCount){
        // inventoryDic[0]=1;
       //  inventoryItemNumberDic[0]=100;
         int itemCountTmp=itemCount;
@@ -114,9 +126,21 @@ public class PlayerMove : MonoBehaviour
 
         }
     }
+
+     float Speed()
+	{
+        if(PlayerMove.isPaused==true){
+            return 1f;
+        }
+		curpos = new Vector2(gameObject.transform.position.x,gameObject.transform.position.z);
+		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/3f);
+		lastpos = curpos;
+		return _speed;
+	}
     void Update()
     {      
-       
+        currentSpeed=Speed();
+        am.SetFloat("speed",currentSpeed);
         if(Input.GetKeyDown(KeyCode.K)){
              AddItem(2,10);
              AddItem(3,10);
@@ -162,6 +186,9 @@ public class PlayerMove : MonoBehaviour
        //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
             currentSelectedHotbar+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
             currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
+         //   if(Input.GetAxis("Mouse ScrollWheel")*15f>1f){
+              
+         //  }
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
             blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
        
@@ -194,25 +221,40 @@ public class PlayerMove : MonoBehaviour
         cameraX=Mathf.Clamp(cameraX,-90f,90f);
         playerVec=new Vector3(Input.GetAxis("Vertical"),0f,Input.GetAxis("Horizontal"));
         playerVec.y=playerY;
-        transform.eulerAngles+=new Vector3(0f,mouseX,0f);
-        cameraPos.localEulerAngles=new Vector3(cameraX,0f,0f);
-        cc.Move((transform.forward*playerVec.x+transform.right*playerVec.z+new Vector3(0f,playerVec.y,0f))*moveSpeed*Time.deltaTime);
+        cameraPos.eulerAngles+=new Vector3(0f,mouseX,0f);
+        cameraPos.localEulerAngles=new Vector3(cameraX,cameraPos.localEulerAngles.y,cameraPos.localEulerAngles.z);
+        playerMoveRef.eulerAngles=new Vector3(0f,cameraPos.eulerAngles.y,cameraPos.eulerAngles.z);
+        playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
+        cc.Move((playerMoveRef.forward*playerVec.x+playerMoveRef.right*playerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime);
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
+        if(Input.GetKeyDown(KeyCode.Q)){
+            PlayerDropItem();
+        }
         if(Input.GetMouseButton(0)&&breakBlockCD<=0f){
             BreakBlock();
-            breakBlockCD=0.15f;
+            breakBlockCD=0.3f;
         }
         if(Input.GetMouseButton(1)&&breakBlockCD<=0f){
             PlaceBlock();
-            breakBlockCD=0.15f;
+            breakBlockCD=0.3f;
         }
        
     }
     void FixedUpdate(){
          UpdateWorld();
          UpdateInventory();
+         if(currentSelectedHotbar-1>=0){
+         playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);   
+         }
+        
+    }
+    void PlayerDropItem(){
+        if(inventoryItemNumberDic[currentSelectedHotbar-1]>0){
+            StartCoroutine(ItemEntityBeh.SpawnNewItem(cameraPos.position.x,cameraPos.position.y,cameraPos.position.z,inventoryDic[currentSelectedHotbar-1],(cameraPos.forward*12)));
+            inventoryItemNumberDic[currentSelectedHotbar-1]--;
+        }
     }
     void UpdateInventory(){
         for(int i=0;i<inventoryItemNumberDic.Length;i++){
@@ -249,37 +291,52 @@ public class PlayerMove : MonoBehaviour
      
     }
 
-    
+    void cancelAttackInvoke(){
+        am.SetBool("isattacking",false);
+    }
+    void AttackAnimate(){
+        am.SetBool("isattacking",true);
+    }
     void BreakBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
             Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
             int tmpID=Chunk.GetBlock(blockPoint);
+            if(tmpID==0){
+                return;
+            }
             Chunk.SetBlockByHand(blockPoint,0);
             GameObject a=ObjectPools.particleEffectPool.Get();
-
             a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
             a.GetComponent<particleAndEffectBeh>().blockID=tmpID;
             a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+            StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,tmpID,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
            Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
      //   chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
+     AttackAnimate();
+     Invoke("cancelAttackInvoke",0.1f);
         }
     }
 
     void PlaceBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
-        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"){
+        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
             Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
+            if(inventoryDic[currentSelectedHotbar-1]==0){
+                return;
+            }
             if(collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true||collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithEntity==true){
                return;
             }
-           
+
             Chunk.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
+             AttackAnimate();
+     Invoke("cancelAttackInvoke",0.1f);
         }
     }
     
