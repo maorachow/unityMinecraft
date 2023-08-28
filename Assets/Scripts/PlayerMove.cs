@@ -43,11 +43,12 @@ public class PlayerMove : MonoBehaviour
     public Vector2 lastpos;
     public Chunk chunkPrefab;
     public ItemOnHandBeh playerHandItem;
-    public int currentSelectedHotbar;
+    public int currentSelectedHotbar=5;
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
     public GameObject pauseMenu;
+
     void Awake(){
         if(isBlockNameDicAdded==false){
         blockNameDic.Add(0,"None");
@@ -85,6 +86,7 @@ public class PlayerMove : MonoBehaviour
         mainCam=cameraPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
+        
     }
 
 
@@ -125,6 +127,7 @@ public class PlayerMove : MonoBehaviour
             }
 
         }
+        playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
     }
 
      float Speed()
@@ -141,13 +144,13 @@ public class PlayerMove : MonoBehaviour
     {      
         currentSpeed=Speed();
         am.SetFloat("speed",currentSpeed);
-        if(Input.GetKeyDown(KeyCode.K)){
+     /*   if(Input.GetKeyDown(KeyCode.K)){
              AddItem(2,10);
              AddItem(3,10);
              AddItem(4,10);
              AddItem(5,10);
              AddItem(6,10);
-        }
+        }*/
         if(Input.GetKeyDown(KeyCode.U)){
                 Chunk.SaveWorldData();
         }
@@ -184,11 +187,11 @@ public class PlayerMove : MonoBehaviour
         }
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
        //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
-            currentSelectedHotbar+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
+            currentSelectedHotbar-=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
             currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
-         //   if(Input.GetAxis("Mouse ScrollWheel")*15f>1f){
-              
-         //  }
+            if(Mathf.Abs(Input.GetAxis("Mouse ScrollWheel"))>0f){
+             playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);    
+          }
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
             blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
        
@@ -245,15 +248,16 @@ public class PlayerMove : MonoBehaviour
     void FixedUpdate(){
          UpdateWorld();
          UpdateInventory();
-         if(currentSelectedHotbar-1>=0){
-         playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);   
-         }
+        
         
     }
     void PlayerDropItem(){
+          playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
         if(inventoryItemNumberDic[currentSelectedHotbar-1]>0){
             StartCoroutine(ItemEntityBeh.SpawnNewItem(cameraPos.position.x,cameraPos.position.y,cameraPos.position.z,inventoryDic[currentSelectedHotbar-1],(cameraPos.forward*12)));
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
+             AttackAnimate();
+            Invoke("cancelAttackInvoke",0.1f);
         }
     }
     void UpdateInventory(){
@@ -269,7 +273,8 @@ public class PlayerMove : MonoBehaviour
     }
     void UpdateWorld()
     {
-     
+        
+
     for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
         {
             for (float z = transform.position.z - viewRange; z < transform.position.z + viewRange; z += Chunk.chunkWidth)

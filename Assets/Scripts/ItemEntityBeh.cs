@@ -330,10 +330,10 @@ public class ItemEntityBeh : MonoBehaviour
         }
     }
     void PlayerEatItem(){ 
-   if(Mathf.Abs(playerPos.position.x-transform.position.x)<1f&&Mathf.Abs(playerPos.position.y-transform.position.y)<2f&&Mathf.Abs(playerPos.position.z-transform.position.z)<1f&&lifeTime>2f){
-    playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
-    ReleaseItem();
-   }
+    if(Mathf.Abs(playerPos.position.x-transform.position.x)<1f&&Mathf.Abs(playerPos.position.y-transform.position.y)<2f&&Mathf.Abs(playerPos.position.z-transform.position.z)<1f&&lifeTime>1f){
+        playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
+        ReleaseItem();
+    }
     }
     void FixedUpdate(){
         PlayerEatItem();

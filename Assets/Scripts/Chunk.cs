@@ -5,7 +5,7 @@ using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
-
+using UnityEngine.Rendering;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -19,7 +19,71 @@ public class WorldData{
 }
 public class Chunk : MonoBehaviour
 {   
+    public struct Vertex{
+        public Vector3 pos;
+        public Vector2 uvPos;
+        public Vertex(Vector3 v3,Vector2 v2){
+            pos=v3;
+            uvPos=v2;
+        }
+    }
+    [BurstCompile]
+    public struct BakeJob:IJobParallelFor{
+        public NativeArray<int> meshes;
+        public void Execute(int index){
+            Physics.BakeMesh(meshes[index],false);
+        }
+    }
+    public struct MeshBuildJob:IJob{
+        public NativeArray<Vector3> verts;
+        public NativeArray<Vector2> uvs;
+        public NativeArray<int> tris;
+            public int vertLen;
+            public int uvsLen;
+            public int trisLen;
+            public Mesh.MeshDataArray dataArray;
+         public void Execute(){
+             // Allocate mesh data for one mesh.
+      //  dataArray = Mesh.AllocateWritableMeshData(1);
+        var data = dataArray[0];
+        // Tetrahedron vertices with positions and normals.
+        // 4 faces with 3 unique vertices in each -- the faces
+        // don't share the vertices since normals have to be
+        // different for each face.
+        data.SetVertexBufferParams(vertLen,
+           new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+      
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
+        // Four tetrahedron vertex positions:
+   //     var sqrt075 = Mathf.Sqrt(0.75f);
+   //     var p0 = new Vector3(0, 0, 0);
+   //     var p1 = new Vector3(1, 0, 0);
+   //     var p2 = new Vector3(0.5f, 0, sqrt075);
+   //     var p3 = new Vector3(0.5f, sqrt075, sqrt075 / 3);
+        // The first vertex buffer data stream is just positions;
+        // fill them in.
+        var pos = data.GetVertexData<Vertex>();
+      //  pos=verts;
+        for(int i=0;i<pos.Length;i++){
+            pos[i]=new Vertex(verts[i],uvs[i]);
+           
+        }
+        // Note: normals will be calculated later in RecalculateNormals.
+        // Tetrahedron index buffer: 4 triangles, 3 indices per triangle.
+        // All vertices are unique so the index buffer is just a
+        // 0,1,2,...,11 sequence.
+        data.SetIndexBufferParams(trisLen, IndexFormat.UInt16);
+           NativeArray<int> ib = data.GetIndexData<int>();
+            ib=tris;
+        // One sub-mesh with all the indices.
+        data.subMeshCount = 1;
+        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
+        // Create the mesh and apply data to it:
+     //   Debug.Log("job");
+           
+        }
 
+    }
     //public enum BlockType
   //  {
     //    None = 0,
@@ -27,7 +91,7 @@ public class Chunk : MonoBehaviour
    //     Grass = 2,
     //    Dirt=3,
   //  }
-  //0None 1Stone 2Grass 3Dirt 4Side grass block 5Bedrock 6WoodX 7WoodY 8WoodZ 9Leaves
+  //0None 1Stone 2Grass 3Dirt 4Side grass block 5Bedrock 6WoodX 7WoodY 8WoodZ 9Leaves 10Diamond Ore
   //100Water 101Grass
   //200Leaves
   //0-99solid blocks
@@ -47,6 +111,7 @@ public class Chunk : MonoBehaviour
     public bool isSavedInDisk=false;
     public bool isModifiedInGame=false;
     public bool isChunkPosInited=false;
+    public bool isStrongLoaded=false;
     public static Dictionary<int,List<Vector2>> itemBlockInfo=new Dictionary<int,List<Vector2>>();
     public static Dictionary<int,List<Vector2>> blockInfo=new Dictionary<int,List<Vector2>>();
     public Mesh chunkMesh;
@@ -168,17 +233,29 @@ public class Chunk : MonoBehaviour
         }
         StartLoadChunk();
     }
-
-
+    //strongload: simulate chunk mesh collider
+    void StrongLoadChunk(){
+        isStrongLoaded=true;
+    }
+    void StopChunkFromStrongSim(){
+        if(meshCollider.sharedMesh!=null||meshColliderNS.sharedMesh!=null){
+            meshCollider.sharedMesh=null;
+            meshColliderNS.sharedMesh=null;
+        }
+        isStrongLoaded=false;
+    }
     void OnDisable(){
         SaveSingleChunk();
         Chunks.Remove(chunkPos);
         map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         chunkPos=new Vector2Int(0,0);
         isChunkPosInited=false;
+
         isSavedInDisk=false;
         isMapGenCompleted=false;
         isMeshBuildCompleted=false;
+        isStrongLoaded=false;
+        isChunkMapUpdated=false;
 	//    meshCollider.sharedMesh= null;
 	//    meshFilter.mesh=null;
       
@@ -329,7 +406,7 @@ public class Chunk : MonoBehaviour
         backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
         leftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
         rightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
-                  List<Vector3> vertsNS = new List<Vector3>();
+        List<Vector3> vertsNS = new List<Vector3>();
         List<Vector2> uvsNS = new List<Vector2>();
         List<int> trisNS = new List<int>();
         List<Vector3> verts = new List<Vector3>();
@@ -345,26 +422,33 @@ public class Chunk : MonoBehaviour
                  isMapGenCompleted=true;
                 GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
                 return;
-            }
-            map=chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.y)].map;
+            }else{
+             map=chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.y)].map;
             isMapGenCompleted=true;
-            GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
-            return;
+            GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);   
+             return;
+            }
+            
+         
         }
-            FreshGenMap(pos);
+        FreshGenMap(pos);
         void FreshGenMap(Vector2Int pos){
             if(worldGenType==0){
         System.Random random=new System.Random(pos.x+pos.y);
         int treeCount=10;
+
         for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
               //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.y*0.01f+j*0.01f);
                float noiseValue=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+i,pos.y+j)*20f;
                 for(int k=0;k<chunkHeight;k++){
-                    if(noiseValue>k){
-                     map[i,k,j]=3;   
+                    if(noiseValue>k+3){
+                     map[i,k,j]=1;   
+                    }else if(noiseValue>k){
+
+                        map[i,k,j]=3;
                     }else{
-                        map[i,k,j]=0;
+                         map[i,k,j]=0;
                     }
                     
                 }
@@ -382,7 +466,7 @@ public class Chunk : MonoBehaviour
                             break;
                     }
                   
-                    if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&random.Next(100)>70){
+                    if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&random.Next(100)>80){
                         map[i,k,j]=101;
                     }
                         if(k<chunkSeaLevel&&map[i,k,j]==0){
@@ -416,6 +500,7 @@ public class Chunk : MonoBehaviour
                                     rightChunk.map[0,k+4,j]=9;
                                  rightChunk.map[0,k+3,j]=9;
                                   rightChunk.map[0,k+2,j]=9;
+                                  rightChunk.isChunkMapUpdated=true;
                                 }
                                }
                                if(i-1>=0){
@@ -427,6 +512,7 @@ public class Chunk : MonoBehaviour
                                       leftChunk.map[chunkWidth-1,k+4,j]=9;
                                  leftChunk.map[chunkWidth-1,k+3,j]=9;
                                   leftChunk.map[chunkWidth-1,k+2,j]=9;
+                                  leftChunk.isChunkMapUpdated=true;
                                 }
                                }
                                if(j+1<chunkWidth){
@@ -438,6 +524,7 @@ public class Chunk : MonoBehaviour
                                 frontChunk.map[i,k+4,0]=9;
                                 frontChunk.map[i,k+3,0]=9;
                                 frontChunk.map[i,k+2,0]=9;
+                                frontChunk.isChunkMapUpdated=true;
                                 }
                                }
                                if(j-1>=0){
@@ -449,6 +536,7 @@ public class Chunk : MonoBehaviour
                                 backChunk.map[i,k+4,chunkWidth-1]=9;
                                 backChunk.map[i,k+3,chunkWidth-1]=9;
                                 backChunk.map[i,k+2,chunkWidth-1]=9;
+                                backChunk.isChunkMapUpdated=true;
                                 }
                                }
                                treeCount--;
@@ -458,7 +546,14 @@ public class Chunk : MonoBehaviour
                        
                 }
             }
-        }}else if(worldGenType==1){
+        }
+                for(int i=0;i<chunkWidth;i++){
+            for(int j=0;j<chunkWidth;j++){
+                map[i,0,j]=5;
+            }
+        }
+        
+        }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
               //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.z*0.01f+j*0.01f);
@@ -670,7 +765,7 @@ public class Chunk : MonoBehaviour
 
         chunkMesh=new Mesh();
         chunkNonSolidMesh=new Mesh();
-        
+
      
      //     frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
       //  backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
@@ -689,20 +784,41 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
-    
+    //    NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
+    //    NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
+   //     NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
+    //    MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
+    //    mbj.Schedule().Complete();
+
+       NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
+    //   Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
         chunkMesh.vertices = opqVerts;
         chunkMesh.uv = opqUVs;
-        chunkMesh.triangles = opqTris;
-        chunkMesh.RecalculateBounds();
+       chunkMesh.triangles = opqTris;
+
+      //  chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
-        meshFilter.mesh = chunkMesh;
-        meshCollider.sharedMesh = chunkMesh;
         chunkNonSolidMesh.vertices = NSVerts;
         chunkNonSolidMesh.uv = NSUVs;
         chunkNonSolidMesh.triangles = NSTris;
-        chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();
+        
+   //     var job=new BakeJob();
+     //   job.meshes.Add(chunkMesh.GetInstanceID());
+   //     job.Schedule();
+        meshFilter.mesh = chunkMesh;
+        
+        
+        
         meshFilterNS.mesh = chunkNonSolidMesh;
+        a[0]=chunkMesh.GetInstanceID();
+        a[1]=chunkNonSolidMesh.GetInstanceID();
+        BakeJob job=new BakeJob();
+        job.meshes=a;
+        JobHandle handle = job.Schedule(a.Length, 1);
+        handle.Complete();
+        a.Dispose();
+          meshCollider.sharedMesh = chunkMesh;
         meshColliderNS.sharedMesh = chunkNonSolidMesh;
         isChunkMapUpdated=false;
         yield break;

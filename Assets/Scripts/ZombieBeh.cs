@@ -93,10 +93,10 @@ public class ZombieBeh : MonoBehaviour
        
 
     
-         Vector3 targetDir;
+        Vector3 targetDir;
     
-         targetDir = targetPosition.position;
-                am.SetFloat("speed",entitySpeed);
+        targetDir = targetPosition.position;
+        am.SetFloat("speed",entitySpeed);
         transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(targetDir);
         entityVec.x=1f;

@@ -150,6 +150,7 @@ public class EntityBeh : MonoBehaviour
           
                 a.GetComponent<EntityBeh>().entityTypeID=entityID;
                 a.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
+                a.GetComponent<CreeperBeh>().SendMessage("InitPos");
                 break;
                 case 1:
                 GameObject b=ObjectPools.zombieEntityPool.Get();

@@ -18,7 +18,7 @@ public class CreeperBeh : MonoBehaviour
     public float jumpHeight=2f;
     public Vector3 entityFacingPos;
     public float nextWaypointDistance =6f;
-
+    public bool isPosInited=false;
     Vector2 curpos;
     Vector2 lastpos;
     public bool isJumping=false;
@@ -34,7 +34,12 @@ public class CreeperBeh : MonoBehaviour
     
     }
 
-
+    public void InitPos(){
+        Invoke("InvokeInitPos",0.1f);
+    }
+    public void InvokeInitPos(){
+        isPosInited=true;
+    }
     public void Jump(){
         isJumping=true;
     }
@@ -45,6 +50,9 @@ public class CreeperBeh : MonoBehaviour
  
     float Speed()
 	{
+        if(PlayerMove.isPaused==true){
+            return entitySpeed;
+        }
 		curpos =new Vector2(gameObject.transform.position.x,gameObject.transform.position.z);//当前点
 		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/4f);//与上一个点做计算除去当前帧花的时间。
 		lastpos = curpos;//把当前点保存下一次用
@@ -52,9 +60,16 @@ public class CreeperBeh : MonoBehaviour
 	}
 
     public void Update () {
+        if(!isPosInited){
+            return;
+        }
+        entitySpeed=Speed();
+        if(entitySpeed<0.1f){
+            Jump();
+        }
    //      seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
-  if(transform.position.y<-40f){
-            Destroy(gameObject);
+        if(transform.position.y<-40f){
+           ObjectPools.creeperEntityPool.Release(gameObject);
         }
             
       
@@ -84,7 +99,7 @@ public class CreeperBeh : MonoBehaviour
         ChangeHeadPos(targetDir);
         entityVec.x=1f;
         if(cc.enabled==true){
-        cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z+new Vector3(0f,entityVec.y,0f))*moveSpeed*Time.deltaTime);    
+        cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,entityVec.y,0f)*5f*Time.deltaTime);    
         }
         
        // Vector3 velocity = dir * speed * 6;

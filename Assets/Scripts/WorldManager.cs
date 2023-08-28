@@ -20,9 +20,9 @@ public class WorldManager : MonoBehaviour
             
     }
     void FixedUpdate(){
-        if(Random.Range(0f,100f)>99f&&EntityBeh.worldEntities.Count<70){
+        if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
-          EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,1);  
+          EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.99f));  
         }
     }
     void Update(){
