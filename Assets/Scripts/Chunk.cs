@@ -36,6 +36,7 @@ public class Chunk : MonoBehaviour
             Physics.BakeMesh(meshes[index],false);
         }
     }
+  
     public struct MeshBuildJob:IJob{
         public NativeArray<Vector3> verts;
         public NativeArray<Vector2> uvs;
@@ -404,7 +405,7 @@ public class Chunk : MonoBehaviour
     }
 
 
-    
+       [BurstCompile]
     void InitMap(Vector2Int pos){
         frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
         backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
@@ -1039,7 +1040,7 @@ public class Chunk : MonoBehaviour
         }
         
     }
-
+            [BurstCompile]
     public static Vector2Int Vec3ToChunkPos(Vector3 pos){
         Vector3 tmp=pos;
         tmp.x = Mathf.Floor(tmp.x / (float)chunkWidth) * chunkWidth;
@@ -1047,7 +1048,7 @@ public class Chunk : MonoBehaviour
         Vector2Int value=new Vector2Int((int)tmp.x,(int)tmp.z);
         return value;
     }
-
+            [BurstCompile]
     public static int FloatToInt(float f){
         if(f>=0){
             return (int)f;
@@ -1055,10 +1056,12 @@ public class Chunk : MonoBehaviour
             return (int)f-1;
         }
     }
+        [BurstCompile]
     public static Vector3Int Vec3ToBlockPos(Vector3 pos){
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         return intPos;
     }
+        [BurstCompile]
     public static void SetBlock(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
@@ -1080,6 +1083,7 @@ public class Chunk : MonoBehaviour
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
         }
     }
+        [BurstCompile]
     public static void SetBlockByHand(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
@@ -1101,6 +1105,7 @@ public class Chunk : MonoBehaviour
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
         }
     }
+        [BurstCompile]
     public static int GetChunkLandingPoint(float x, float z){
        Vector2Int intPos=new Vector2Int(FloatToInt(x),FloatToInt(z));
 
@@ -1116,6 +1121,7 @@ public class Chunk : MonoBehaviour
         }
         return 100;
     }
+        [BurstCompile]
     public static int GetBlock(Vector3 pos){
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));

@@ -70,6 +70,7 @@ public class PlayerMove : MonoBehaviour
     }
     void Start()
     {   
+        currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         Application.targetFrameRate = 1024;
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
@@ -87,7 +88,7 @@ public class PlayerMove : MonoBehaviour
         mainCam=cameraPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-        
+          
     }
 
 
@@ -102,6 +103,7 @@ public class PlayerMove : MonoBehaviour
     }
 
     public void AddItem(int itemTypeID,int itemCount){
+         playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
        // inventoryDic[0]=1;
       //  inventoryItemNumberDic[0]=100;
         int itemCountTmp=itemCount;
@@ -195,10 +197,11 @@ public class PlayerMove : MonoBehaviour
             currentSelectedHotbar-=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
             currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
             if(Mathf.Abs(Input.GetAxis("Mouse ScrollWheel"))>0f){
+                blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
              playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);    
           }
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
-            blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
+            
        
         
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -238,7 +241,9 @@ public class PlayerMove : MonoBehaviour
             breakBlockCD-=Time.deltaTime;
         }
         if(Input.GetKeyDown(KeyCode.Q)){
+            
             PlayerDropItem();
+             playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
         }
         if(Input.GetMouseButton(0)&&breakBlockCD<=0f){
             BreakBlock();
@@ -257,12 +262,18 @@ public class PlayerMove : MonoBehaviour
         
     }
     void PlayerDropItem(){
-          playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
+        
         if(inventoryItemNumberDic[currentSelectedHotbar-1]>0){
             StartCoroutine(ItemEntityBeh.SpawnNewItem(cameraPos.position.x,cameraPos.position.y,cameraPos.position.z,inventoryDic[currentSelectedHotbar-1],(cameraPos.forward*12)));
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
-             AttackAnimate();
-            Invoke("cancelAttackInvoke",0.1f);
+            if(inventoryItemNumberDic[currentSelectedHotbar-1]-1<=0){
+                     playerHandItem.BuildItemModel(0);  
+            }
+              playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
+                AttackAnimate();
+                Invoke("cancelAttackInvoke",0.1f);
+            }else{
+                      playerHandItem.BuildItemModel(inventoryDic[0]);  
         }
     }
     void UpdateInventory(){
@@ -272,6 +283,7 @@ public class PlayerMove : MonoBehaviour
         for(int i=0;i<inventoryDic.Length;i++){
             if(inventoryItemNumberDic[i]<=0){
                 inventoryDic[i]=0;
+                playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);
             }
         
        }

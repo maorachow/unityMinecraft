@@ -277,7 +277,7 @@ QualitySettings:
     shadowNearPlaneOffset: 3
     shadowCascade2Split: 0.33333334
     shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
-    shadowmaskMode: 1
+    shadowmaskMode: 0
     skinWeights: 255
     globalTextureMipmapLimit: 0
     textureMipmapLimitSettings:
@@ -285,7 +285,7 @@ QualitySettings:
       limitBiasMode: 0
       limitBias: -3
     anisotropicTextures: 2
-    antiAliasing: 2
+    antiAliasing: 0
     softParticles: 1
     softVegetation: 1
     realtimeReflectionProbes: 1
@@ -330,9 +330,9 @@ QualitySettings:
     PS4: 5
     PS5: 5
     QNX: 5
-    Server: 5
+    Server: 2
     Stadia: 5
-    Standalone: 5
+    Standalone: 2
     VisionOS: 5
     WebGL: 3
     Windows Store Apps: 5
