@@ -21,9 +21,11 @@ public class Chunk : MonoBehaviour
 {   
     public struct Vertex{
         public Vector3 pos;
+        public Vector3 normal;
         public Vector2 uvPos;
-        public Vertex(Vector3 v3,Vector2 v2){
+        public Vertex(Vector3 v3,Vector3 nor,Vector2 v2){
             pos=v3;
+            normal=nor;
             uvPos=v2;
         }
     }
@@ -52,7 +54,7 @@ public class Chunk : MonoBehaviour
         // different for each face.
         data.SetVertexBufferParams(vertLen,
            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-      
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
         // Four tetrahedron vertex positions:
    //     var sqrt075 = Mathf.Sqrt(0.75f);
@@ -65,16 +67,18 @@ public class Chunk : MonoBehaviour
         var pos = data.GetVertexData<Vertex>();
       //  pos=verts;
         for(int i=0;i<pos.Length;i++){
-            pos[i]=new Vertex(verts[i],uvs[i]);
+            pos[i]=new Vertex(verts[i],new Vector3(1f,1f,1f),uvs[i]);
            
         }
         // Note: normals will be calculated later in RecalculateNormals.
         // Tetrahedron index buffer: 4 triangles, 3 indices per triangle.
         // All vertices are unique so the index buffer is just a
         // 0,1,2,...,11 sequence.
-        data.SetIndexBufferParams(trisLen, IndexFormat.UInt16);
-           NativeArray<int> ib = data.GetIndexData<int>();
-            ib=tris;
+    //    data.SetIndexBufferParams(verts.Length, IndexFormat.UInt16);
+       data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt16);
+        var ib = data.GetIndexData<ushort>();
+        for (ushort i = 0; i < ib.Length; ++i)
+            ib[i] = (ushort)tris[i];
         // One sub-mesh with all the indices.
         data.subMeshCount = 1;
         data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
@@ -784,19 +788,18 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
-    //    NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
-    //    NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
-   //     NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
-    //    MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
-    //    mbj.Schedule().Complete();
+        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
+        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
+        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
+        MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
+        mbj.Schedule().Complete();
+        NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
+        Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
+     //   chunkMesh.vertices = opqVerts;
+    //    chunkMesh.uv = opqUVs;
+     //  chunkMesh.triangles = opqTris;
 
-       NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
-    //   Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
-        chunkMesh.vertices = opqVerts;
-        chunkMesh.uv = opqUVs;
-       chunkMesh.triangles = opqTris;
-
-      //  chunkMesh.RecalculateBounds();
+        chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
         chunkNonSolidMesh.vertices = NSVerts;
         chunkNonSolidMesh.uv = NSUVs;

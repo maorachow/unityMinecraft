@@ -14,6 +14,7 @@ public class PlayerData{
 }
 public class PlayerMove : MonoBehaviour
 {   
+    public Chunk curChunk;
     public Animator am;
     public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
     public static string gameWorldPlayerDataPath;
@@ -142,6 +143,10 @@ public class PlayerMove : MonoBehaviour
 	}
     void Update()
     {      
+        curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
+        if(curChunk==null||curChunk.isMeshBuildCompleted==false){
+            return;
+        }
         currentSpeed=Speed();
         am.SetFloat("speed",currentSpeed);
      /*   if(Input.GetKeyDown(KeyCode.K)){
