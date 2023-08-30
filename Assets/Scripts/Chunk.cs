@@ -85,7 +85,10 @@ public class Chunk : MonoBehaviour
         data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
         // Create the mesh and apply data to it:
      //   Debug.Log("job");
-           
+  //   int threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+   //        UnityEngine.Debug.Log(threadId == 1 ? "Main thread" : $"Worker thread {threadId}");
+           pos.Dispose();
+           ib.Dispose();
         }
 
     }
@@ -590,7 +593,7 @@ public class Chunk : MonoBehaviour
         if (this.map[x, y, z] == 0) continue;
         int typeid = this.map[x, y, z];
         if(0<typeid&&typeid<100){
-    //Left
+        //Left
         if (tmp(x - 1, y, z))
           TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
         //Right
@@ -789,31 +792,44 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
-        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
-        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
-        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
+        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.Persistent);
+        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.Persistent);
+        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.Persistent);
         MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
-        mbj.Schedule().Complete();
-        NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
-        Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
+        JobHandle jh=mbj.Schedule();
+        NativeArray<int> a=new NativeArray<int>(2,Allocator.Persistent);
+      
      //   chunkMesh.vertices = opqVerts;
     //    chunkMesh.uv = opqUVs;
      //  chunkMesh.triangles = opqTris;
+       
 
+        NativeArray<Vector3> vertsNSNative=new NativeArray<Vector3>(NSVerts,Allocator.Persistent);
+        NativeArray<int> trisNSNative=new NativeArray<int>(NSTris,Allocator.Persistent);
+        NativeArray<Vector2> uvsNSNative=new NativeArray<Vector2>(NSUVs,Allocator.Persistent);
+        MeshBuildJob mbjNS=new MeshBuildJob{verts=vertsNSNative,tris=trisNSNative,vertLen=NSVerts.Length,trisLen=NSTris.Length,uvs=uvsNSNative,dataArray=Mesh.AllocateWritableMeshData(1)};
+        JobHandle jhNS=mbjNS.Schedule();
+        JobHandle.CompleteAll(ref jh,ref jhNS);
+        Mesh.ApplyAndDisposeWritableMeshData(mbjNS.dataArray,chunkNonSolidMesh); 
+         Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
         chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
-        chunkNonSolidMesh.vertices = NSVerts;
-        chunkNonSolidMesh.uv = NSUVs;
-        chunkNonSolidMesh.triangles = NSTris;
+        vertsNSNative.Dispose();
+        trisNSNative.Dispose();
+        uvsNSNative.Dispose();
+        vertsNative.Dispose();
+        uvsNative.Dispose();
+        trisNative.Dispose();
+    //    chunkNonSolidMesh.vertices = NSVerts;
+    //    chunkNonSolidMesh.uv = NSUVs;
+   //     chunkNonSolidMesh.triangles = NSTris;
+        chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();
         
    //     var job=new BakeJob();
      //   job.meshes.Add(chunkMesh.GetInstanceID());
    //     job.Schedule();
         meshFilter.mesh = chunkMesh;
-        
-        
-        
         meshFilterNS.mesh = chunkNonSolidMesh;
         a[0]=chunkMesh.GetInstanceID();
         a[1]=chunkNonSolidMesh.GetInstanceID();
@@ -822,8 +838,9 @@ public class Chunk : MonoBehaviour
         JobHandle handle = job.Schedule(a.Length, 1);
         handle.Complete();
         a.Dispose();
-          meshCollider.sharedMesh = chunkMesh;
+        meshCollider.sharedMesh = chunkMesh;
         meshColliderNS.sharedMesh = chunkNonSolidMesh;
+        
         isChunkMapUpdated=false;
         yield break;
     }

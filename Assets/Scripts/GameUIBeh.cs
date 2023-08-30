@@ -5,7 +5,12 @@ using UnityEngine.UI;
 using TMPro;
 public class GameUIBeh : MonoBehaviour
 {
+    public static GameUIBeh instance;
    public RectTransform selectedHotbarTransform;
+   public Slider playerHealthSlider;
+   public Image playerHealthbarBackgroundImage;
+   public Sprite playerHealthbarBlack;
+   public Sprite playerHealthbarWhite;
    public PlayerMove player;
    public static Dictionary<int,Sprite> blockImageDic=new Dictionary<int,Sprite>();
    public static Dictionary<int,Image> hotbarImageDic=new Dictionary<int,Image>();
@@ -22,6 +27,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(8,"WoodZ");
         blockNameDic.Add(9,"Leaves");*/
    void Awake(){
+    instance=this;
     blockImageDic.Add(0,Resources.Load<Sprite>("Textures/emptyslot"));
     blockImageDic.Add(1,Resources.Load<Sprite>("Textures/stone"));
     blockImageDic.Add(2,Resources.Load<Sprite>("Textures/grass_side_carried"));
@@ -34,6 +40,8 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.Add(9,Resources.Load<Sprite>("Textures/leaves"));
     blockImageDic.Add(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.Add(101,Resources.Load<Sprite>("Textures/grass"));
+     blockImageDic.Add(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
+      blockImageDic.Add(152,Resources.Load<Sprite>("Textures/diamond_sword"));
     for(int i=1;i<=9;i++){
         hotbarImageDic.Add(i-1,GameObject.Find("hotbarItem"+i.ToString()).GetComponent<Image>());
     }
@@ -43,10 +51,28 @@ public class GameUIBeh : MonoBehaviour
    }
     void Start()
     {
-        player=GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMove>();
+        RespawnUI.instance.gameObject.SetActive(false);
+        playerHealthbarBlack=Resources.Load<Sprite>("Textures/heartbarbackground");
+        playerHealthbarWhite=Resources.Load<Sprite>("Textures/playerheartbarbackgroundflash");
+        playerHealthSlider=GameObject.Find("healthbar").GetComponent<Slider>();
+        playerHealthSlider.onValueChanged.AddListener(PlayerHealthSliderOnValueChanged);
+        playerHealthbarBackgroundImage=GameObject.Find("healthbar").GetComponent<Image>();
+        player=GameObject.FindWithTag("Player").GetComponent<PlayerMove>();
         selectedHotbarTransform=GameObject.Find("selectedhotbar").GetComponent<RectTransform>();
+        GameUIBeh.instance.PlayerHealthSliderOnValueChanged(player.playerHealth);
+    }
+    public void PlayerHealthSliderOnValueChanged(float f){
+        playerHealthSlider.value=player.playerHealth;
+        playerHealthbarBackgroundImage.sprite=playerHealthbarWhite;
+        Invoke("PlayerHealthSliderInvokeChangeSprite",0.2f);
+
+    }
+    void PlayerHealthSliderInvokeChangeSprite(){
+         playerHealthbarBackgroundImage.sprite=playerHealthbarBlack;
     }
     void FixedUpdate(){
+           selectedHotbar=player.currentSelectedHotbar;
+        selectedHotbarTransform.anchoredPosition=new Vector2(-160f+(selectedHotbar-1)*40f,0f);
         foreach(KeyValuePair<int,Image> i in hotbarImageDic){
             if(player.inventoryItemNumberDic[i.Key]==0){
                 i.Value.sprite=blockImageDic[0];
@@ -61,7 +87,6 @@ public class GameUIBeh : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        selectedHotbar=player.currentSelectedHotbar;
-        selectedHotbarTransform.anchoredPosition=new Vector2(-160f+(selectedHotbar-1)*40f,0f);
+     
     }
 }

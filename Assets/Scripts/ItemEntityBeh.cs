@@ -51,6 +51,9 @@ public class ItemEntityBeh : MonoBehaviour
     verts=new List<Vector3>();
     uvs=new List<Vector2>();
     tris=new List<int>();
+    if(itemID>150&&itemID<=200){
+        BuildFlatItemModel(itemID);
+    }
     if(itemID==0){
         ReleaseItem();
         return;
@@ -102,6 +105,7 @@ public class ItemEntityBeh : MonoBehaviour
             BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, verts, uvs, tris,0);
             BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, verts, uvs, tris,0);
         }
+       
     }
 
         itemMesh.vertices = verts.ToArray();
@@ -210,7 +214,7 @@ public class ItemEntityBeh : MonoBehaviour
        
         string[] worldItemEntitiesData=File.ReadAllLines(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json");
         foreach(string s in worldItemEntitiesData){
-            Debug.Log(s);
+       
             itemEntityDataReadFromDisk.Add(JsonSerializer.Deserialize<ItemData>(s));
         }
             //isEntitiesReadFromDisk=true;
@@ -278,7 +282,7 @@ public class ItemEntityBeh : MonoBehaviour
                 tmp.guid=System.Guid.NewGuid().ToString("N");
                  tmp.SendMessage("InitPos");
              //    a.transform.position=new Vector3(posX,posY,posZ);
-                 yield return new WaitForSeconds(0.11f);
+                 yield return new WaitForSeconds(0.05f);
                  tmp.AddForceInvoke(startingSpeed);
                  yield break;
         }
@@ -309,7 +313,7 @@ public class ItemEntityBeh : MonoBehaviour
         rb.velocity=f;
     }
     public void InitPos(){
-        Invoke("InvokeInitPos",0.1f);
+        Invoke("InvokeInitPos",0.01f);
     
     }
     public void InvokeInitPos(){
@@ -318,19 +322,32 @@ public class ItemEntityBeh : MonoBehaviour
     }
     void Awake(){
       //  worldEntities.Add(this);
+       if(isFlatItemInfoAdded==false){
+            AddFlatItemInfo();
+        }
       rb=GetComponent<Rigidbody>();
       mc=GetComponent<MeshCollider>();
       mf=GetComponent<MeshFilter>();
     }
     void Update(){
-        lifeTime+=Time.deltaTime;
+       
+        lifeTime+=Time.deltaTime;    
+        
+        
         if(lifeTime>=60f){
             ReleaseItem();
             return;
         }
     }
     void PlayerEatItem(){ 
-    if(Mathf.Abs(playerPos.position.x-transform.position.x)<1f&&Mathf.Abs(playerPos.position.y-transform.position.y)<2f&&Mathf.Abs(playerPos.position.z-transform.position.z)<1f&&lifeTime>1f){
+       
+    if(Mathf.Abs(playerPos.position.x-transform.position.x)<1f&&Mathf.Abs(playerPos.position.y-transform.position.y)<2f&&Mathf.Abs(playerPos.position.z-transform.position.z)<1f&&lifeTime>0.5f){
+         if( playerPos.gameObject.GetComponent<PlayerMove>().CheckInventoryIsFull(itemID)==true){
+            return;
+        }
+        if(playerPos.gameObject.GetComponent<PlayerMove>().isPlayerKilled==true){
+            return;
+        }
         playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
         playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
         ReleaseItem();
@@ -356,4 +373,136 @@ public class ItemEntityBeh : MonoBehaviour
              isInUnloadedChunks=false;
         }
     }
+
+
+
+     public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
+    public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
+    //151diamond pickaxe 152diamond sword
+    public static Texture2D itemTextureInfo;
+//    public List<Vector3> verts=new List<Vector3>();
+  //  public List<Vector2> uvs=new List<Vector2>();
+  //  public List<int> tris=new List<int>();
+    public static bool isFlatItemInfoAdded=false;
+   // public Texture2D texture;
+    public static int textureXSize=64;
+    public static int textureYSize=64;
+ //   public Mesh itemMesh;
+    void AddFlatItemInfo(){
+        itemMaterialInfo.Add(151,new Vector2(0.0625f,0.125f));
+        itemMaterialInfo.Add(152,new Vector2(0.0f,0.125f));
+        itemTexturePosInfo.Add(152,new Vector2Int(0,128));
+        itemTexturePosInfo.Add(151,new Vector2Int(64,128));
+        itemTextureInfo=Resources.Load<Texture2D>("Textures/itemterrain");
+   //     itemTextureInfo.Add(0,Resources.Load<Texture2D>("Textures/diamond_pickaxe"));
+      //  itemTextureInfo.Add(1,Resources.Load<Texture2D>("Textures/diamond_sword"));
+        isFlatItemInfoAdded=true;
+    }
+
+    public void BuildFlatItemModel(int itemID)
+    {
+    float x=0f;
+    float y=0f;
+    float z=0f;
+     itemMesh=new Mesh();
+
+        BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y, z)/8, Vector3.forward*textureXSize/4/8, Vector3.right*textureYSize/4/8, false, verts, uvs, tris);
+        BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y+1f, z)/8, Vector3.forward*textureXSize/4/8, Vector3.right*textureYSize/4/8, true, verts, uvs, tris);
+        for(int i=0;i<textureXSize;i++){
+            for(int j=0;j<textureYSize;j++){
+                if(i+1<textureXSize&&i-1>=0&&j+1<textureYSize&&j-1>=0){
+                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i+1,itemTexturePosInfo[itemID].y+j).a==0f){
+                        //right
+                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i + 1, y, z+j)/4/8, Vector3.up/8, Vector3.forward/4/8, true, verts, uvs, tris);
+
+                    }
+                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i-1,itemTexturePosInfo[itemID].y+j).a==0f){
+                        //left
+                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i, y, z+j)/4/8, Vector3.up/8, Vector3.forward/4/8, false, verts, uvs, tris);
+
+                    }
+                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j+1).a==0f){
+                        //front
+                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00010f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i, y, z+j + 1)/4/8, Vector3.up/8, Vector3.right/4/8, false, verts, uvs, tris);
+
+                    }
+                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j-1).a==0f){
+                        //back
+                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f),  (float)0.0625f*0.0625f*0.25f,new Vector3(x+i,y, z+j)/4/8, Vector3.up/8, Vector3.right/4/8, true, verts, uvs, tris);
+
+                    }
+                }else{
+                    if(i+1>=textureXSize){
+                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)1/16*0.0625f,new Vector3(x+i + 1, y,z+ j)/4/8, Vector3.up/8, Vector3.forward/4/8, true, verts, uvs, tris);
+                    }
+                    if(i-1<0){
+                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)1/16*0.0625f,new Vector3(x+i, y, z+j)/4/8, Vector3.up/8, Vector3.forward/4/8, false, verts, uvs, tris);
+                    }
+                    if(j+1>=textureYSize){
+                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f), (float)1/16*0.0625f,new Vector3(x+i, y, z+j + 1)/4/8, Vector3.up/8, Vector3.right/4/8, false, verts, uvs, tris);
+                    }
+                    if(j-1<0){
+                         BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+Random.Range(-0.00001f,0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+Random.Range(-0.00001f,0.00001f),  (float)1/16*0.0625f,new Vector3(x+i, y, z+j)/4/8, Vector3.up/8, Vector3.right/4/8, true, verts, uvs, tris);
+                    }
+                   
+                }
+                    
+            }
+        }
+        itemMesh.vertices=verts.ToArray();
+        itemMesh.uv=uvs.ToArray();
+        itemMesh.triangles=tris.ToArray();
+        itemMesh.RecalculateBounds();
+        itemMesh.RecalculateNormals();
+        mf.mesh=itemMesh;
+        mc.sharedMesh=itemMesh;
+    }
+
+void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
+        Vector2 uvCorner=new Vector2(uvX,uvY);
+     
+        int index = verts.Count;
+    
+        verts.Add (corner);
+        verts.Add (corner + up);
+        verts.Add (corner + up + right);
+        verts.Add (corner + right);
+
+
+        
+        Vector2 uvWidth = new Vector2(uvWidthXY,uvWidthXY);
+     
+
+        //uvCorner.x = (float)(typeid - 1) / 16;
+
+        
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+
+        if (reversed)
+            {
+            tris.Add(index + 0);
+            tris.Add(index + 1);
+            tris.Add(index + 2);
+            tris.Add(index + 2);
+            tris.Add(index + 3);
+            tris.Add(index + 0);
+            }
+            else
+            {
+            tris.Add(index + 1);
+            tris.Add(index + 0);
+            tris.Add(index + 2);
+            tris.Add(index + 3);
+            tris.Add(index + 2);
+            tris.Add(index + 0);
+        }
+    
+    }
+
+
+
+
 }

@@ -10,20 +10,29 @@ public class ZombieBeh : MonoBehaviour
     private CharacterController cc;
     public Animator am;
     public Transform headTransform;
-
-      public Vector3 entityVec;
+    public float zombieHealth=20f;
+    public Vector3 entityVec;
+    public Vector3 entityMotionVec;
     public float moveSpeed=5f;
     public float gravity=-9.8f;
     public float entityY=0f;
     public float jumpHeight=2f;
     public Vector3 entityFacingPos;
-    public float nextWaypointDistance =6f;
-    Vector2 curpos;
-    Vector2 lastpos;
     public bool isPosInited=false;
     public float attackCD=1.2f;
     public bool isJumping=false;
     public float entitySpeed;
+
+
+     public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
+        transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+        zombieHealth-=damageAmount;
+        entityMotionVec=knockback;
+        Invoke("InvokeRevertColor",0.2f);
+    }
+    void InvokeRevertColor(){
+        transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+    }
     public void Start () {
         targetPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         headTransform=transform.GetChild(0).GetChild(1);
@@ -45,11 +54,12 @@ public class ZombieBeh : MonoBehaviour
     
        public void Attack(){
         if(attackCD<=0f){
+             targetPosition.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1f,transform.forward*10f+transform.up*15f);
                am.SetBool("attack",true);
         attackCD=1.2f;
         Invoke("CancelAttack",0.36f);  
         }
-   
+    
     }
     public void CancelAttack(){
         am.SetBool("attack",false);
@@ -65,23 +75,21 @@ public class ZombieBeh : MonoBehaviour
 
     float Speed()
 	{
-        if(PlayerMove.isPaused==true){
-            return 1f;
-        }
-		curpos = new Vector2(gameObject.transform.position.x,gameObject.transform.position.z);
-		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/3f);
-		lastpos = curpos;
-		return _speed;
+       //      Debug.Log(cc.velocity);
+       	return cc.velocity.magnitude;
+
 	}
 
 
 
 
     public void Update () {
+        entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero, 3f * Time.deltaTime);
+
         if(!isPosInited){
             return;
         }
-        entitySpeed=Speed();
+     
         if(transform.position.y<-40f){
             ObjectPools.zombieEntityPool.Release(gameObject);
         }
@@ -96,25 +104,38 @@ public class ZombieBeh : MonoBehaviour
         Vector3 targetDir;
     
         targetDir = targetPosition.position;
-        am.SetFloat("speed",entitySpeed);
+        
         transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(targetDir);
         entityVec.x=1f;
       
-        if(Vector3.Magnitude(transform.position - targetDir)<1f){
+        if(Vector3.Magnitude(transform.position - targetDir)<1.6f){
+            entitySpeed=Mathf.Lerp(entitySpeed,Speed(),5f*Time.deltaTime);
+   //     Debug.Log(Speed());
+            am.SetFloat("speed",entitySpeed);
             Attack();
           
         }else{
-             if(entitySpeed<=0.28f){
+             if(entitySpeed<=0.01f){
                 Jump();
             }
         if(cc.enabled==true){
-        cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime);    
+            if(entityMotionVec!=Vector3.zero){
+                cc.Move(entityMotionVec*Time.deltaTime); 
+            }else{
+                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+            }
+        
+        entitySpeed=Speed();
+   //     Debug.Log(Speed());
+        am.SetFloat("speed",  entitySpeed);
+
         }else return;
         }
         if(cc.enabled==true){
         cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*Time.deltaTime);
         }else return;
+        if(cc.enabled==true){
         if(cc.isGrounded!=true){
             if(!GetComponent<EntityBeh>().isInUnloadedChunks){
              entityY+=gravity*Time.deltaTime;   
@@ -127,7 +148,11 @@ public class ZombieBeh : MonoBehaviour
             entityY=jumpHeight;
             isJumping=false;
         }
-        entityVec.y=entityY;
+        entityVec.y=entityY;    
+        }
+        
+         
+           
        // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
        // entityFacingPos=targetRotation.eulerAngles;
 

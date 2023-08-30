@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using System.IO;
 using Utf8Json;
 public class PlayerData{
+    public float playerHealth;
     public float posX;
     public float posY;
     public float posZ;
@@ -14,6 +15,8 @@ public class PlayerData{
 }
 public class PlayerMove : MonoBehaviour
 {   
+    public float playerHealth=20f;
+    public float playerMaxHealth=20f;
     public Chunk curChunk;
     public Animator am;
     public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
@@ -21,11 +24,13 @@ public class PlayerMove : MonoBehaviour
     public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
+    public int cameraPosMode=0;
     public static bool isPaused=false;
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
     public GameObject collidingBlockOutline;
     public Transform cameraPos;
+    public Transform headPos;
     public Transform playerMoveRef;
     public Transform playerBodyPos;
     public Text blockOnHandText;
@@ -40,8 +45,8 @@ public class PlayerMove : MonoBehaviour
     public float mouseSens=10f;
     public float currentSpeed;
     public Vector3 playerVec;
-    public Vector2 curpos;
-    public Vector2 lastpos;
+    public Vector3 playerMotionVec;
+    public bool isPlayerKilled=false;
     public Chunk chunkPrefab;
     public ItemOnHandBeh playerHandItem;
     public int currentSelectedHotbar=5;
@@ -64,6 +69,8 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(9,"Leaves");
         blockNameDic.Add(100,"Water");
         blockNameDic.Add(101,"Grass Crop");
+        blockNameDic.Add(151,"Diamond Pickaxe");
+         blockNameDic.Add(152,"Diamond Sword");
         isBlockNameDicAdded=true;
         }
         ReadPlayerJson();
@@ -82,13 +89,13 @@ public class PlayerMove : MonoBehaviour
         viewRange=64;
         am=transform.GetChild(0).GetComponent<Animator>();
         cc=GetComponent<CharacterController>();
-        cameraPos=transform.GetChild(0).GetChild(0);
-        playerMoveRef=cameraPos.GetChild(1);
+        headPos=transform.GetChild(0).GetChild(0);
+        playerMoveRef=headPos.GetChild(1);
         playerBodyPos=transform.GetChild(0).GetChild(1);
-        mainCam=cameraPos.GetChild(0).gameObject.GetComponent<Camera>();
+        mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-          
+         
     }
 
 
@@ -99,8 +106,23 @@ public class PlayerMove : MonoBehaviour
   //  }
     void OnApplicationFocus(bool focus)
     {
-    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.lockState = CursorLockMode.Confined;
     }
+
+
+    public bool CheckInventoryIsFull(int itemID){
+        for(int i=0;i<inventoryDic.Length;i++){
+            if(inventoryDic[i]==0){
+                return false;
+            }
+            if(inventoryDic[i]==itemID&&inventoryItemNumberDic[i]<64){
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 
     public void AddItem(int itemTypeID,int itemCount){
          playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
@@ -130,21 +152,64 @@ public class PlayerMove : MonoBehaviour
             }
 
         }
-        playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
+     //   playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
     }
 
      float Speed()
 	{
-        if(PlayerMove.isPaused==true){
-            return 1f;
-        }
-		curpos = new Vector2(gameObject.transform.position.x,gameObject.transform.position.z);
-		float _speed = (Vector3.Magnitude(curpos - lastpos) / Time.deltaTime/3f);
-		lastpos = curpos;
-		return _speed;
+   
+		return Vector3.Magnitude(new Vector3(cc.velocity.x,0f,cc.velocity.z));
 	}
+    public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
+        GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        playerHealth-=damageAmount;
+        playerMotionVec=knockback;
+    }
+    public void PlayerDie(){
+          GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+      //   transform.position=new Vector3(0f,150f,0f);
+        for(int i=0;i<inventoryDic.Length;i++){
+                   while(inventoryItemNumberDic[i]>0){
+                    PlayerDropItem(i);
+                  
+                }
+        }
+        Cursor.lockState = CursorLockMode.Confined;
+          cc.enabled = false;
+        transform.rotation=Quaternion.Euler(0f,0f,-90f);
+        cc.enabled = true;
+         
+        isPlayerKilled=true;
+        RespawnUI.instance.gameObject.SetActive(true);
+    }
+    public void PlayerRespawn(){
+
+        am.SetBool("iskilled",false);
+         am.SetFloat("speed",0f);
+        cc.enabled = false;
+         transform.rotation=Quaternion.identity;
+        transform.position = new Vector3(0f,150f,0f);
+        headPos.rotation=Quaternion.identity;
+        playerBodyPos.rotation=Quaternion.identity;
+        cc.enabled = true;
+        
+        
+        playerHealth=20f;
+        isPlayerKilled=false;
+        GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        RespawnUI.instance.gameObject.SetActive(false);
+         transform.position=new Vector3(0f,150f,0f);
+    }
+
     void Update()
-    {      
+    {      playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
+        if(playerHealth<=0f&&isPlayerKilled==false){
+            PlayerDie();
+        }
+        if(isPlayerKilled==true){
+            return;
+        }
+        playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
         curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
         if(curChunk==null||curChunk.isMeshBuildCompleted==false){
             return;
@@ -158,9 +223,9 @@ public class PlayerMove : MonoBehaviour
              AddItem(5,10);
              AddItem(6,10);
         }*/
-        if(Input.GetKeyDown(KeyCode.U)){
-                Chunk.SaveWorldData();
-        }
+ //       if(Input.GetKeyDown(KeyCode.U)){
+    //            Chunk.SaveWorldData();
+   //     }
         if(Input.GetKey(KeyCode.LeftShift)){
             moveSpeed=10f;
         }else{
@@ -178,13 +243,13 @@ public class PlayerMove : MonoBehaviour
         
         collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
        
-        Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
-        Vector3 blockPoint2=info.point-cameraPos.forward*0.01f;
+        Vector3 blockPoint=info.point+headPos.forward*0.01f;
+        Vector3 blockPoint2=info.point-headPos.forward*0.01f;
         blockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
         collidingBlockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint2).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).z+0.5f);
         }else if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag=="Entity"){
-            Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
-        Vector3 blockPoint2=info.point-cameraPos.forward*0.01f;
+            Vector3 blockPoint=info.point+headPos.forward*0.01f;
+        Vector3 blockPoint2=info.point-headPos.forward*0.01f;
             collidingBlockOutline.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint2).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint2).z+0.5f);
             blockOutline.GetComponent<MeshRenderer>().enabled=false;
             collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
@@ -198,7 +263,7 @@ public class PlayerMove : MonoBehaviour
             currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
             if(Mathf.Abs(Input.GetAxis("Mouse ScrollWheel"))>0f){
                 blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
-             playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);    
+        
           }
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
             
@@ -220,6 +285,7 @@ public class PlayerMove : MonoBehaviour
             playerY+=gravity*Time.deltaTime;
         }else{
             playerY=0f;
+           // playerMotionVec.y=0f;
         }
         if(cc.isGrounded==true&&Input.GetButton("Jump")){
             playerY=jumpHeight;
@@ -232,18 +298,18 @@ public class PlayerMove : MonoBehaviour
         cameraX=Mathf.Clamp(cameraX,-90f,90f);
         playerVec=new Vector3(Input.GetAxis("Vertical"),0f,Input.GetAxis("Horizontal"));
         playerVec.y=playerY;
-        cameraPos.eulerAngles+=new Vector3(0f,mouseX,0f);
-        cameraPos.localEulerAngles=new Vector3(cameraX,cameraPos.localEulerAngles.y,cameraPos.localEulerAngles.z);
-        playerMoveRef.eulerAngles=new Vector3(0f,cameraPos.eulerAngles.y,cameraPos.eulerAngles.z);
+        headPos.eulerAngles+=new Vector3(0f,mouseX,0f);
+        headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,headPos.localEulerAngles.z);
+        playerMoveRef.eulerAngles=new Vector3(0f,headPos.eulerAngles.y,headPos.eulerAngles.z);
         playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
-        cc.Move((playerMoveRef.forward*playerVec.x+playerMoveRef.right*playerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime);
+        cc.Move((playerMoveRef.forward*playerVec.x+playerMoveRef.right*playerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
         if(Input.GetKeyDown(KeyCode.Q)){
             
-            PlayerDropItem();
-             playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
+            PlayerDropItem(currentSelectedHotbar-1);
+         //    playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
         }
         if(Input.GetMouseButton(0)&&breakBlockCD<=0f){
             BreakBlock();
@@ -261,19 +327,21 @@ public class PlayerMove : MonoBehaviour
         
         
     }
-    void PlayerDropItem(){
-        
-        if(inventoryItemNumberDic[currentSelectedHotbar-1]>0){
-            StartCoroutine(ItemEntityBeh.SpawnNewItem(cameraPos.position.x,cameraPos.position.y,cameraPos.position.z,inventoryDic[currentSelectedHotbar-1],(cameraPos.forward*12)));
-            inventoryItemNumberDic[currentSelectedHotbar-1]--;
-            if(inventoryItemNumberDic[currentSelectedHotbar-1]-1<=0){
-                     playerHandItem.BuildItemModel(0);  
+    void PlayerDropItem(int slotID){
+        playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
+        if(inventoryItemNumberDic[slotID]>0){
+            StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
+            inventoryItemNumberDic[slotID]--;
+            if(inventoryItemNumberDic[slotID]-1<=0){
+              playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
+            playerHandItem.isHandItemBuildCompleted=false;    
             }
-              playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
+  
                 AttackAnimate();
                 Invoke("cancelAttackInvoke",0.1f);
             }else{
-                      playerHandItem.BuildItemModel(inventoryDic[0]);  
+                     playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
+            playerHandItem.isHandItemBuildCompleted=false;    
         }
     }
     void UpdateInventory(){
@@ -283,7 +351,7 @@ public class PlayerMove : MonoBehaviour
         for(int i=0;i<inventoryDic.Length;i++){
             if(inventoryItemNumberDic[i]<=0){
                 inventoryDic[i]=0;
-                playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);
+           
             }
         
        }
@@ -319,11 +387,29 @@ public class PlayerMove : MonoBehaviour
     void AttackAnimate(){
         am.SetBool("isattacking",true);
     }
+    void AttackEnemy(GameObject go){
+         AttackAnimate();
+     Invoke("cancelAttackInvoke",0.1f);
+        if(go.GetComponent<ZombieBeh>()!=null){
+            if(inventoryDic[currentSelectedHotbar-1]==152){
+             go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-100f);   
+            }else if(inventoryDic[currentSelectedHotbar-1]==151){
+                 go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(5f,(transform.position-go.transform.position).normalized*-20f);   
+            }else{
+                  go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(1f,(transform.position-go.transform.position).normalized*-10f);   
+            }
+        
+        }
+    }
     void BreakBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
-            Vector3 blockPoint=info.point+cameraPos.forward*0.01f;
+            if(info.collider.gameObject.tag=="Entity"){
+                    AttackEnemy(info.collider.gameObject);
+                    return;
+            }
+            Vector3 blockPoint=info.point+headPos.forward*0.01f;
             int tmpID=Chunk.GetBlock(blockPoint);
             if(tmpID==0){
                 return;
@@ -347,7 +433,10 @@ public class PlayerMove : MonoBehaviour
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
-            Vector3 blockPoint=info.point-cameraPos.forward*0.01f;
+            Vector3 blockPoint=info.point-headPos.forward*0.01f;
+            if(inventoryDic[currentSelectedHotbar-1]>150&&inventoryDic[currentSelectedHotbar-1]<=200){
+                return;
+            }
             if(inventoryDic[currentSelectedHotbar-1]==0){
                 return;
             }
@@ -401,6 +490,7 @@ public class PlayerMove : MonoBehaviour
          
          if(pd.posX!=0f&&pd.posY!=0f&&pd.posZ!=0f&&pd.inventoryDic!=null&&pd.inventoryItemNumberDic!=null){
            transform.position=new Vector3(pd.posX,pd.posY,pd.posZ); 
+           playerHealth=pd.playerHealth;
            inventoryDic=pd.inventoryDic;
            inventoryItemNumberDic=pd.inventoryItemNumberDic;
          }else{
@@ -413,6 +503,7 @@ public class PlayerMove : MonoBehaviour
     }
     public void SavePlayerData(){
         PlayerData pd=new PlayerData();
+        pd.playerHealth=playerHealth;
         pd.posX=transform.position.x;
         pd.posY=transform.position.y;
         pd.posZ=transform.position.z;

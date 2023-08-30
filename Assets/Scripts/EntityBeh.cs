@@ -81,7 +81,7 @@ public class EntityBeh : MonoBehaviour
        
         string[] worldEntitiesData=File.ReadAllLines(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json");
         foreach(string s in worldEntitiesData){
-            Debug.Log(s);
+       //     Debug.Log(s);
             entityDataReadFromDisk.Add(JsonSerializer.Deserialize<EntityData>(s));
         }
             isEntitiesReadFromDisk=true;
@@ -168,7 +168,7 @@ public class EntityBeh : MonoBehaviour
     }
     public static void SpawnEntityFromFile(){
         foreach(EntityData ed in entityDataReadFromDisk){
-            Debug.Log(ed.guid);
+    //        Debug.Log(ed.guid);
             switch(ed.entityTypeID){
                 case 0:
                 GameObject a=ObjectPools.creeperEntityPool.Get();
