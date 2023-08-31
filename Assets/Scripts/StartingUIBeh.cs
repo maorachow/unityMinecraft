@@ -11,18 +11,20 @@ public class StartingUIBeh : MonoBehaviour
    public Button startNewWorldButton;
    public Button continuePlayingButton;
    public Button quitButton;
+   public float UILifeTime;
    public static string gameWorldDataPath;
    public static string gameWorldPlayerDataPath;
    public static string gameWorldEntityDataPath;
    public static string gameWorldItemEntityDataPath;
    void Start(){
-    cameraPos=GameObject.Find("Main Camera").GetComponent<Transform>();
+    Time.timeScale=1f;
     startNewWorldButton=GameObject.Find("createnewworldbutton").GetComponent<Button>();
     continuePlayingButton=GameObject.Find("continueplayingbutton").GetComponent<Button>();
     quitButton=GameObject.Find("quitbutton").GetComponent<Button>();
     startNewWorldButton.onClick.AddListener(StartNewWorldButtonOnClick);
     continuePlayingButton.onClick.AddListener(ContinuePlayingButtonOnClick);
     quitButton.onClick.AddListener(QuitButtonOnClick);
+     cameraPos=GameObject.Find("Main Camera").GetComponent<Transform>();
    }
    void StartNewWorldButtonOnClick(){
     CreateGameDirectory();
@@ -113,6 +115,7 @@ public class StartingUIBeh : MonoBehaviour
     Application.Quit();
    }
    void Update(){
-    cameraPos.Rotate(0f,Time.deltaTime*2f,0f);
+    UILifeTime+=2*Time.deltaTime;
+    cameraPos.eulerAngles=new Vector3(0f,UILifeTime,0f);
    }
 }

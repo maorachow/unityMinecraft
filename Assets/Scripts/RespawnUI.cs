@@ -22,6 +22,7 @@ public class RespawnUI : MonoBehaviour
         player.PlayerRespawn();
     }   
     public void MainMenuButtonOnClick(){
+        ZombieBeh.isZombiePrefabLoaded=false;
         player.PlayerRespawn();
         player.SavePlayerData();
         Chunk.SaveWorldData();

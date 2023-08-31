@@ -31,6 +31,7 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
+        ZombieBeh.isZombiePrefabLoaded=false;
         SaveWorldButtonOnClick();
          SceneManager.LoadScene(0);
 
