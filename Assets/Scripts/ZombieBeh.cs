@@ -25,13 +25,24 @@ public class ZombieBeh : MonoBehaviour
 
 
      public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
+       
         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+         transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+          transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+           transform.GetChild(0).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+           transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+           transform.GetChild(0).GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
         zombieHealth-=damageAmount;
         entityMotionVec=knockback;
         Invoke("InvokeRevertColor",0.2f);
     }
     void InvokeRevertColor(){
-        transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+         transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+          transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+           transform.GetChild(0).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+           transform.GetChild(0).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+           transform.GetChild(0).GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
     }
     public void Start () {
         targetPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
@@ -120,7 +131,7 @@ public class ZombieBeh : MonoBehaviour
                 Jump();
             }
         if(cc.enabled==true){
-            if(entityMotionVec!=Vector3.zero){
+            if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime); 
             }else{
                  cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);

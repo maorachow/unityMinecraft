@@ -132,7 +132,7 @@ public class EntityBeh : MonoBehaviour
         foreach(EntityBeh e in worldEntities){
         e.SaveSingleEntity();
         }
-        Debug.Log(entityDataReadFromDisk.Count);
+     //   Debug.Log(entityDataReadFromDisk.Count);
        foreach(EntityData ed in entityDataReadFromDisk){
         string tmpData=JsonSerializer.ToJsonString(ed);
         File.AppendAllText(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json",tmpData+"\n");
@@ -174,6 +174,7 @@ public class EntityBeh : MonoBehaviour
                 GameObject a=ObjectPools.creeperEntityPool.Get();
                 a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
                 a.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
+                a.GetComponent<CreeperBeh>().SendMessage("InitPos");
                 a.GetComponent<EntityBeh>().entityTypeID=ed.entityTypeID;
                 a.GetComponent<EntityBeh>().guid=ed.guid;
                 break;

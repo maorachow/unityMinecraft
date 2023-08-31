@@ -77,6 +77,7 @@ public class PlayerMove : MonoBehaviour
     }
     void Start()
     {   
+         
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         Application.targetFrameRate = 1024;
@@ -95,7 +96,7 @@ public class PlayerMove : MonoBehaviour
         mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-         
+         Resume();
     }
 
 
@@ -202,8 +203,15 @@ public class PlayerMove : MonoBehaviour
     }
 
     void Update()
-    {      playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
+    {     
+        if(currentSelectedHotbar-1>=0&&currentSelectedHotbar-1<inventoryDic.Length){
+        playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];    
+        }
+        
         if(playerHealth<=0f&&isPlayerKilled==false){
+            PlayerDie();
+        }
+         if(transform.position.y<-40f&&isPlayerKilled==false){
             PlayerDie();
         }
         if(isPlayerKilled==true){
@@ -212,6 +220,7 @@ public class PlayerMove : MonoBehaviour
         playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
         curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
         if(curChunk==null||curChunk.isMeshBuildCompleted==false){
+            UpdateWorld();
             return;
         }
         currentSpeed=Speed();
@@ -462,6 +471,8 @@ public class PlayerMove : MonoBehaviour
         pauseMenu.SetActive(false);
     }
     public void ReadPlayerJson(){
+          inventoryDic=new int[9];
+            inventoryItemNumberDic=new int[9];
      if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
         gameWorldPlayerDataPath="C:/";
       }else{

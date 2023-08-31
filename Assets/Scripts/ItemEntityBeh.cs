@@ -230,7 +230,7 @@ public class ItemEntityBeh : MonoBehaviour
         }
     }
     public void SaveSingleItemEntity(){
-        Debug.Log(this.guid);
+   //     Debug.Log(this.guid);
         ItemData tmpData=new ItemData();
         tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){

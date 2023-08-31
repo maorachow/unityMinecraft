@@ -5,14 +5,20 @@ using UnityEngine;
 public class WorldManager : MonoBehaviour
 {
     public Transform playerPos;
-    void Awake(){
+    void Start(){
+
+          Chunk.AddBlockInfo();  
+        
+      
+            Chunk.ReadJson();
+        
         playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
             if(!EntityBeh.isEntitiesLoad){
             EntityBeh.LoadEntities();
         }
-                if(EntityBeh.isEntitiesReadFromDisk==false){
+        
             EntityBeh.ReadEntityJson();
-        }
+        
             EntityBeh.SpawnEntityFromFile();
             ItemEntityBeh.ReadItemEntityJson();
             ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();

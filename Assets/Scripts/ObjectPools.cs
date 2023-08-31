@@ -8,20 +8,21 @@ public class MyChunkObjectPool{
  
     public Queue<GameObject> objectPool = new Queue<GameObject>();
    
- //   public int defaultCount = 16;
+    public int defaultCount = 0;
  
-    public int maxCount = 25;
+    public int maxCount = 200;
  
- /*   public void Init()
+    public void Init()
     {
+        objectPool.Clear();
         GameObject obj;
         for (int i = 0; i < defaultCount; i++)
         {
-            obj = Instantiate(Object, this.transform);
+            obj = GameObject.Instantiate(Object,new Vector3(0f,0f,0f),Quaternion.identity);
             objectPool.Enqueue(obj);
             obj.SetActive(false);
         }
-    }*/
+    }
     // 从池子中取出物体
     public GameObject Get(Vector2Int pos)
     {
@@ -74,20 +75,21 @@ public class MyItemObjectPool{
  
     public Queue<GameObject> objectPool = new Queue<GameObject>();
    
- //   public int defaultCount = 16;
+    public int defaultCount = 16;
  
-    public int maxCount = 25;
+    public int maxCount = 100;
  
- /*   public void Init()
+    public void Init()
     {
+        objectPool.Clear();
         GameObject obj;
         for (int i = 0; i < defaultCount; i++)
         {
-            obj = Instantiate(Object, this.transform);
+            obj = GameObject.Instantiate(Object,new Vector3(0f,0f,0f),Quaternion.identity);
             objectPool.Enqueue(obj);
             obj.SetActive(false);
         }
-    }*/
+    }
     // 从池子中取出物体
     public GameObject Get(Vector3 pos)
     {
@@ -142,7 +144,7 @@ public class ObjectPools : MonoBehaviour
         public static ObjectPool<GameObject> zombieEntityPool;
        // public static ObjectPool<GameObject> itemEntityPool;
         public static MyItemObjectPool itemEntityPool=new MyItemObjectPool();
-        public void Awake(){
+        public void Start(){
         particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
         itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
@@ -152,8 +154,10 @@ public class ObjectPools : MonoBehaviour
         chunkPrefab=Resources.Load<GameObject>("Prefabs/chunk");
         chunkPool.Object=chunkPrefab;
         chunkPool.maxCount=100;
+        chunkPool.Init();
         itemEntityPool.Object=itemPrefab;
         itemEntityPool.maxCount=300;
+        itemEntityPool.Init();
     }
   
     public GameObject CreateEffect()

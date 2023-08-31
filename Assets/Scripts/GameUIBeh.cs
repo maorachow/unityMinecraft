@@ -26,40 +26,43 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(7,"WoodY");
         blockNameDic.Add(8,"WoodZ");
         blockNameDic.Add(9,"Leaves");*/
-   void Awake(){
+   void Start(){
     instance=this;
-    blockImageDic.Add(0,Resources.Load<Sprite>("Textures/emptyslot"));
-    blockImageDic.Add(1,Resources.Load<Sprite>("Textures/stone"));
-    blockImageDic.Add(2,Resources.Load<Sprite>("Textures/grass_side_carried"));
-    blockImageDic.Add(3,Resources.Load<Sprite>("Textures/dirt"));
-    blockImageDic.Add(4,Resources.Load<Sprite>("Textures/grass_side_carried"));
-    blockImageDic.Add(5,Resources.Load<Sprite>("Textures/bedrock"));
-    blockImageDic.Add(6,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.Add(7,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.Add(8,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.Add(9,Resources.Load<Sprite>("Textures/leaves"));
-    blockImageDic.Add(100,Resources.Load<Sprite>("Textures/water"));
-    blockImageDic.Add(101,Resources.Load<Sprite>("Textures/grass"));
-     blockImageDic.Add(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
-      blockImageDic.Add(152,Resources.Load<Sprite>("Textures/diamond_sword"));
+    blockImageDic.Clear();
+    blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/emptyslot"));
+    blockImageDic.TryAdd(1,Resources.Load<Sprite>("Textures/stone"));
+    blockImageDic.TryAdd(2,Resources.Load<Sprite>("Textures/grass_side_carried"));
+    blockImageDic.TryAdd(3,Resources.Load<Sprite>("Textures/dirt"));
+    blockImageDic.TryAdd(4,Resources.Load<Sprite>("Textures/grass_side_carried"));
+    blockImageDic.TryAdd(5,Resources.Load<Sprite>("Textures/bedrock"));
+    blockImageDic.TryAdd(6,Resources.Load<Sprite>("Textures/log_oak"));
+    blockImageDic.TryAdd(7,Resources.Load<Sprite>("Textures/log_oak"));
+    blockImageDic.TryAdd(8,Resources.Load<Sprite>("Textures/log_oak"));
+    blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/leaves"));
+    blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
+    blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
+     blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
+      blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
+      hotbarImageDic.Clear();
+        hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
-        hotbarImageDic.Add(i-1,GameObject.Find("hotbarItem"+i.ToString()).GetComponent<Image>());
+        
+        hotbarImageDic.TryAdd(i-1,GameObject.Find("hotbarItem"+i.ToString()).GetComponent<Image>());
     }
     for(int i=1;i<=9;i++){
-        hotbarTextDic.Add(i-1,GameObject.Find("hotbarItemnumbertext"+i.ToString()).GetComponent<TMP_Text>());
+        hotbarTextDic.TryAdd(i-1,GameObject.Find("hotbarItemnumbertext"+i.ToString()).GetComponent<TMP_Text>());
     }
-   }
-    void Start()
-    {
+        player=GameObject.Find("player").GetComponent<PlayerMove>();
         RespawnUI.instance.gameObject.SetActive(false);
         playerHealthbarBlack=Resources.Load<Sprite>("Textures/heartbarbackground");
         playerHealthbarWhite=Resources.Load<Sprite>("Textures/playerheartbarbackgroundflash");
         playerHealthSlider=GameObject.Find("healthbar").GetComponent<Slider>();
         playerHealthSlider.onValueChanged.AddListener(PlayerHealthSliderOnValueChanged);
         playerHealthbarBackgroundImage=GameObject.Find("healthbar").GetComponent<Image>();
-        player=GameObject.FindWithTag("Player").GetComponent<PlayerMove>();
+        
         selectedHotbarTransform=GameObject.Find("selectedhotbar").GetComponent<RectTransform>();
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(player.playerHealth);
+       
     }
     public void PlayerHealthSliderOnValueChanged(float f){
         playerHealthSlider.value=player.playerHealth;
@@ -71,7 +74,10 @@ public class GameUIBeh : MonoBehaviour
          playerHealthbarBackgroundImage.sprite=playerHealthbarBlack;
     }
     void FixedUpdate(){
-           selectedHotbar=player.currentSelectedHotbar;
+        if(player!=null&&blockImageDic!=null){
+
+      
+        selectedHotbar=player.currentSelectedHotbar;
         selectedHotbarTransform.anchoredPosition=new Vector2(-160f+(selectedHotbar-1)*40f,0f);
         foreach(KeyValuePair<int,Image> i in hotbarImageDic){
             if(player.inventoryItemNumberDic[i.Key]==0){
@@ -82,11 +88,7 @@ public class GameUIBeh : MonoBehaviour
         }
         foreach(KeyValuePair<int,TMP_Text> i in hotbarTextDic){
             i.Value.text=player.inventoryItemNumberDic[i.Key].ToString();
-        }
+        }  }
     }
-    // Update is called once per frame
-    void Update()
-    {
-     
-    }
+  
 }
