@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System.IO;
 using Utf8Json;
+using UnityEngine.EventSystems;
 public class PlayerData{
     public float playerHealth;
     public float posX;
@@ -15,6 +16,7 @@ public class PlayerData{
 }
 public class PlayerMove : MonoBehaviour
 {   
+    public PlayerInput pi; 
     public float playerHealth=20f;
     public float playerMaxHealth=20f;
     public Chunk curChunk;
@@ -54,8 +56,11 @@ public class PlayerMove : MonoBehaviour
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
     public GameObject pauseMenu;
-
+    public float lerpItemSlotAxis;
+    public Vector3 lerpPlayerVec;
     void Awake(){
+        pi=new PlayerInput();
+        pi.Enable();
         if(isBlockNameDicAdded==false){
         blockNameDic.Add(0,"None");
         blockNameDic.Add(1,"Stone");
@@ -74,6 +79,9 @@ public class PlayerMove : MonoBehaviour
         isBlockNameDicAdded=true;
         }
         ReadPlayerJson();
+    }
+    public void SetHotbarNum(int num){
+        currentSelectedHotbar=num;
     }
     void Start()
     {   
@@ -204,6 +212,7 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {     
+
         if(currentSelectedHotbar-1>=0&&currentSelectedHotbar-1<inventoryDic.Length){
         playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];    
         }
@@ -268,17 +277,24 @@ public class PlayerMove : MonoBehaviour
         }
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
        //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
-            currentSelectedHotbar-=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
-            currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
-            if(Mathf.Abs(Input.GetAxis("Mouse ScrollWheel"))>0f){
+       
+            pi.Player.SwitchItemSlot.performed+=ctx=>{ 
+                lerpItemSlotAxis=pi.Player.SwitchItemSlot.ReadValue<Vector2>().y*0.5f;
+            lerpItemSlotAxis=Mathf.Lerp(lerpItemSlotAxis,1.5f,Time.deltaTime);
+            
+                if(Mathf.Abs(pi.Player.SwitchItemSlot.ReadValue<Vector2>().y)>0f){
+                currentSelectedHotbar+=(int)pi.Player.SwitchItemSlot.ReadValue<Vector2>().y;
+                currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
                 blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
         
-          }
+          } };
+           
+          
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
             
        
         
-        if (Input.GetKeyDown(KeyCode.Escape))
+        pi.Player.PauseGame.performed+=ctx=>
         {
             Cursor.lockState = CursorLockMode.None;
             if(isPaused==false){
@@ -286,7 +302,7 @@ public class PlayerMove : MonoBehaviour
             }else{
                 Resume();
             }
-        }
+        };
         if(isPaused==true){
             return;
         }
@@ -296,22 +312,47 @@ public class PlayerMove : MonoBehaviour
             playerY=0f;
            // playerMotionVec.y=0f;
         }
-        if(cc.isGrounded==true&&Input.GetButton("Jump")){
+        if(cc.isGrounded==true&&pi.Player.Jump.ReadValue<float>()>=1f){
             playerY=jumpHeight;
         }
-        float mouseX=Input.GetAxis("Mouse X")*mouseSens;
-        float mouseY=Input.GetAxis("Mouse Y")*mouseSens;
+
+
+         float mouseX=0f;
+        float mouseY=0f;
+        if(Input.touches.Length==2){
+             if (!EventSystem.current.IsPointerOverGameObject())
+            {
+               mouseX=pi.Player.MouseDragSec.ReadValue<Vector2>().x;
+               mouseY=pi.Player.MouseDragSec.ReadValue<Vector2>().y;
+            }
+        }else{
+               if (!EventSystem.current.IsPointerOverGameObject())
+            {
+               mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x;
+               mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y;
+            }
+        }
+        
+       
 
         mouseY=Mathf.Clamp(mouseY,-90f,90f);
         cameraX-=mouseY;
         cameraX=Mathf.Clamp(cameraX,-90f,90f);
-        playerVec=new Vector3(Input.GetAxis("Vertical"),0f,Input.GetAxis("Horizontal"));
+          if(pi.Player.Move.ReadValue<Vector2>()!=Vector2.zero){
+           playerVec=new Vector3(pi.Player.Move.ReadValue<Vector2>().y,0f,pi.Player.Move.ReadValue<Vector2>().x); 
+        
+           lerpPlayerVec=Vector3.Lerp(lerpPlayerVec,playerVec,7f*Time.deltaTime);
+          }else{
+            lerpPlayerVec=Vector3.Lerp(lerpPlayerVec,Vector3.zero,7f*Time.deltaTime);
+          }
+        
+      
         playerVec.y=playerY;
         headPos.eulerAngles+=new Vector3(0f,mouseX,0f);
         headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,headPos.localEulerAngles.z);
         playerMoveRef.eulerAngles=new Vector3(0f,headPos.eulerAngles.y,headPos.eulerAngles.z);
         playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
-        cc.Move((playerMoveRef.forward*playerVec.x+playerMoveRef.right*playerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
+        cc.Move((playerMoveRef.forward*lerpPlayerVec.x+playerMoveRef.right*lerpPlayerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
@@ -320,14 +361,35 @@ public class PlayerMove : MonoBehaviour
             PlayerDropItem(currentSelectedHotbar-1);
          //    playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
         }
-        if(Input.GetMouseButton(0)&&breakBlockCD<=0f){
+    if (!EventSystem.current.IsPointerOverGameObject())
+    {
+          if(Input.touches.Length==1){
+            pi.Player.LeftClick.performed+=ctx=>{ if(breakBlockCD<=0f){
+            BreakBlock();
+            breakBlockCD=0.3f;}};
+            
+             pi.Player.RightClick.performed+=ctx=>{ if(breakBlockCD<=0f){
+            PlaceBlock();
+            breakBlockCD=0.3f;}};
+         
+
+
+          }else{
+                if(pi.Player.LeftClickSec.ReadValue<float>()>=1f&&breakBlockCD<=0f){
             BreakBlock();
             breakBlockCD=0.3f;
         }
-        if(Input.GetMouseButton(1)&&breakBlockCD<=0f){
+        if(pi.Player.RightClickSec.ReadValue<float>()>=1f&&breakBlockCD<=0f){
             PlaceBlock();
             breakBlockCD=0.3f;
         }
+    //    if(pi.Player.RightClick.ReadValue<float>()>=1f&&breakBlockCD<=0f){
+     //       PlaceBlock();
+      //      breakBlockCD=0.3f;
+     //   }
+          }
+       
+    }
        
     }
     void FixedUpdate(){
@@ -337,6 +399,7 @@ public class PlayerMove : MonoBehaviour
         
     }
     void PlayerDropItem(int slotID){
+
         playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
         if(inventoryItemNumberDic[slotID]>0){
             StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
@@ -354,6 +417,7 @@ public class PlayerMove : MonoBehaviour
         }
     }
     void UpdateInventory(){
+      
         for(int i=0;i<inventoryItemNumberDic.Length;i++){
         inventoryItemNumberDic[i]=Mathf.Clamp(inventoryItemNumberDic[i],0,64);
        }

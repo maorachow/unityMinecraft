@@ -66,11 +66,13 @@ public class ZombieBeh : MonoBehaviour
         isPosInited=true;
     }
     public void OnDisable(){
+        entityMotionVec=Vector3.zero;
         isZombieDied=false;
+        zombieHealth=20f;
             isPosInited=false;
     }
     
-    public void ZombieDie(){
+    public void ZombieDie(Vector3 knockback){
     
         isZombieDied=true;
             Transform diedZombieTrans=Instantiate(diedZombiePrefab,transform.position,transform.rotation).GetComponent<Transform>();
@@ -87,6 +89,12 @@ public class ZombieBeh : MonoBehaviour
             diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).rotation=transform.GetChild(0).GetChild(3).GetChild(0).rotation;
             diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).rotation=transform.GetChild(0).GetChild(4).GetChild(0).rotation;
             diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).rotation=transform.GetChild(0).GetChild(5).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             Destroy(diedZombieTrans.gameObject,5f);
             ObjectPools.zombieEntityPool.Release(gameObject);
     }
@@ -127,7 +135,7 @@ public class ZombieBeh : MonoBehaviour
 
     public void Update () {
         if(zombieHealth<=0f&&isZombieDied==false){
-            ZombieDie();
+            ZombieDie(entityMotionVec);
         }
         entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero, 3f * Time.deltaTime);
 
