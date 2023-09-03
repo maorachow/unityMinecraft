@@ -390,11 +390,11 @@ public class PlayerMove : MonoBehaviour
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
-        if(pi.Player.DropItem.ReadValue<float>()>=0.5f){
+        pi.Player.DropItem.performed+=ctx=>{
             
             PlayerDropItem(currentSelectedHotbar-1);
          //    playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
-        }
+        };
     if (!EventSystem.current.IsPointerOverGameObject())
     {
           if(Input.touches.Length==1){
@@ -434,20 +434,17 @@ public class PlayerMove : MonoBehaviour
     }
     void PlayerDropItem(int slotID){
 
-        playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
         if(inventoryItemNumberDic[slotID]>0){
             StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
             inventoryItemNumberDic[slotID]--;
             if(inventoryItemNumberDic[slotID]-1<=0){
-              playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
-            playerHandItem.isHandItemBuildCompleted=false;    
+       
             }
   
                 AttackAnimate();
                 Invoke("cancelAttackInvoke",0.1f);
             }else{
-                     playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];
-            playerHandItem.isHandItemBuildCompleted=false;    
+          
         }
     }
     void UpdateInventory(){
@@ -499,7 +496,7 @@ public class PlayerMove : MonoBehaviour
      Invoke("cancelAttackInvoke",0.1f);
         if(go.GetComponent<ZombieBeh>()!=null){
             if(inventoryDic[currentSelectedHotbar-1]==152){
-             go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-100f);   
+             go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-20f);   
             }else if(inventoryDic[currentSelectedHotbar-1]==151){
                  go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(5f,(transform.position-go.transform.position).normalized*-20f);   
             }else{
@@ -509,7 +506,7 @@ public class PlayerMove : MonoBehaviour
         }
         if(go.GetComponent<CreeperBeh>()!=null){
               if(inventoryDic[currentSelectedHotbar-1]==152){
-             go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-100f);   
+             go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-20f);   
             }else if(inventoryDic[currentSelectedHotbar-1]==151){
                  go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(5f,(transform.position-go.transform.position).normalized*-20f);   
             }else{
