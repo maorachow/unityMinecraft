@@ -27,7 +27,7 @@ public class PlayerMove : MonoBehaviour
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
     public int cameraPosMode=0;
-    public static bool isPaused=false;
+    
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
     public GameObject collidingBlockOutline;
@@ -55,7 +55,7 @@ public class PlayerMove : MonoBehaviour
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
-    public GameObject pauseMenu;
+    public static GameObject pauseMenu;
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
     void Awake(){
@@ -81,20 +81,34 @@ public class PlayerMove : MonoBehaviour
         ReadPlayerJson();
     }
     public void SetHotbarNum(int num){
+        
         currentSelectedHotbar=num;
+        blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
     }
+    public void BreakBlockButtonPress(){
+        if(breakBlockCD<=0f){
+            BreakBlock();
+            breakBlockCD=0.3f;}
+    }
+    public void PlaceBlockButtonPress(){
+        if(breakBlockCD<=0f){
+            PlaceBlock();
+            breakBlockCD=0.3f;}
+    }
+
     void Start()
     {   
-         
+        
+        // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         Application.targetFrameRate = 1024;
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
-        pauseMenu=GameObject.Find("pausemenuUI");
+
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
-        pauseMenu.SetActive(false);
+   
         viewRange=64;
         am=transform.GetChild(0).GetComponent<Animator>();
         cc=GetComponent<CharacterController>();
@@ -104,7 +118,7 @@ public class PlayerMove : MonoBehaviour
         mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-         Resume();
+         GameUIBeh.instance.Resume();
     }
 
 
@@ -113,9 +127,15 @@ public class PlayerMove : MonoBehaviour
    //         c.Value.SendMessage("TryReleaseChunk");
   //      }
   //  }
-    void OnApplicationFocus(bool focus)
+    void MouseLock()
     {
-    Cursor.lockState = CursorLockMode.Confined;
+        if(isPlayerKilled==true||GameUIBeh.isPaused==true){
+            return;
+        }
+        if(pi.Player.LeftClick.ReadValue<float>()>0.5f){
+         Cursor.lockState = CursorLockMode.Locked;   
+        }
+    
     }
 
 
@@ -210,9 +230,28 @@ public class PlayerMove : MonoBehaviour
          transform.position=new Vector3(0f,150f,0f);
     }
 
+    public void PauseOrResume(){
+            Debug.Log("Pause");
+            Cursor.lockState = CursorLockMode.None;
+            if(GameUIBeh.isPaused==false){
+                GameUIBeh.instance.PauseGame();
+                return;
+            }else{
+                GameUIBeh.instance.Resume();
+                return;
+            }
+    }
     void Update()
     {     
-
+       
+          if(Input.GetKeyDown(KeyCode.Escape)){
+            PauseOrResume();
+          }
+        
+        if(GameUIBeh.isPaused==true){
+            return;
+        }
+        MouseLock();
         if(currentSelectedHotbar-1>=0&&currentSelectedHotbar-1<inventoryDic.Length){
         playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];    
         }
@@ -244,7 +283,7 @@ public class PlayerMove : MonoBehaviour
  //       if(Input.GetKeyDown(KeyCode.U)){
     //            Chunk.SaveWorldData();
    //     }
-        if(Input.GetKey(KeyCode.LeftShift)){
+        if(pi.Player.SpeedUp.ReadValue<float>()>=0.5f){
             moveSpeed=10f;
         }else{
             moveSpeed=5f;
@@ -283,7 +322,7 @@ public class PlayerMove : MonoBehaviour
             lerpItemSlotAxis=Mathf.Lerp(lerpItemSlotAxis,1.5f,Time.deltaTime);
             
                 if(Mathf.Abs(pi.Player.SwitchItemSlot.ReadValue<Vector2>().y)>0f){
-                currentSelectedHotbar+=(int)pi.Player.SwitchItemSlot.ReadValue<Vector2>().y;
+                currentSelectedHotbar-=(int)pi.Player.SwitchItemSlot.ReadValue<Vector2>().y;
                 currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
                 blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
         
@@ -294,18 +333,7 @@ public class PlayerMove : MonoBehaviour
             
        
         
-        pi.Player.PauseGame.performed+=ctx=>
-        {
-            Cursor.lockState = CursorLockMode.None;
-            if(isPaused==false){
-                PauseGame();
-            }else{
-                Resume();
-            }
-        };
-        if(isPaused==true){
-            return;
-        }
+      
         if(cc.isGrounded!=true){
             playerY+=gravity*Time.deltaTime;
         }else{
@@ -325,8 +353,14 @@ public class PlayerMove : MonoBehaviour
                mouseX=pi.Player.MouseDragSec.ReadValue<Vector2>().x;
                mouseY=pi.Player.MouseDragSec.ReadValue<Vector2>().y;
             }
-        }else{
+        }else if(Input.touches.Length==3){
                if (!EventSystem.current.IsPointerOverGameObject())
+            {
+               mouseX=pi.Player.MouseDragTri.ReadValue<Vector2>().x;
+               mouseY=pi.Player.MouseDragTri.ReadValue<Vector2>().y;
+            }
+        }else{
+                    if (!EventSystem.current.IsPointerOverGameObject())
             {
                mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x;
                mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y;
@@ -356,7 +390,7 @@ public class PlayerMove : MonoBehaviour
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
-        if(Input.GetKeyDown(KeyCode.Q)){
+        if(pi.Player.DropItem.ReadValue<float>()>=0.5f){
             
             PlayerDropItem(currentSelectedHotbar-1);
          //    playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
@@ -375,11 +409,11 @@ public class PlayerMove : MonoBehaviour
 
 
           }else{
-                if(pi.Player.LeftClickSec.ReadValue<float>()>=1f&&breakBlockCD<=0f){
+            if(pi.Player.LeftClick.ReadValue<float>()>=1f&&breakBlockCD<=0f){
             BreakBlock();
             breakBlockCD=0.3f;
         }
-        if(pi.Player.RightClickSec.ReadValue<float>()>=1f&&breakBlockCD<=0f){
+        if(pi.Player.RightClick.ReadValue<float>()>=1f&&breakBlockCD<=0f){
             PlaceBlock();
             breakBlockCD=0.3f;
         }
@@ -473,6 +507,15 @@ public class PlayerMove : MonoBehaviour
             }
         
         }
+        if(go.GetComponent<CreeperBeh>()!=null){
+              if(inventoryDic[currentSelectedHotbar-1]==152){
+             go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-100f);   
+            }else if(inventoryDic[currentSelectedHotbar-1]==151){
+                 go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(5f,(transform.position-go.transform.position).normalized*-20f);   
+            }else{
+                  go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(1f,(transform.position-go.transform.position).normalized*-10f);   
+            }
+        }
     }
     void BreakBlock(){
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
@@ -524,16 +567,7 @@ public class PlayerMove : MonoBehaviour
         }
     }
     
-    void PauseGame(){
-        isPaused=true;
-        Time.timeScale=0;
-        pauseMenu.SetActive(true);
-    }
-    void Resume(){
-        isPaused=false;
-        Time.timeScale=1;
-        pauseMenu.SetActive(false);
-    }
+   
     public void ReadPlayerJson(){
           inventoryDic=new int[9];
             inventoryItemNumberDic=new int[9];

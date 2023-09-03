@@ -66,9 +66,9 @@ public class ZombieBeh : MonoBehaviour
         isPosInited=true;
     }
     public void OnDisable(){
-        entityMotionVec=Vector3.zero;
-        isZombieDied=false;
-        zombieHealth=20f;
+            entityMotionVec=Vector3.zero;
+            isZombieDied=false;
+            zombieHealth=20f;
             isPosInited=false;
     }
     
@@ -95,7 +95,7 @@ public class ZombieBeh : MonoBehaviour
             diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-            Destroy(diedZombieTrans.gameObject,5f);
+            Destroy(diedZombieTrans.gameObject,10f);
             ObjectPools.zombieEntityPool.Release(gameObject);
     }
 
@@ -107,7 +107,7 @@ public class ZombieBeh : MonoBehaviour
              targetPosition.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1f,transform.forward*10f+transform.up*15f);
                am.SetBool("attack",true);
         attackCD=1.2f;
-        Invoke("CancelAttack",0.36f);  
+        Invoke("CancelAttack",0.2f);  
         }
     
     }

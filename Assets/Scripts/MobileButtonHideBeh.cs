@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class MobileButtonHideBeh : MonoBehaviour
 {
+    public static bool isHidingButton=true;
   public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
     void Start()
     {
-        if(platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer){
+   //     isHidingButton=false;
+        if((platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer)||isHidingButton==false){
             
         }else{
             gameObject.SetActive(false);

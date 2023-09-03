@@ -603,7 +603,7 @@ CharacterController:
   m_Enabled: 1
   serializedVersion: 3
   m_Height: 2
-  m_Radius: 0.3
+  m_Radius: 0.45
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -622,15 +622,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetPosition: {fileID: 0}
+  isZombieDied: 0
   am: {fileID: 0}
   headTransform: {fileID: 0}
+  zombieHealth: 20
   entityVec: {x: 0, y: 0, z: 0}
+  entityMotionVec: {x: 0, y: 0, z: 0}
   moveSpeed: 5
   gravity: -9.8
   entityY: 0
   jumpHeight: 2
   entityFacingPos: {x: 0, y: 0, z: 0}
-  nextWaypointDistance: 6
+  isPosInited: 0
   attackCD: 1.2
   isJumping: 0
   entitySpeed: 0

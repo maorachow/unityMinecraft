@@ -97,7 +97,7 @@ public class EntityBeh : MonoBehaviour
         }
     }
     public void SaveSingleEntity(){
-        Debug.Log(this.guid);
+    //    Debug.Log(this.guid);
         EntityData tmpData=new EntityData();
         tmpData.guid=this.guid;
         foreach(EntityData ed in entityDataReadFromDisk){

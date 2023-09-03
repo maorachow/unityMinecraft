@@ -25,7 +25,7 @@
                 },
                 {
                     "name": "LeftClick",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "0c243735-8dfe-4d6c-a381-3d160cdfdc9b",
                     "expectedControlType": "Button",
                     "processors": "",
@@ -34,7 +34,7 @@
                 },
                 {
                     "name": "RightClick",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "316811c0-5afd-43e0-9712-78ab9a6d8f35",
                     "expectedControlType": "Button",
                     "processors": "",
@@ -96,19 +96,10 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "LeftClickSec",
-                    "type": "Button",
-                    "id": "b0dea585-af10-45b2-87f4-e3094737a0ff",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "RightClickSec",
-                    "type": "Button",
-                    "id": "2f19a639-7bf0-40a3-928e-a15487c715e4",
-                    "expectedControlType": "Button",
+                    "name": "MouseDragTri",
+                    "type": "Value",
+                    "id": "0204c45d-6e7a-4160-ad03-ff4529c4787b",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -205,31 +196,9 @@
                 },
                 {
                     "name": "",
-                    "id": "7d55eaf9-db86-4cdf-ad59-86cc21c32637",
-                    "path": "<Touchscreen>/Press",
-                    "interactions": "Press",
-                    "processors": "",
-                    "groups": "",
-                    "action": "LeftClick",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "d68f7e65-763b-4a67-9a90-6603e2abdaac",
                     "path": "<Mouse>/rightButton",
                     "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RightClick",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "292b0fe0-8ae8-4806-a5f9-80dad4622959",
-                    "path": "<Touchscreen>/primaryTouch/tap",
-                    "interactions": "Tap(duration=0.3,pressPoint=0.5)",
                     "processors": "",
                     "groups": "",
                     "action": "RightClick",
@@ -273,7 +242,7 @@
                     "name": "",
                     "id": "e33d3d48-2524-4ef6-86f7-7c4abbf8b59b",
                     "path": "<Keyboard>/escape",
-                    "interactions": "Press",
+                    "interactions": "Tap",
                     "processors": "",
                     "groups": "",
                     "action": "PauseGame",
@@ -348,23 +317,12 @@
                 },
                 {
                     "name": "",
-                    "id": "9d49c371-d1f3-406a-b90b-0294aeaeeb2b",
-                    "path": "<Touchscreen>/touch1/tap",
-                    "interactions": "Press(pressPoint=0.5)",
+                    "id": "833f9e10-c1a0-45d2-a915-1fbde1bc6918",
+                    "path": "<Touchscreen>/touch2/delta",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "LeftClickSec",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "308e03b5-ce9b-4730-b097-b5db848ec308",
-                    "path": "<Touchscreen>/touch1/indirectTouch",
-                    "interactions": "Tap(duration=0.3,pressPoint=0.5)",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RightClickSec",
+                    "action": "MouseDragTri",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

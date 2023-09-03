@@ -5,7 +5,9 @@ using UnityEngine.UI;
 using TMPro;
 public class GameUIBeh : MonoBehaviour
 {
+    public GameObject pauseMenu;
     public static GameUIBeh instance;
+    public static bool isPaused=false;
    public RectTransform selectedHotbarTransform;
    public Slider playerHealthSlider;
    public Image playerHealthbarBackgroundImage;
@@ -28,6 +30,10 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(9,"Leaves");*/
    void Start(){
     instance=this;
+        if(pauseMenu==null){
+             pauseMenu=transform.Find("pausemenuUI").gameObject;
+             pauseMenu.SetActive(true);
+        }
     blockImageDic.Clear();
     blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/emptyslot"));
     blockImageDic.TryAdd(1,Resources.Load<Sprite>("Textures/stone"));
@@ -73,6 +79,29 @@ public class GameUIBeh : MonoBehaviour
     void PlayerHealthSliderInvokeChangeSprite(){
          playerHealthbarBackgroundImage.sprite=playerHealthbarBlack;
     }
+
+
+
+
+    public void PauseGame(){
+     Debug.Log("UIPause");
+        pauseMenu=transform.Find("pausemenuUI").gameObject;
+          
+        
+        isPaused=true;
+        Time.timeScale=0;
+        pauseMenu.SetActive(true);
+    }
+    public void Resume(){
+      Debug.Log("UIResume");
+            pauseMenu=transform.Find("pausemenuUI").gameObject;
+          
+        
+        isPaused=false;
+        Time.timeScale=1;
+        pauseMenu.SetActive(false);
+    }
+
     void FixedUpdate(){
         if(player!=null&&blockImageDic!=null){
 

@@ -789,16 +789,16 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
+     NativeArray<int> a=new NativeArray<int>(2,Allocator.Persistent);
+     
         NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.Persistent);
         NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.Persistent);
         NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.Persistent);
         MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
         JobHandle jh=mbj.Schedule();
-        NativeArray<int> a=new NativeArray<int>(2,Allocator.Persistent);
+        
       
-     //   chunkMesh.vertices = opqVerts;
-    //    chunkMesh.uv = opqUVs;
-     //  chunkMesh.triangles = opqTris;
+       
        
 
         NativeArray<Vector3> vertsNSNative=new NativeArray<Vector3>(NSVerts,Allocator.Persistent);
@@ -817,15 +817,22 @@ public class Chunk : MonoBehaviour
         vertsNative.Dispose();
         uvsNative.Dispose();
         trisNative.Dispose();
-    //    chunkNonSolidMesh.vertices = NSVerts;
-    //    chunkNonSolidMesh.uv = NSUVs;
-   //     chunkNonSolidMesh.triangles = NSTris;
+/*
+        chunkNonSolidMesh.vertices = NSVerts;
+        chunkNonSolidMesh.uv = NSUVs;
+        chunkNonSolidMesh.triangles = NSTris;
+        chunkMesh.vertices = opqVerts;
+        chunkMesh.uv = opqUVs;
+        chunkMesh.triangles = opqTris;
+
+*/
         chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();
         
    //     var job=new BakeJob();
      //   job.meshes.Add(chunkMesh.GetInstanceID());
    //     job.Schedule();
+   //     Graphics.DrawMeshNow(chunkMesh,transform.position,Quaternion.identity);
         meshFilter.mesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
         a[0]=chunkMesh.GetInstanceID();

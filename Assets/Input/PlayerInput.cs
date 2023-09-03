@@ -47,7 +47,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""LeftClick"",
-                    ""type"": ""Button"",
+                    ""type"": ""Value"",
                     ""id"": ""0c243735-8dfe-4d6c-a381-3d160cdfdc9b"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
@@ -56,7 +56,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""RightClick"",
-                    ""type"": ""Button"",
+                    ""type"": ""Value"",
                     ""id"": ""316811c0-5afd-43e0-9712-78ab9a6d8f35"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
@@ -118,19 +118,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""LeftClickSec"",
-                    ""type"": ""Button"",
-                    ""id"": ""b0dea585-af10-45b2-87f4-e3094737a0ff"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""RightClickSec"",
-                    ""type"": ""Button"",
-                    ""id"": ""2f19a639-7bf0-40a3-928e-a15487c715e4"",
-                    ""expectedControlType"": ""Button"",
+                    ""name"": ""MouseDragTri"",
+                    ""type"": ""Value"",
+                    ""id"": ""0204c45d-6e7a-4160-ad03-ff4529c4787b"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -227,31 +218,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""7d55eaf9-db86-4cdf-ad59-86cc21c32637"",
-                    ""path"": ""<Touchscreen>/Press"",
-                    ""interactions"": ""Press"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""LeftClick"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""d68f7e65-763b-4a67-9a90-6603e2abdaac"",
                     ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""RightClick"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""292b0fe0-8ae8-4806-a5f9-80dad4622959"",
-                    ""path"": ""<Touchscreen>/primaryTouch/tap"",
-                    ""interactions"": ""Tap(duration=0.3,pressPoint=0.5)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""RightClick"",
@@ -295,7 +264,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""e33d3d48-2524-4ef6-86f7-7c4abbf8b59b"",
                     ""path"": ""<Keyboard>/escape"",
-                    ""interactions"": ""Press"",
+                    ""interactions"": ""Tap"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""PauseGame"",
@@ -370,23 +339,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""9d49c371-d1f3-406a-b90b-0294aeaeeb2b"",
-                    ""path"": ""<Touchscreen>/touch1/tap"",
-                    ""interactions"": ""Press(pressPoint=0.5)"",
+                    ""id"": ""833f9e10-c1a0-45d2-a915-1fbde1bc6918"",
+                    ""path"": ""<Touchscreen>/touch2/delta"",
+                    ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""LeftClickSec"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""308e03b5-ce9b-4730-b097-b5db848ec308"",
-                    ""path"": ""<Touchscreen>/touch1/indirectTouch"",
-                    ""interactions"": ""Tap(duration=0.3,pressPoint=0.5)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""RightClickSec"",
+                    ""action"": ""MouseDragTri"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -407,8 +365,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Player_PauseGame = m_Player.FindAction("PauseGame", throwIfNotFound: true);
         m_Player_SwitchItemSlot = m_Player.FindAction("SwitchItemSlot", throwIfNotFound: true);
         m_Player_MouseDragSec = m_Player.FindAction("MouseDragSec", throwIfNotFound: true);
-        m_Player_LeftClickSec = m_Player.FindAction("LeftClickSec", throwIfNotFound: true);
-        m_Player_RightClickSec = m_Player.FindAction("RightClickSec", throwIfNotFound: true);
+        m_Player_MouseDragTri = m_Player.FindAction("MouseDragTri", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -480,8 +437,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_PauseGame;
     private readonly InputAction m_Player_SwitchItemSlot;
     private readonly InputAction m_Player_MouseDragSec;
-    private readonly InputAction m_Player_LeftClickSec;
-    private readonly InputAction m_Player_RightClickSec;
+    private readonly InputAction m_Player_MouseDragTri;
     public struct PlayerActions
     {
         private @PlayerInput m_Wrapper;
@@ -496,8 +452,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         public InputAction @PauseGame => m_Wrapper.m_Player_PauseGame;
         public InputAction @SwitchItemSlot => m_Wrapper.m_Player_SwitchItemSlot;
         public InputAction @MouseDragSec => m_Wrapper.m_Player_MouseDragSec;
-        public InputAction @LeftClickSec => m_Wrapper.m_Player_LeftClickSec;
-        public InputAction @RightClickSec => m_Wrapper.m_Player_RightClickSec;
+        public InputAction @MouseDragTri => m_Wrapper.m_Player_MouseDragTri;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -537,12 +492,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragSec.started += instance.OnMouseDragSec;
             @MouseDragSec.performed += instance.OnMouseDragSec;
             @MouseDragSec.canceled += instance.OnMouseDragSec;
-            @LeftClickSec.started += instance.OnLeftClickSec;
-            @LeftClickSec.performed += instance.OnLeftClickSec;
-            @LeftClickSec.canceled += instance.OnLeftClickSec;
-            @RightClickSec.started += instance.OnRightClickSec;
-            @RightClickSec.performed += instance.OnRightClickSec;
-            @RightClickSec.canceled += instance.OnRightClickSec;
+            @MouseDragTri.started += instance.OnMouseDragTri;
+            @MouseDragTri.performed += instance.OnMouseDragTri;
+            @MouseDragTri.canceled += instance.OnMouseDragTri;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -577,12 +529,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragSec.started -= instance.OnMouseDragSec;
             @MouseDragSec.performed -= instance.OnMouseDragSec;
             @MouseDragSec.canceled -= instance.OnMouseDragSec;
-            @LeftClickSec.started -= instance.OnLeftClickSec;
-            @LeftClickSec.performed -= instance.OnLeftClickSec;
-            @LeftClickSec.canceled -= instance.OnLeftClickSec;
-            @RightClickSec.started -= instance.OnRightClickSec;
-            @RightClickSec.performed -= instance.OnRightClickSec;
-            @RightClickSec.canceled -= instance.OnRightClickSec;
+            @MouseDragTri.started -= instance.OnMouseDragTri;
+            @MouseDragTri.performed -= instance.OnMouseDragTri;
+            @MouseDragTri.canceled -= instance.OnMouseDragTri;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -612,7 +561,6 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         void OnPauseGame(InputAction.CallbackContext context);
         void OnSwitchItemSlot(InputAction.CallbackContext context);
         void OnMouseDragSec(InputAction.CallbackContext context);
-        void OnLeftClickSec(InputAction.CallbackContext context);
-        void OnRightClickSec(InputAction.CallbackContext context);
+        void OnMouseDragTri(InputAction.CallbackContext context);
     }
 }
