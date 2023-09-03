@@ -16,6 +16,10 @@ public class PlayerData{
 }
 public class PlayerMove : MonoBehaviour
 {   
+    public static AudioClip playerDropItemClip;
+    public AudioSource AS;
+    public float playerCameraZShakeValue;
+    public float playerCameraZShakeLerpValue;
     public PlayerInput pi; 
     public float playerHealth=20f;
     public float playerMaxHealth=20f;
@@ -98,11 +102,12 @@ public class PlayerMove : MonoBehaviour
 
     void Start()
     {   
-        
+        AS=GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         Application.targetFrameRate = 1024;
+        playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -190,11 +195,17 @@ public class PlayerMove : MonoBehaviour
 		return Vector3.Magnitude(new Vector3(cc.velocity.x,0f,cc.velocity.z));
 	}
     public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
-        GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        AS.Play();
+        //GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        playerCameraZShakeLerpValue=Random.Range(-15f,15f);
         playerHealth-=damageAmount;
+         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         playerMotionVec=knockback;
     }
     public void PlayerDie(){
+          AS.Play();
+           playerCameraZShakeLerpValue=0f;
+       playerCameraZShakeValue=0f;
           GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
       //   transform.position=new Vector3(0f,150f,0f);
         for(int i=0;i<inventoryDic.Length;i++){
@@ -212,7 +223,7 @@ public class PlayerMove : MonoBehaviour
         RespawnUI.instance.gameObject.SetActive(true);
     }
     public void PlayerRespawn(){
-
+            playerMotionVec=Vector3.zero;
         am.SetBool("iskilled",false);
          am.SetFloat("speed",0f);
         cc.enabled = false;
@@ -243,7 +254,7 @@ public class PlayerMove : MonoBehaviour
     }
     void Update()
     {     
-       
+      
           if(Input.GetKeyDown(KeyCode.Escape)){
             PauseOrResume();
           }
@@ -251,6 +262,10 @@ public class PlayerMove : MonoBehaviour
         if(GameUIBeh.isPaused==true){
             return;
         }
+
+        playerCameraZShakeLerpValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
+       playerCameraZShakeValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
+
         MouseLock();
         if(currentSelectedHotbar-1>=0&&currentSelectedHotbar-1<inventoryDic.Length){
         playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];    
@@ -383,7 +398,7 @@ public class PlayerMove : MonoBehaviour
       
         playerVec.y=playerY;
         headPos.eulerAngles+=new Vector3(0f,mouseX,0f);
-        headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,headPos.localEulerAngles.z);
+        headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,playerCameraZShakeValue);
         playerMoveRef.eulerAngles=new Vector3(0f,headPos.eulerAngles.y,headPos.eulerAngles.z);
         playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
         cc.Move((playerMoveRef.forward*lerpPlayerVec.x+playerMoveRef.right*lerpPlayerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
@@ -435,6 +450,7 @@ public class PlayerMove : MonoBehaviour
     void PlayerDropItem(int slotID){
 
         if(inventoryItemNumberDic[slotID]>0){
+            AudioSource.PlayClipAtPoint(playerDropItemClip,transform.position,1f);
             StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
             inventoryItemNumberDic[slotID]--;
             if(inventoryItemNumberDic[slotID]-1<=0){
@@ -536,7 +552,7 @@ public class PlayerMove : MonoBehaviour
            Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-     //   chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
+        chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
      AttackAnimate();
      Invoke("cancelAttackInvoke",0.1f);
         }
@@ -558,6 +574,7 @@ public class PlayerMove : MonoBehaviour
             }
 
             Chunk.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
+             AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
              AttackAnimate();
      Invoke("cancelAttackInvoke",0.1f);

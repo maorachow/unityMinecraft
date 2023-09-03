@@ -105,6 +105,7 @@ public class Chunk : MonoBehaviour
   //0-99solid blocks
   //100-199no hitbox blocks
   //200-299hitbox nonsolid blocks
+    public static Dictionary<int,AudioClip> blockAudioDic=new Dictionary<int,AudioClip>();
     public static FastNoise noiseGenerator=new FastNoise();
     public static RuntimePlatform platform = Application.platform;
     public static string gameWorldDataPath;
@@ -160,7 +161,16 @@ public class Chunk : MonoBehaviour
     public int[] NSTris;
     public static void AddBlockInfo(){
         //left right bottom top back front
-        
+        blockAudioDic.TryAdd(1,Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(2,Resources.Load<AudioClip>("Audios/Grass_dig1"));
+        blockAudioDic.TryAdd(3,Resources.Load<AudioClip>("Audios/Gravel_dig1"));
+        blockAudioDic.TryAdd(4,Resources.Load<AudioClip>("Audios/Grass_dig1"));
+        blockAudioDic.TryAdd(5,Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(6,Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockAudioDic.TryAdd(7,Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockAudioDic.TryAdd(8,Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockAudioDic.TryAdd(9,Resources.Load<AudioClip>("Audios/Grass_dig1"));
+        blockAudioDic.TryAdd(101,Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         blockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
         blockInfo.TryAdd(3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)});
@@ -789,11 +799,11 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
-     NativeArray<int> a=new NativeArray<int>(2,Allocator.Persistent);
+     NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
      
-        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.Persistent);
-        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.Persistent);
-        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.Persistent);
+        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
+        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
+        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
         MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
         JobHandle jh=mbj.Schedule();
         
@@ -801,9 +811,9 @@ public class Chunk : MonoBehaviour
        
        
 
-        NativeArray<Vector3> vertsNSNative=new NativeArray<Vector3>(NSVerts,Allocator.Persistent);
-        NativeArray<int> trisNSNative=new NativeArray<int>(NSTris,Allocator.Persistent);
-        NativeArray<Vector2> uvsNSNative=new NativeArray<Vector2>(NSUVs,Allocator.Persistent);
+        NativeArray<Vector3> vertsNSNative=new NativeArray<Vector3>(NSVerts,Allocator.TempJob);
+        NativeArray<int> trisNSNative=new NativeArray<int>(NSTris,Allocator.TempJob);
+        NativeArray<Vector2> uvsNSNative=new NativeArray<Vector2>(NSUVs,Allocator.TempJob);
         MeshBuildJob mbjNS=new MeshBuildJob{verts=vertsNSNative,tris=trisNSNative,vertLen=NSVerts.Length,trisLen=NSTris.Length,uvs=uvsNSNative,dataArray=Mesh.AllocateWritableMeshData(1)};
         JobHandle jhNS=mbjNS.Schedule();
         JobHandle.CompleteAll(ref jh,ref jhNS);
@@ -1144,7 +1154,7 @@ public class Chunk : MonoBehaviour
     }
         [BurstCompile]
     public static int GetBlock(Vector3 pos){
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
@@ -1181,16 +1191,34 @@ public class Chunk : MonoBehaviour
     IEnumerator BFSMapUpdate(int x,int y,int z, int ignoreSide){
         //left right bottom top back front
         //left x-1 right x+1 top y+1 bottom y-1 back z-1 front z+1
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.03f);
         if(!BFSIsWorking){
             yield break;
         }
-        if(updateCount>256){
+        if(updateCount>32){
             BFSIsWorking=false;
             yield break;
         }
         mapIsSearched[x,y,z]=true;
-        SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z),0);
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==101&&GetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z))==0){
+            BreakBlockAtPoint(new Vector3(transform.position.x+x,y,transform.position.z+z));
+        }
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z))==0){
+           SetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z),100);
+        }
+        
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x-1,y,transform.position.z+z))==0){
+           SetBlock(new Vector3(transform.position.x+x-1,y,transform.position.z+z),100);
+        }
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x+1,y,transform.position.z+z))==0){
+           SetBlock(new Vector3(transform.position.x+x+1,y,transform.position.z+z),100);
+        }
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z-1))==0){
+           SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z-1),100);
+        }
+        if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z+1))==0){
+           SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z+1),100);
+        }
         updateCount++;
         if(!(ignoreSide==0)&&x-1>=0){
             if(!mapIsSearched[x-1,y,z]&&map[x-1,y,z]!=0)
@@ -1233,6 +1261,16 @@ public class Chunk : MonoBehaviour
             }
         }
         
+    }
+    public void BreakBlockAtPoint(Vector3 blockPoint){
+
+        
+            GameObject a=ObjectPools.particleEffectPool.Get();
+            a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
+            a.GetComponent<particleAndEffectBeh>().blockID=GetBlock(blockPoint);
+            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+            StartCoroutine(ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,GetBlock(blockPoint),new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f))));
+            Chunk.SetBlock(blockPoint,0);
     }
  //   void UpdatePlayerDistance(){
 //        playerDistance = (chunkPos - new Vector2(playerPos.position.x,playerPos.position.z)).sqrMagnitude;

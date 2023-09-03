@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ZombieBeh : MonoBehaviour
 {
+    public AudioSource AS;
+    public static AudioClip zombieIdleClip;
     public Transform targetPosition;
     public static GameObject diedZombiePrefab;
     public bool isZombieDied=false;
@@ -25,7 +27,7 @@ public class ZombieBeh : MonoBehaviour
     public static bool isZombiePrefabLoaded=false;
 
      public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
-       
+       AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
          transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
           transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
@@ -45,7 +47,10 @@ public class ZombieBeh : MonoBehaviour
            transform.GetChild(0).GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
     }
     public void Start () {
+       
+        AS=GetComponent<AudioSource>();
         if(isZombiePrefabLoaded==false){
+            zombieIdleClip=Resources.Load<AudioClip>("Audios/Zombie_say1");
          diedZombiePrefab=Resources.Load<GameObject>("Prefabs/diedzombie");
          isZombiePrefabLoaded=true;
         }
@@ -73,7 +78,7 @@ public class ZombieBeh : MonoBehaviour
     }
     
     public void ZombieDie(Vector3 knockback){
-    
+    AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
         isZombieDied=true;
             Transform diedZombieTrans=Instantiate(diedZombiePrefab,transform.position,transform.rotation).GetComponent<Transform>();
 
@@ -131,7 +136,11 @@ public class ZombieBeh : MonoBehaviour
 	}
 
 
-
+    public void FixedUpdate(){
+        if(Random.Range(0f,100f)>99f){
+             AudioSource.PlayClipAtPoint(zombieIdleClip,transform.position,1f);
+        }
+    }
 
     public void Update () {
         if(zombieHealth<=0f&&isZombieDied==false){
@@ -160,15 +169,22 @@ public class ZombieBeh : MonoBehaviour
         
         transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(targetDir);
-        entityVec.x=1f;
+       
       
         if(Vector3.Magnitude(transform.position - targetDir)<1.6f){
+             entityVec.x=0f;
+              if(entityMotionVec.magnitude>0.7f){
+                cc.Move(entityMotionVec*Time.deltaTime); 
+            }else{
+                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+            }
             entitySpeed=Mathf.Lerp(entitySpeed,Speed(),5f*Time.deltaTime);
    //     Debug.Log(Speed());
             am.SetFloat("speed",entitySpeed);
             Attack();
           
         }else{
+             entityVec.x=1f;
              if(entitySpeed<=0.01f){
                 Jump();
             }

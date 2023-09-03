@@ -348,6 +348,7 @@ public class ItemEntityBeh : MonoBehaviour
         if(playerPos.gameObject.GetComponent<PlayerMove>().isPlayerKilled==true){
             return;
         }
+        AudioSource.PlayClipAtPoint(PlayerMove.playerDropItemClip,transform.position,1f);
         playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
         playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
         ReleaseItem();

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class particleAndEffectBeh : MonoBehaviour
 {
+
 public int blockID;
 public Mesh particleMesh;
 public ParticleSystemRenderer psr;
@@ -25,6 +26,7 @@ void ReleaseGameObject(){
     
 }
 void OnEnable(){
+   
  verts=new List<Vector3>();
  uvs=new List<Vector2>();
  tris=new List<int>();
@@ -33,6 +35,7 @@ void OnEnable(){
     psr=GetComponent<ParticleSystemRenderer>();
 }
 public void EmitParticle(){
+     AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockID],transform.position,1f);
     particleMesh=new Mesh();
     int x=0;
     int y=0;
