@@ -17,6 +17,13 @@ public class WorldData{
     public int[,,] map;
     
 }
+public class RandomGenerator3D{
+  //  public System.Random rand=new System.Random(0);
+    public static int GenerateIntFromVec3(Vector3Int pos){
+        System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
+        return rand.Next(100);
+    } 
+}
 public class Chunk : MonoBehaviour
 {   
     public struct Vertex{
@@ -76,10 +83,10 @@ public class Chunk : MonoBehaviour
         // All vertices are unique so the index buffer is just a
         // 0,1,2,...,11 sequence.
     //    data.SetIndexBufferParams(verts.Length, IndexFormat.UInt16);
-       data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt16);
-        var ib = data.GetIndexData<ushort>();
-        for (ushort i = 0; i < ib.Length; ++i)
-            ib[i] = (ushort)tris[i];
+       data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt32);
+        var ib = data.GetIndexData<int>();
+        for (int i = 0; i < ib.Length; ++i)
+            ib[i] = tris[i];
         // One sub-mesh with all the indices.
         data.subMeshCount = 1;
         data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
@@ -131,7 +138,7 @@ public class Chunk : MonoBehaviour
     public static int chunkWidth=16;
     public static int chunkHeight=256;
     public static int chunkSeaLevel=63;
-
+    public static System.Random worldRandomGenerator=new System.Random(0);
     public static Dictionary<Vector2Int,Chunk> Chunks=new Dictionary<Vector2Int,Chunk>();
     public static Dictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new Dictionary<Vector2Int,WorldData>();
 
@@ -149,7 +156,7 @@ public class Chunk : MonoBehaviour
     public Vector2Int chunkPos;
     public Transform playerPos;
     public float playerDistance;
-
+    
 
 
 
@@ -170,6 +177,7 @@ public class Chunk : MonoBehaviour
         blockAudioDic.TryAdd(7,Resources.Load<AudioClip>("Audios/Wood_dig1"));
         blockAudioDic.TryAdd(8,Resources.Load<AudioClip>("Audios/Wood_dig1"));
         blockAudioDic.TryAdd(9,Resources.Load<AudioClip>("Audios/Grass_dig1"));
+        blockAudioDic.TryAdd(10,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(101,Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         blockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
@@ -182,7 +190,7 @@ public class Chunk : MonoBehaviour
         blockInfo.TryAdd(7,new List<Vector2>{new Vector2(0.3125f,0f),new Vector2(0.3125f,0f),new Vector2(0.25f,0f),new Vector2(0.25f,0f),new Vector2(0.3125f,0f),new Vector2(0.3125f,0f)});
         blockInfo.TryAdd(8,new List<Vector2>{new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.25f,0f),new Vector2(0.25f,0f)});
         blockInfo.TryAdd(9,new List<Vector2>{new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f)});
-
+        blockInfo.TryAdd(10,new List<Vector2>{new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f)});
 
         itemBlockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         itemBlockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
@@ -260,6 +268,8 @@ public class Chunk : MonoBehaviour
         isStrongLoaded=false;
     }
     void OnDisable(){
+        chunkMesh=new Mesh();
+        chunkNonSolidMesh=new Mesh();
         SaveSingleChunk();
         Chunks.Remove(chunkPos);
         map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
@@ -272,10 +282,10 @@ public class Chunk : MonoBehaviour
         isStrongLoaded=false;
         isChunkMapUpdated=false;
 	//    meshCollider.sharedMesh= null;
-	//    meshFilter.mesh=null;
+	    meshFilter.mesh=null;
       
 	 //   meshColliderNS.sharedMesh=null;
-	 //   meshFilterNS.mesh=null;
+	    meshFilterNS.mesh=null;
       //  chunkMesh=null;
      //   chunkNonSolidMesh=null;
         isModifiedInGame=false;
@@ -417,6 +427,7 @@ public class Chunk : MonoBehaviour
 
        [BurstCompile]
     void InitMap(Vector2Int pos){
+   
         frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
         backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
         leftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
@@ -449,7 +460,7 @@ public class Chunk : MonoBehaviour
         FreshGenMap(pos);
         void FreshGenMap(Vector2Int pos){
             if(worldGenType==0){
-        System.Random random=new System.Random(pos.x+pos.y);
+    //    System.Random random=new System.Random(pos.x+pos.y);
         int treeCount=10;
 
         for(int i=0;i<chunkWidth;i++){
@@ -481,7 +492,7 @@ public class Chunk : MonoBehaviour
                             break;
                     }
                   
-                    if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&random.Next(100)>80){
+                    if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&worldRandomGenerator.Next(100)>80){
                         map[i,k,j]=101;
                     }
                         if(k<chunkSeaLevel&&map[i,k,j]==0){
@@ -499,7 +510,7 @@ public class Chunk : MonoBehaviour
               
                     if(map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100&&k>chunkSeaLevel){
                     if(treeCount>0){
-                            if(random.Next(100)>98){
+                            if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>98){
                                 map[i,k,j]=7;
                                 map[i,k+1,j]=7;
                                map[i,k+2,j]=7;
@@ -558,8 +569,53 @@ public class Chunk : MonoBehaviour
                             }
                         }
                     }
-                       
+                    
                 }
+            }
+        }
+           for(int i=0;i<chunkWidth;i++){
+            for(int j=0;j<chunkWidth;j++){
+                 for(int k=0;k<chunkHeight;k++){
+                    
+                        if(0<k&&k<12){
+                        if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+
+                             map[i,k,j]=10;
+                             map[i,k+1,j]=10;
+                             if(i-1>=0){
+                                if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+                                map[i-1,k,j]=10;
+                                 map[i-1,k+1,j]=10;
+                                }
+                               
+                             }
+                             if(i+1<chunkWidth){
+                                if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+                                map[i+1,k,j]=10;
+                                 map[i+1,k+1,j]=10;
+                                }
+                             
+                             }
+                             if(j-1>=0){
+                                if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+                                    map[i,k,j-1]=10;
+                                    map[i,k+1,j-1]=10;
+                                }
+                              
+                             }
+                             if(j+1<chunkWidth){
+                                if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+                                    map[i,k,j+1]=10;
+                                    map[i,k+1,j+1]=10; 
+                                }
+                                
+                             }
+                        }
+                        
+                    }
+               
+            }
+              
             }
         }
                 for(int i=0;i<chunkWidth;i++){
@@ -765,7 +821,7 @@ public class Chunk : MonoBehaviour
 
     public IEnumerator BuildChunk(){
         isMeshBuildCompleted=false;
-
+        
         ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
         Thread childThread=new Thread(childref);
         childThread.Start();
@@ -777,9 +833,13 @@ public class Chunk : MonoBehaviour
     ///    yield return 10;
    // }
 
-
-        chunkMesh=new Mesh();
-        chunkNonSolidMesh=new Mesh();
+        if(chunkMesh==null){
+         chunkMesh=new Mesh();   
+        }
+        if(chunkNonSolidMesh==null){
+             chunkNonSolidMesh=new Mesh();
+        }
+       
 
      
      //     frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
@@ -806,7 +866,7 @@ public class Chunk : MonoBehaviour
         NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
         MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
         JobHandle jh=mbj.Schedule();
-        
+        yield return new WaitUntil(()=>jh.IsCompleted==true);
       
        
        
@@ -816,7 +876,9 @@ public class Chunk : MonoBehaviour
         NativeArray<Vector2> uvsNSNative=new NativeArray<Vector2>(NSUVs,Allocator.TempJob);
         MeshBuildJob mbjNS=new MeshBuildJob{verts=vertsNSNative,tris=trisNSNative,vertLen=NSVerts.Length,trisLen=NSTris.Length,uvs=uvsNSNative,dataArray=Mesh.AllocateWritableMeshData(1)};
         JobHandle jhNS=mbjNS.Schedule();
+        yield return new WaitUntil(()=>jhNS.IsCompleted==true);
         JobHandle.CompleteAll(ref jh,ref jhNS);
+        
         Mesh.ApplyAndDisposeWritableMeshData(mbjNS.dataArray,chunkNonSolidMesh); 
          Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
         chunkMesh.RecalculateBounds();
@@ -843,13 +905,19 @@ public class Chunk : MonoBehaviour
      //   job.meshes.Add(chunkMesh.GetInstanceID());
    //     job.Schedule();
    //     Graphics.DrawMeshNow(chunkMesh,transform.position,Quaternion.identity);
-        meshFilter.mesh = chunkMesh;
+  // CombineInstance[] combine=new CombineInstance[1];
+  // combine[0].mesh=chunkMesh;
+  // WorldMeshManager.combine.Add(new CombineInstance{mesh=chunkMesh,transform=transform.localToWorldMatrix});
+ //  WorldMeshManager.OnAllChunkMeshesChanged();
+        meshFilter.sharedMesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
         a[0]=chunkMesh.GetInstanceID();
         a[1]=chunkNonSolidMesh.GetInstanceID();
         BakeJob job=new BakeJob();
         job.meshes=a;
         JobHandle handle = job.Schedule(a.Length, 1);
+      yield return new WaitUntil(()=>handle.IsCompleted==true&&chunkMesh!=null);
+    //   yield return new WaitForSeconds(0.01f);
         handle.Complete();
         a.Dispose();
         meshCollider.sharedMesh = chunkMesh;
@@ -980,6 +1048,7 @@ public class Chunk : MonoBehaviour
         }
     }
     public int GenerateBlockType(int x, int y, int z,Vector2Int pos){
+      
         float noiseValue=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+x,pos.y+z)*20f;
         if(noiseValue>y){
             return 1;
@@ -1114,6 +1183,17 @@ public class Chunk : MonoBehaviour
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
         }
     }
+
+        [BurstCompile]
+    public static void SetBlockWithoutUpdate(Vector3 pos,int blockID){
+
+        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
+
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+        chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
+   
+    }
         [BurstCompile]
     public static void SetBlockByHand(Vector3 pos,int blockID){
 
@@ -1160,9 +1240,14 @@ public class Chunk : MonoBehaviour
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
     }
     void Update(){
+  //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
+   //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
         if(isChunkMapUpdated==true){
             isModifiedInGame=true;
+            if(isMeshBuildCompleted==true){
             StartCoroutine(BuildChunk());
+            }
+          
            //InitMap(chunkPos);
             isChunkMapUpdated=false;
         }
@@ -1196,28 +1281,46 @@ public class Chunk : MonoBehaviour
             yield break;
         }
         if(updateCount>32){
+             Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(new Vector3(x,y,z)));
+             if(chunkNeededUpdate==null){
+                 BFSIsWorking=false;
+                yield break;
+             }
+            chunkNeededUpdate.isChunkMapUpdated=true;
+            if(chunkNeededUpdate.frontChunk!=null){
+           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
+            }
+            if(chunkNeededUpdate.backChunk!=null){
+            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
+            }
+            if(chunkNeededUpdate.leftChunk!=null){
+            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
+            }
+            if(chunkNeededUpdate.rightChunk!=null){
+            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
+            }
             BFSIsWorking=false;
             yield break;
-        }
+            }
         mapIsSearched[x,y,z]=true;
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==101&&GetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z))==0){
             BreakBlockAtPoint(new Vector3(transform.position.x+x,y,transform.position.z+z));
         }
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z))==0){
-           SetBlock(new Vector3(transform.position.x+x,y-1,transform.position.z+z),100);
+           SetBlockWithoutUpdate(new Vector3(transform.position.x+x,y-1,transform.position.z+z),100);
         }
         
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x-1,y,transform.position.z+z))==0){
-           SetBlock(new Vector3(transform.position.x+x-1,y,transform.position.z+z),100);
+           SetBlockWithoutUpdate(new Vector3(transform.position.x+x-1,y,transform.position.z+z),100);
         }
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x+1,y,transform.position.z+z))==0){
-           SetBlock(new Vector3(transform.position.x+x+1,y,transform.position.z+z),100);
+           SetBlockWithoutUpdate(new Vector3(transform.position.x+x+1,y,transform.position.z+z),100);
         }
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z-1))==0){
-           SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z-1),100);
+           SetBlockWithoutUpdate(new Vector3(transform.position.x+x,y,transform.position.z+z-1),100);
         }
         if(GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z))==100&&GetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z+1))==0){
-           SetBlock(new Vector3(transform.position.x+x,y,transform.position.z+z+1),100);
+           SetBlockWithoutUpdate(new Vector3(transform.position.x+x,y,transform.position.z+z+1),100);
         }
         updateCount++;
         if(!(ignoreSide==0)&&x-1>=0){

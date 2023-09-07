@@ -125,6 +125,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""MouseDragFourth"",
+                    ""type"": ""Value"",
+                    ""id"": ""cf518b9e-0c67-4844-a6da-7df5d219d189"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -347,6 +356,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""MouseDragTri"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ea11a45e-be9c-449c-84d8-5bfd67bc739d"",
+                    ""path"": ""<Touchscreen>/touch3/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MouseDragFourth"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -366,6 +386,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Player_SwitchItemSlot = m_Player.FindAction("SwitchItemSlot", throwIfNotFound: true);
         m_Player_MouseDragSec = m_Player.FindAction("MouseDragSec", throwIfNotFound: true);
         m_Player_MouseDragTri = m_Player.FindAction("MouseDragTri", throwIfNotFound: true);
+        m_Player_MouseDragFourth = m_Player.FindAction("MouseDragFourth", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -438,6 +459,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SwitchItemSlot;
     private readonly InputAction m_Player_MouseDragSec;
     private readonly InputAction m_Player_MouseDragTri;
+    private readonly InputAction m_Player_MouseDragFourth;
     public struct PlayerActions
     {
         private @PlayerInput m_Wrapper;
@@ -453,6 +475,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         public InputAction @SwitchItemSlot => m_Wrapper.m_Player_SwitchItemSlot;
         public InputAction @MouseDragSec => m_Wrapper.m_Player_MouseDragSec;
         public InputAction @MouseDragTri => m_Wrapper.m_Player_MouseDragTri;
+        public InputAction @MouseDragFourth => m_Wrapper.m_Player_MouseDragFourth;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -495,6 +518,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragTri.started += instance.OnMouseDragTri;
             @MouseDragTri.performed += instance.OnMouseDragTri;
             @MouseDragTri.canceled += instance.OnMouseDragTri;
+            @MouseDragFourth.started += instance.OnMouseDragFourth;
+            @MouseDragFourth.performed += instance.OnMouseDragFourth;
+            @MouseDragFourth.canceled += instance.OnMouseDragFourth;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -532,6 +558,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragTri.started -= instance.OnMouseDragTri;
             @MouseDragTri.performed -= instance.OnMouseDragTri;
             @MouseDragTri.canceled -= instance.OnMouseDragTri;
+            @MouseDragFourth.started -= instance.OnMouseDragFourth;
+            @MouseDragFourth.performed -= instance.OnMouseDragFourth;
+            @MouseDragFourth.canceled -= instance.OnMouseDragFourth;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -562,5 +591,6 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         void OnSwitchItemSlot(InputAction.CallbackContext context);
         void OnMouseDragSec(InputAction.CallbackContext context);
         void OnMouseDragTri(InputAction.CallbackContext context);
+        void OnMouseDragFourth(InputAction.CallbackContext context);
     }
 }

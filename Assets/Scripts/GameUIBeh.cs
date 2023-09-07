@@ -5,7 +5,9 @@ using UnityEngine.UI;
 using TMPro;
 public class GameUIBeh : MonoBehaviour
 {
+    public bool isCraftingMenuOpened=false;
     public GameObject pauseMenu;
+    public GameObject craftUI;
     public static GameUIBeh instance;
     public static bool isPaused=false;
    public RectTransform selectedHotbarTransform;
@@ -30,6 +32,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(9,"Leaves");*/
    void Start(){
     instance=this;
+    craftUI=transform.Find("inventoryconvertUI").gameObject;
         if(pauseMenu==null){
              pauseMenu=transform.Find("pausemenuUI").gameObject;
              pauseMenu.SetActive(true);
@@ -49,6 +52,7 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
      blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
       blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
+      blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
       hotbarImageDic.Clear();
         hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
@@ -81,10 +85,26 @@ public class GameUIBeh : MonoBehaviour
     }
 
 
-
-
+    public void CloseCraftingUI(){
+        isCraftingMenuOpened=false;
+        if(craftUI==null){
+             craftUI=transform.Find("inventoryconvertUI").gameObject;
+             craftUI.SetActive(false);
+        }else{
+             craftUI.SetActive(false);
+        }
+    }
+    public void OpenCraftingUI(){
+        isCraftingMenuOpened=true;
+        if(craftUI==null){
+             craftUI=transform.Find("inventoryconvertUI").gameObject;
+             craftUI.SetActive(true);
+        }else{
+                craftUI.SetActive(true);
+        }
+    }
     public void PauseGame(){
-     Debug.Log("UIPause");
+  //   Debug.Log("UIPause");
         pauseMenu=transform.Find("pausemenuUI").gameObject;
           
         
@@ -93,7 +113,7 @@ public class GameUIBeh : MonoBehaviour
         pauseMenu.SetActive(true);
     }
     public void Resume(){
-      Debug.Log("UIResume");
+   //   Debug.Log("UIResume");
             pauseMenu=transform.Find("pausemenuUI").gameObject;
           
         

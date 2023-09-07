@@ -103,6 +103,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "MouseDragFourth",
+                    "type": "Value",
+                    "id": "cf518b9e-0c67-4844-a6da-7df5d219d189",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -323,6 +332,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "MouseDragTri",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ea11a45e-be9c-449c-84d8-5bfd67bc739d",
+                    "path": "<Touchscreen>/touch3/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MouseDragFourth",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

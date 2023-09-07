@@ -49,6 +49,7 @@ public class CreeperBeh : MonoBehaviour
     }
 
      public void OnDisable(){
+        creeperExplodeFuse=0f;
         entityMotionVec=Vector3.zero;
         isCreeperDied=false;
         creeperHealth=20f;
@@ -100,6 +101,7 @@ public class CreeperBeh : MonoBehaviour
     void CreeperDie(Vector3 knockback){
          AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
         isCreeperDied=true;
+        cc.enabled=false;
           Transform diedCreeperTrans=Instantiate(diedCreeperPrefab,transform.position,transform.rotation).GetComponent<Transform>();
               diedCreeperTrans.GetChild(0).position=transform.GetChild(0).position;
          diedCreeperTrans.GetChild(1).GetChild(0).position=transform.GetChild(1).GetChild(0).position;
@@ -121,6 +123,7 @@ public class CreeperBeh : MonoBehaviour
            diedCreeperTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+           cc.enabled=true;
            Destroy(diedCreeperTrans.gameObject,10f);
            ObjectPools.creeperEntityPool.Release(gameObject);
     }
@@ -221,7 +224,9 @@ public class CreeperBeh : MonoBehaviour
        
           
              if(cc.enabled==true){
-        
+                if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
+                    return;
+                }
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime); 
             }else{

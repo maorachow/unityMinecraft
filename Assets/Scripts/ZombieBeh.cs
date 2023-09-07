@@ -81,25 +81,32 @@ public class ZombieBeh : MonoBehaviour
     AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
         isZombieDied=true;
             Transform diedZombieTrans=Instantiate(diedZombiePrefab,transform.position,transform.rotation).GetComponent<Transform>();
+       
 
-            diedZombieTrans.GetChild(0).GetChild(0).position=transform.GetChild(0).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).position=transform.GetChild(0).GetChild(1).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).position=transform.GetChild(0).GetChild(2).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).position=transform.GetChild(0).GetChild(3).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).position=transform.GetChild(0).GetChild(4).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).position=transform.GetChild(0).GetChild(5).GetChild(0).position;
+            cc.enabled=false;
+            diedZombieTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(1).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(2).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(3).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(4).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(5).GetChild(0).position;
+
             diedZombieTrans.GetChild(0).GetChild(0).rotation=transform.GetChild(0).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).rotation=transform.GetChild(0).GetChild(1).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).rotation=transform.GetChild(0).GetChild(2).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).rotation=transform.GetChild(0).GetChild(3).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).rotation=transform.GetChild(0).GetChild(4).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).rotation=transform.GetChild(0).GetChild(5).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(1).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(2).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(3).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(4).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(5).GetChild(0).rotation;
+
+         
+
             diedZombieTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
+            cc.enabled=true;
             Destroy(diedZombieTrans.gameObject,10f);
             ObjectPools.zombieEntityPool.Release(gameObject);
     }

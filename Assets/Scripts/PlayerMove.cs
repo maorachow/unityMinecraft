@@ -43,6 +43,7 @@ public class PlayerMove : MonoBehaviour
     public Camera mainCam;
     public CharacterController cc;
     public float cameraX;
+    
     public float breakBlockCD=0.2f;
     public float moveSpeed=5f;
     public float gravity=-9.8f;
@@ -79,7 +80,8 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(100,"Water");
         blockNameDic.Add(101,"Grass Crop");
         blockNameDic.Add(151,"Diamond Pickaxe");
-         blockNameDic.Add(152,"Diamond Sword");
+        blockNameDic.Add(152,"Diamond Sword");
+        blockNameDic.Add(153,"Diamond");
         isBlockNameDicAdded=true;
         }
         ReadPlayerJson();
@@ -102,11 +104,16 @@ public class PlayerMove : MonoBehaviour
 
     void Start()
     {   
+         Input.multiTouchEnabled = true;
         AS=GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
-        Application.targetFrameRate = 1024;
+        if(platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer){
+            Application.targetFrameRate = 60;
+        }else{
+         Application.targetFrameRate = 1024;   
+        }        
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -123,6 +130,7 @@ public class PlayerMove : MonoBehaviour
         mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
+      GameUIBeh.instance.CloseCraftingUI();
          GameUIBeh.instance.Resume();
     }
 
@@ -134,7 +142,7 @@ public class PlayerMove : MonoBehaviour
   //  }
     void MouseLock()
     {
-        if(isPlayerKilled==true||GameUIBeh.isPaused==true){
+        if(isPlayerKilled==true||GameUIBeh.isPaused==true|GameUIBeh.instance.isCraftingMenuOpened==true){
             return;
         }
         if(pi.Player.LeftClick.ReadValue<float>()>0.5f){
@@ -186,6 +194,9 @@ public class PlayerMove : MonoBehaviour
             }
 
         }
+        for(int i=0;i<itemCount;i++){
+         StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,itemTypeID,(headPos.forward*3)));
+        }
      //   playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
     }
 
@@ -222,6 +233,40 @@ public class PlayerMove : MonoBehaviour
         isPlayerKilled=true;
         RespawnUI.instance.gameObject.SetActive(true);
     }
+
+//0diamond to pickaxe 1diamond to sword
+    public void ExchangeItem(int exchangeID){
+        if(exchangeID==0){
+    if(GetItemFromSlot(153)==-1){
+            return;
+        }else{
+            
+          inventoryItemNumberDic[GetItemFromSlot(153)]--;
+        AddItem(151,1);  
+        }
+
+        }else if(exchangeID==1){
+
+      if(GetItemFromSlot(153)==-1){
+            return;
+        }else{
+            
+          inventoryItemNumberDic[GetItemFromSlot(153)]--;
+        AddItem(152,1);  
+        }
+
+        }
+        
+        
+    }
+    public int GetItemFromSlot(int itemID){
+        for(int i=0;i<inventoryDic.Length;i++){
+            if(inventoryDic[i]==itemID&&inventoryItemNumberDic[i]>0){
+                    return i;
+            }
+        }
+        return -1;
+    }
     public void PlayerRespawn(){
             playerMotionVec=Vector3.zero;
         am.SetBool("iskilled",false);
@@ -242,7 +287,7 @@ public class PlayerMove : MonoBehaviour
     }
 
     public void PauseOrResume(){
-            Debug.Log("Pause");
+       //     Debug.Log("Pause");
             Cursor.lockState = CursorLockMode.None;
             if(GameUIBeh.isPaused==false){
                 GameUIBeh.instance.PauseGame();
@@ -250,6 +295,14 @@ public class PlayerMove : MonoBehaviour
             }else{
                 GameUIBeh.instance.Resume();
                 return;
+            }
+    }
+    public void OpenOrCloseCraftingUI(){
+         Cursor.lockState = CursorLockMode.None;  
+          if(GameUIBeh.instance.isCraftingMenuOpened==true){
+              GameUIBeh.instance.CloseCraftingUI();  
+            }else{
+            GameUIBeh.instance.OpenCraftingUI();  
             }
     }
     void Update()
@@ -262,7 +315,10 @@ public class PlayerMove : MonoBehaviour
         if(GameUIBeh.isPaused==true){
             return;
         }
-
+        if(Input.GetKeyDown(KeyCode.E)){
+          
+            OpenOrCloseCraftingUI();
+          }
         playerCameraZShakeLerpValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
        playerCameraZShakeValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
 
@@ -362,32 +418,34 @@ public class PlayerMove : MonoBehaviour
 
          float mouseX=0f;
         float mouseY=0f;
-        if(Input.touches.Length==2){
-             if (!EventSystem.current.IsPointerOverGameObject())
-            {
-               mouseX=pi.Player.MouseDragSec.ReadValue<Vector2>().x;
-               mouseY=pi.Player.MouseDragSec.ReadValue<Vector2>().y;
-            }
-        }else if(Input.touches.Length==3){
-               if (!EventSystem.current.IsPointerOverGameObject())
-            {
-               mouseX=pi.Player.MouseDragTri.ReadValue<Vector2>().x;
-               mouseY=pi.Player.MouseDragTri.ReadValue<Vector2>().y;
-            }
-        }else{
-                    if (!EventSystem.current.IsPointerOverGameObject())
-            {
-               mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x;
-               mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y;
+        if(!GameUIBeh.instance.isCraftingMenuOpened){
+                 if(platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer){
+            for(int i=0;i<Input.touches.Length;i++){
+             EventSystem eventSystem = EventSystem.current;
+            PointerEventData pointerEventData = new PointerEventData(eventSystem);
+            pointerEventData.position = Input.touches[i].rawPosition;
+            //射线检测ui
+            List<RaycastResult> uiRaycastResultCache = new List<RaycastResult>();
+            eventSystem.RaycastAll(pointerEventData, uiRaycastResultCache);
+            if (uiRaycastResultCache.Count == 0){
+                 mouseX=Input.touches[i].deltaPosition.x;mouseY=Input.touches[i].deltaPosition.y;
             }
         }
+        }else{
+            mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x;mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y;
+        }
+        }
+   
+        
+     
         
        
 
         mouseY=Mathf.Clamp(mouseY,-90f,90f);
         cameraX-=mouseY;
         cameraX=Mathf.Clamp(cameraX,-90f,90f);
-          if(pi.Player.Move.ReadValue<Vector2>()!=Vector2.zero){
+
+          if(pi.Player.Move.ReadValue<Vector2>()!=Vector2.zero&&GameUIBeh.instance.isCraftingMenuOpened==false){
            playerVec=new Vector3(pi.Player.Move.ReadValue<Vector2>().y,0f,pi.Player.Move.ReadValue<Vector2>().x); 
         
            lerpPlayerVec=Vector3.Lerp(lerpPlayerVec,playerVec,7f*Time.deltaTime);
@@ -442,10 +500,15 @@ public class PlayerMove : MonoBehaviour
        
     }
     void FixedUpdate(){
-         UpdateWorld();
+     if(cc.velocity.magnitude>0.1f){
+            UpdateWorld();
+     }
          UpdateInventory();
         
         
+    }
+    public void DropItemButtonOnClick(){
+        PlayerDropItem(currentSelectedHotbar-1);
     }
     void PlayerDropItem(int slotID){
 
@@ -485,8 +548,8 @@ public class PlayerMove : MonoBehaviour
             for (float z = transform.position.z - viewRange; z < transform.position.z + viewRange; z += Chunk.chunkWidth)
             {
                 Vector3 pos = new Vector3(x, 0, z);
-                pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
-                pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
+               // pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
+            //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
                 Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null) {continue;}else{
@@ -548,7 +611,12 @@ public class PlayerMove : MonoBehaviour
             a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
             a.GetComponent<particleAndEffectBeh>().blockID=tmpID;
             a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
-            StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,tmpID,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
+            if(tmpID==10){
+                 StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
+            }else{
+             StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,tmpID,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));   
+            }
+            
            Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
