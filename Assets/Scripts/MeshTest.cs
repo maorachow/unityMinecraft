@@ -8,6 +8,7 @@ using Unity.Burst;
 public class MeshTest : MonoBehaviour
 {
     public Mesh mesh;
+  
     public struct MeshBuildJob:IJob{
        public Mesh.MeshDataArray dataArray;
         public void Execute(){

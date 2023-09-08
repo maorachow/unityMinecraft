@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using System.IO;
 using Utf8Json;
 using UnityEngine.EventSystems;
+
 public class PlayerData{
     public float playerHealth;
     public float posX;
@@ -552,11 +553,14 @@ public class PlayerMove : MonoBehaviour
             //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
                 Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-                if (chunk != null) {continue;}else{
+                if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null) {continue;}else{
                     chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
                //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
                //     chunk.isChunkPosInited=true;
-                    chunk.SendMessage("ReInitData");
+               if(chunk!=null){
+                chunk.SendMessage("ReInitData");
+               }
+                    
          //          WorldManager.chunksToLoad.Add(chunk);
                 }
             }

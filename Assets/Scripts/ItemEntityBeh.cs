@@ -282,7 +282,7 @@ public class ItemEntityBeh : MonoBehaviour
                 tmp.guid=System.Guid.NewGuid().ToString("N");
                  tmp.SendMessage("InitPos");
              //    a.transform.position=new Vector3(posX,posY,posZ);
-                 yield return new WaitForSeconds(0.05f);
+                 yield return new WaitForSeconds(0.1f);
                  tmp.AddForceInvoke(startingSpeed);
                  yield break;
         }
@@ -313,7 +313,7 @@ public class ItemEntityBeh : MonoBehaviour
         rb.velocity=f;
     }
     public void InitPos(){
-        Invoke("InvokeInitPos",0.01f);
+        Invoke("InvokeInitPos",0.03f);
     
     }
     public void InvokeInitPos(){

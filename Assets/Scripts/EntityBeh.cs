@@ -85,6 +85,7 @@ public class EntityBeh : MonoBehaviour
             entityDataReadFromDisk.Add(JsonSerializer.Deserialize<EntityData>(s));
         }
             isEntitiesReadFromDisk=true;
+            return;
     }
     public void RemoveEntityFromSave(){
         EntityData tmpData=new EntityData();
@@ -204,7 +205,7 @@ public class EntityBeh : MonoBehaviour
    // }
     void FixedUpdate(){
         currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
-        if(currentChunk==null){
+        if(currentChunk==null||currentChunk.isMeshBuildCompleted==false){
             GetComponent<CharacterController>().enabled=false;
             isInUnloadedChunks=true;
         }else{

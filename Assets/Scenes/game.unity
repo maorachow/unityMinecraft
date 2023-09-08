@@ -3095,7 +3095,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -7893,14 +7893,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1702504231}
   m_CullTransparentMesh: 0
---- !u!33 &1766484987
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5334127029556897523}
-  m_Mesh: {fileID: 0}
 --- !u!23 &1766484988
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9611,7 +9603,6 @@ GameObject:
   - component: {fileID: 8571283222048031524}
   - component: {fileID: 6020590144067672305}
   - component: {fileID: 1766484988}
-  - component: {fileID: 1766484987}
   - component: {fileID: 8571283222048031525}
   - component: {fileID: 8571283222048031526}
   m_Layer: 2
