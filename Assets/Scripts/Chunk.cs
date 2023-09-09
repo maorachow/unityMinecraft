@@ -9,6 +9,8 @@ using UnityEngine.Rendering;
 using System.Threading;
 using System.Threading.Tasks;
 //using Cysharp.Threading.Tasks;
+using Priority_Queue;
+
 
 using System.IO;
 using Utf8Json;
@@ -151,11 +153,18 @@ public class Chunk : MonoBehaviour
     public MeshCollider meshColliderNS;
     public MeshRenderer meshRendererNS;
     public MeshFilter meshFilterNS;
-    public int[,,] map=new int[chunkWidth+3,chunkHeight+3,chunkWidth+3];
+    public int[,,] map;
+    public int[,,] additiveMap=new int[chunkWidth+3,chunkHeight+3,chunkWidth+3];
     public Chunk frontChunk;
     public Chunk backChunk;
     public Chunk leftChunk;
     public Chunk rightChunk;
+    public Chunk frontLeftChunk;
+    public Chunk frontRightChunk;
+    public Chunk backLeftChunk;
+    public Chunk backRightChunk;
+    
+    
     public Vector2Int chunkPos;
     public Transform playerPos;
     public float playerDistance;
@@ -269,7 +278,8 @@ public class Chunk : MonoBehaviour
            // Debug.Log(chunkPos);
         }
       //  StartLoadChunk();
-         WorldManager.chunkLoadingQueue.Add(this);
+   //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
+         WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPos.position.x)+(int)Mathf.Abs(transform.position.z-playerPos.position.z));
     }
     //strongload: simulate chunk mesh collider
     void StrongLoadChunk(){
@@ -283,7 +293,10 @@ public class Chunk : MonoBehaviour
         isStrongLoaded=false;
     }
     void OnDestroy(){
-         WorldManager.chunkLoadingQueue.Remove(this);
+        if(WorldManager.chunkLoadingQueue.Contains(this)){
+         WorldManager.chunkLoadingQueue.Remove(this);   
+        }
+         
             SaveSingleChunk();
         Chunks.Remove(chunkPos);
           map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
@@ -306,11 +319,14 @@ public class Chunk : MonoBehaviour
      //   isChunkPosInited=false;
     }
     void OnDisable(){
-        WorldManager.chunkLoadingQueue.Remove(this);
+        if(WorldManager.chunkLoadingQueue.Contains(this)){
+         WorldManager.chunkLoadingQueue.Remove(this);   
+        }
      //   chunkMesh=new Mesh();
       //  chunkNonSolidMesh=new Mesh();
         SaveSingleChunk();
         Chunks.Remove(chunkPos);
+        additiveMap=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
           map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         chunkPos=new Vector2Int(-10240,-10240);
         isChunkPosInited=false;
@@ -362,12 +378,12 @@ public class Chunk : MonoBehaviour
     }
  
 
-    public void StartLoadChunk(){
+    public async void StartLoadChunk(){
         
      
     
-           BuildChunk();
-        
+          await BuildChunk();
+            
      
       //  Vector3 pos=transform.position;
 
@@ -475,15 +491,16 @@ public class Chunk : MonoBehaviour
 
      
      void  InitMap(Vector2Int pos){
-     //   Thread.Sleep(5);
+      //  Thread.Sleep(1000);
         frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
-    
-      
+        frontLeftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y+chunkWidth));
+        frontRightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y+chunkWidth));
+        backLeftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y-chunkWidth));
+        backRightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y-chunkWidth));
         backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
            
         leftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
       
-     
         rightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
    
      
@@ -515,9 +532,18 @@ public class Chunk : MonoBehaviour
          
         }
         FreshGenMap(pos);
+        
         void FreshGenMap(Vector2Int pos){
-      
+            map=additiveMap;
             if(worldGenType==0){
+                     bool isFrontLeftChunkUpdated=false;
+                                bool isFrontRightChunkUpdated=false;
+                                bool isBackLeftChunkUpdated=false;
+                                bool isBackRightChunkUpdated=false;
+                                bool isLeftChunkUpdated=false;
+                                bool isRightChunkUpdated=false;
+                                bool isFrontChunkUpdated=false;
+                                bool isBackChunkUpdated=false;
     //    System.Random random=new System.Random(pos.x+pos.y);
         int treeCount=10;
 
@@ -532,7 +558,10 @@ public class Chunk : MonoBehaviour
 
                         map[i,k,j]=3;
                     }else{
-                         map[i,k,j]=0;
+                        if(map[i,k,j]==0){
+                            map[i,k,j]=0; 
+                        }
+                        
                     }
                     
                 }
@@ -550,7 +579,7 @@ public class Chunk : MonoBehaviour
                             break;
                     }
                   
-                    if(map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&k>chunkSeaLevel&&worldRandomGenerator.Next(100)>80){
+                    if(k>chunkSeaLevel&&map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&worldRandomGenerator.Next(100)>80){
                         map[i,k,j]=101;
                     }
                         if(k<chunkSeaLevel&&map[i,k,j]==0){
@@ -566,25 +595,237 @@ public class Chunk : MonoBehaviour
        
                 for(int k=chunkHeight-1;k>=0;k--){
               
-                    if(map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100&&k>chunkSeaLevel){
+                    if(k>chunkSeaLevel&&map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100){
                     if(treeCount>0){
                             if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>98){
+                           
+                              
+                               for(int x=-2;x<3;x++){
+                                    for(int y=3;y<5;y++){
+                                        for(int z=-2;z<3;z++){
+                                            if(x+i<0||x+i>=chunkWidth||z+j<0||z+j>=chunkWidth){
+
+
+
+                                            if(x+i<0){
+                                                if(z+j>=0&&z+j<chunkWidth){
+                                                   if(leftChunk!=null){
+                                        
+                                                    leftChunk.additiveMap[chunkWidth+(x+i),y+k,z+j]=9;
+                                                
+                                                        isLeftChunkUpdated=true;
+                                                    
+                                                //    WorldManager.chunkLoadingQueue.UpdatePriority(leftChunk,0);
+                                           //         leftChunk.isChunkMapUpdated=true;
+                                                } 
+                                                }else if(z+j<0){
+                                                    if(backLeftChunk!=null){
+                                                        backLeftChunk.additiveMap[chunkWidth+(x+i),y+k,chunkWidth-1+(z+j)]=9;
+                                                     
+                                                        isBackLeftChunkUpdated=true;
+                                                    
+                                                  //    WorldManager.chunkLoadingQueue.UpdatePriority(backLeftChunk,0);
+                                         //               backLeftChunk.isChunkMapUpdated=true;
+                                                    }
+                                                    
+                                                }else if(z+j>=chunkWidth){
+                                                    if(frontLeftChunk!=null){
+                                                        frontLeftChunk.additiveMap[chunkWidth+(x+i),y+k,(z+j)-chunkWidth]=9;
+                                                       
+                                                        isFrontLeftChunkUpdated=true;
+                                                   
+                                                   //     WorldManager.chunkLoadingQueue.UpdatePriority(frontLeftChunk,0);
+                                       //                 frontLeftChunk.isChunkMapUpdated=true;
+                                                    } 
+                                                }
+                                                
+                                            }else
+                                            if(x+i>=chunkWidth){
+                                                 if(z+j>=0&&z+j<chunkWidth){
+                                                   if(rightChunk!=null){
+                                        
+                                                    rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;
+                                                  
+                                                        isRightChunkUpdated=true;
+                                                    
+                                                 //   WorldManager.chunkLoadingQueue.UpdatePriority(rightChunk,0);
+                                              //      rightChunk.isChunkMapUpdated=true;
+                                                } 
+                                                }else if(z+j<0){
+                                                    if(backRightChunk!=null){
+                                                        backRightChunk.additiveMap[(x+i)-chunkWidth,y+k,chunkWidth+(z+j)]=9;
+                                                    
+                                                        isBackRightChunkUpdated=true;
+                                                    
+                                                  //    WorldManager.chunkLoadingQueue.UpdatePriority(backRightChunk,0);
+                                               //         backRightChunk.isChunkMapUpdated=true;
+                                                    }
+                                                    
+                                                }else if(z+j>=chunkWidth){
+                                                    if(frontRightChunk!=null){
+                                                        frontRightChunk.additiveMap[(x+i)-chunkWidth,y+k,(z+j)-chunkWidth]=9;
+                                                     
+                                                        isFrontRightChunkUpdated=true;
+                                                    
+                                                 //     WorldManager.chunkLoadingQueue.UpdatePriority(frontRightChunk,0);
+                                              //          frontRightChunk.isChunkMapUpdated=true;
+                                                    } 
+                                                }
+                                            }else
+                                            if(z+j<0){
+
+                                                 if(x+i>=0&&x+i<chunkWidth){
+                                                   if(backChunk!=null){
+                                        
+                                                    backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;
+                                                   
+                                                        isBackChunkUpdated=true;
+                                                    
+                                            //    WorldManager.chunkLoadingQueue.UpdatePriority(backChunk,0);
+                                           //         backChunk.isChunkMapUpdated=true;
+                                                } 
+                                                }else if(x+i<0){
+                                                    if(backLeftChunk!=null){
+                                                        backLeftChunk.additiveMap[chunkWidth+(x+i),y+k,chunkWidth-1+(z+j)]=9;
+                                                      
+                                                        isBackLeftChunkUpdated=true;
+                                                    
+                                                 //    WorldManager.chunkLoadingQueue.UpdatePriority(backLeftChunk,0);
+                                            //            backLeftChunk.isChunkMapUpdated=true;
+                                                    }
+                                                    
+                                                }else if(x+i>=chunkWidth){
+                                                    if(backRightChunk!=null){
+                                                        backRightChunk.additiveMap[(x+i)-chunkWidth,y+k,chunkWidth-1+(z+j)]=9;
+                                                     
+                                                        isBackRightChunkUpdated=true;
+                                                    
+                                               //       WorldManager.chunkLoadingQueue.UpdatePriority(backRightChunk,0);
+                                                  //      backRightChunk.isChunkMapUpdated=true;    
+                                                    } 
+                                                }
+
+                                            }else
+                                            if(z+j>=chunkWidth){
+
+                                                if(x+i>=0&&x+i<chunkWidth){
+                                                   if(frontChunk!=null){
+                                        
+                                                    frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;
+                                               
+                                                        isFrontChunkUpdated=true;
+                                                    
+                                              //    WorldManager.chunkLoadingQueue.UpdatePriority(frontChunk,0);
+                                                 //   frontChunk.isChunkMapUpdated=true;
+                                                } 
+                                                }else if(x+i<0){
+                                                    if(frontLeftChunk!=null){
+                                                        frontLeftChunk.additiveMap[chunkWidth+(x+i),y+k,(z+j)-chunkWidth]=9;
+                                           
+                                                    isBackLeftChunkUpdated=true;
+                                                    
+                                              //        WorldManager.chunkLoadingQueue.UpdatePriority(frontLeftChunk,0);
+                                                    //    frontLeftChunk.isChunkMapUpdated=true;
+                                                    }
+                                                    
+                                                }else if(x+i>=chunkWidth){
+                                                    if(frontRightChunk!=null){
+                                                        frontRightChunk.additiveMap[(x+i)-chunkWidth,y+k,(z+j)-chunkWidth]=9;
+                                                     
+                                                        isFrontRightChunkUpdated=true;
+                                                    
+                                                  //  WorldManager.chunkLoadingQueue.UpdatePriority(frontRightChunk,0);
+                                                  //      frontRightChunk.isChunkMapUpdated=true;
+                                                    } 
+                                                }
+                                            }
+
+
+                                            }else{
+                                                map[x+i,y+k,z+j]=9;
+                                            }
+                                        }
+                                    }
+                                }
+                                  map[i,k,j]=7;
+                                map[i,k+1,j]=7;
+                               map[i,k+2,j]=7;
+                                map[i,k+3,j]=7;
+                                 map[i,k+4,j]=7;
+                                 map[i,k+5,j]=9;
+                                 map[i,k+6,j]=9;
+
+                                if(i+1<chunkWidth){
+                                map[i+1,k+5,j]=9;
+                                 map[i+1,k+6,j]=9;
+                           
+                               }else{
+                                if(rightChunk!=null){
+                                    rightChunk.additiveMap[0,k+5,j]=9;
+                                 rightChunk.additiveMap[0,k+6,j]=9;
+                               
+                            //      rightChunk.isChunkMapUpdated=true;
+                                }
+                               }
+
+                               if(i-1>=0){
+                                map[i-1,k+5,j]=9;
+                                map[i-1,k+6,j]=9;
+                           
+                               }else{
+                                if(leftChunk!=null){
+                                      leftChunk.additiveMap[chunkWidth-1,k+5,j]=9;
+                                 leftChunk.additiveMap[chunkWidth-1,k+6,j]=9;
+                            
+                                // leftChunk.isChunkMapUpdated=true;
+                                }
+                               }
+                               if(j+1<chunkWidth){
+                                map[i,k+5,j+1]=9;
+                                map[i,k+6,j+1]=9;
+                           
+                               }else{
+                                if(frontChunk!=null){
+                                frontChunk.additiveMap[i,k+5,0]=9;
+                                frontChunk.additiveMap[i,k+6,0]=9;
+                         
+                             //   frontChunk.isChunkMapUpdated=true;
+                                }
+                               }
+
+                               if(j-1>=0){
+                                map[i,k+5,j-1]=9;
+                                map[i,k+6,j-1]=9;
+                      
+                               }else{
+                                if(backChunk!=null){
+                                backChunk.additiveMap[i,k+5,chunkWidth-1]=9;
+                                backChunk.additiveMap[i,k+6,chunkWidth-1]=9;
+                             
+                              //  backChunk.isChunkMapUpdated=true;
+                                }
+                               }
+
+
+                         /*       
                                 map[i,k,j]=7;
                                 map[i,k+1,j]=7;
                                map[i,k+2,j]=7;
                                 map[i,k+3,j]=7;
                                  map[i,k+4,j]=7;
                                map[i,k+5,j]=9;
+                               
                                if(i+1<chunkWidth){
                                 map[i+1,k+4,j]=9;
                                  map[i+1,k+3,j]=9;
                                   map[i+1,k+2,j]=9;
                                }else{
                                 if(rightChunk!=null){
-                                    rightChunk.map[0,k+4,j]=9;
-                                 rightChunk.map[0,k+3,j]=9;
-                                  rightChunk.map[0,k+2,j]=9;
-                                  rightChunk.isChunkMapUpdated=true;
+                                    rightChunk.additiveMap[0,k+4,j]=9;
+                                 rightChunk.additiveMap[0,k+3,j]=9;
+                                  rightChunk.additiveMap[0,k+2,j]=9;
+                                   isRightChunkUpdated=true;
+                            //      rightChunk.isChunkMapUpdated=true;
                                 }
                                }
                                if(i-1>=0){
@@ -593,10 +834,11 @@ public class Chunk : MonoBehaviour
                                 map[i-1,k+2,j]=9;
                                }else{
                                 if(leftChunk!=null){
-                                      leftChunk.map[chunkWidth-1,k+4,j]=9;
-                                 leftChunk.map[chunkWidth-1,k+3,j]=9;
-                                  leftChunk.map[chunkWidth-1,k+2,j]=9;
-                                  leftChunk.isChunkMapUpdated=true;
+                                      leftChunk.additiveMap[chunkWidth-1,k+4,j]=9;
+                                 leftChunk.additiveMap[chunkWidth-1,k+3,j]=9;
+                                  leftChunk.additiveMap[chunkWidth-1,k+2,j]=9;
+                                  isLeftChunkUpdated=true;
+                           //       leftChunk.isChunkMapUpdated=true;
                                 }
                                }
                                if(j+1<chunkWidth){
@@ -605,24 +847,31 @@ public class Chunk : MonoBehaviour
                                 map[i,k+2,j+1]=9;
                                }else{
                                 if(frontChunk!=null){
-                                frontChunk.map[i,k+4,0]=9;
-                                frontChunk.map[i,k+3,0]=9;
-                                frontChunk.map[i,k+2,0]=9;
-                                frontChunk.isChunkMapUpdated=true;
+                                frontChunk.additiveMap[i,k+4,0]=9;
+                                frontChunk.additiveMap[i,k+3,0]=9;
+                                frontChunk.additiveMap[i,k+2,0]=9;
+                                isFrontChunkUpdated=true;
+                           //     frontChunk.isChunkMapUpdated=true;
                                 }
                                }
+
+                               
+
                                if(j-1>=0){
                                 map[i,k+4,j-1]=9;
                                 map[i,k+3,j-1]=9;
                                 map[i,k+2,j-1]=9;
                                }else{
                                 if(backChunk!=null){
-                                backChunk.map[i,k+4,chunkWidth-1]=9;
-                                backChunk.map[i,k+3,chunkWidth-1]=9;
-                                backChunk.map[i,k+2,chunkWidth-1]=9;
-                                backChunk.isChunkMapUpdated=true;
+                                backChunk.additiveMap[i,k+4,chunkWidth-1]=9;
+                                backChunk.additiveMap[i,k+3,chunkWidth-1]=9;
+                                backChunk.additiveMap[i,k+2,chunkWidth-1]=9;
+                                isBackChunkUpdated=true;
+                         //       backChunk.isChunkMapUpdated=true;
                                 }
-                               }
+                               }*/
+                               
+
                                treeCount--;
                             }
                         }
@@ -636,7 +885,7 @@ public class Chunk : MonoBehaviour
                  for(int k=0;k<chunkHeight/4;k++){
                     
                         if(0<k&&k<12){
-                        if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>96){
+                        if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x,0,pos.y)+new Vector3Int(i,k,j))>96){
 
                              map[i,k,j]=10;
                         
@@ -653,7 +902,30 @@ public class Chunk : MonoBehaviour
                 map[i,0,j]=5;
             }
         }
-        
+                                if(isLeftChunkUpdated==true){
+                                   WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
+                               }
+                               if(isRightChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
+                               }
+                               if(isBackChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
+                               }
+                               if(isFrontChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
+                               }
+                               if(isFrontLeftChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
+                               }
+                               if(isFrontRightChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
+                               }
+                               if(isBackLeftChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
+                               }
+                               if(isBackRightChunkUpdated==true){
+                                 WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
+                               }
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
@@ -666,6 +938,7 @@ public class Chunk : MonoBehaviour
             }
         }
         }
+                                    
         isMapGenCompleted=true;
         }
         
@@ -718,7 +991,7 @@ public class Chunk : MonoBehaviour
 
         //water
         //left
-        if (GetBlockType(x-1,y,z)!=100){
+        if (tmp(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
             if(GetBlockType(x,y+1,z)!=100){
             TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
 
@@ -738,7 +1011,7 @@ public class Chunk : MonoBehaviour
         }
             
         //Right
-        if (GetBlockType(x+1,y,z)!=100){
+        if (tmp(x+1,y,z)&&GetBlockType(x+1,y,z)!=100){
                 if(GetBlockType(x,y+1,z)!=100){
      TmpBuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
 
@@ -756,7 +1029,7 @@ public class Chunk : MonoBehaviour
             
 
         //Bottom
-        if (GetBlockType(x,y-1,z)!=100){
+        if (tmp(x,y-1,z)&&GetBlockType(x,y-1,z)!=100){
        TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
 
 
@@ -765,7 +1038,7 @@ public class Chunk : MonoBehaviour
         }
             
         //Top
-        if (GetBlockType(x,y+1,z)!=100){
+        if (tmp(x,y+1,z)&&GetBlockType(x,y+1,z)!=100){
         TmpBuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
 
 
@@ -777,7 +1050,7 @@ public class Chunk : MonoBehaviour
 
 
         //Back
-        if (GetBlockType(x,y,z-1)!=100){
+        if (tmp(x,y,z-1)&&GetBlockType(x,y,z-1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
             TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
 
@@ -799,7 +1072,7 @@ public class Chunk : MonoBehaviour
 
             
         //Front
-        if (GetBlockType(x,y,z+1)!=100){
+        if (tmp(x,y,z+1)&&GetBlockType(x,y,z+1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
             TmpBuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5) ;
 
@@ -851,7 +1124,7 @@ public class Chunk : MonoBehaviour
 
 
 
-    public async void BuildChunk(){
+    public async Task BuildChunk(){
         isMeshBuildCompleted=false;
         if(isChunkPosInited){
       await Task.Run(() => InitMap(chunkPos));      
@@ -1295,9 +1568,12 @@ public class Chunk : MonoBehaviour
   //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
    //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
         if(isChunkMapUpdated==true){
-            isModifiedInGame=true;
+            if(isMapGenCompleted==true){
+              isModifiedInGame=true;  
+            }
+            
             if(isMeshBuildCompleted==true){
-         BuildChunk();
+                await BuildChunk();
             }
           
            //InitMap(chunkPos);

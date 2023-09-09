@@ -664,6 +664,7 @@ PlayerSettings:
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
+    Android: 0
     Standalone: 0
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration:

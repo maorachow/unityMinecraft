@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
+using Priority_Queue;
 public class WorldManager : MonoBehaviour
 {
-    public static List<Chunk> chunkLoadingQueue=new List<Chunk>();
+    public bool isChunkFastLoadingEnabled=false;
+    public bool doMonstersSpawn=true;
+    public static SimplePriorityQueue<Chunk> chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
     public Transform playerPos;
+    public Camera playerCam;
     async void Start(){
 
           Chunk.AddBlockInfo();  
@@ -16,6 +20,7 @@ public class WorldManager : MonoBehaviour
          //   Chunk.ReadJson();
         
         playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        playerCam=GameObject.Find("Main Camera").GetComponent<Camera>();
             if(!EntityBeh.isEntitiesLoad){
             EntityBeh.LoadEntities();
         }
@@ -29,33 +34,37 @@ public class WorldManager : MonoBehaviour
             
     }
     void FixedUpdate(){
+     if(isChunkFastLoadingEnabled==false){
       BuildAllChunksAsync();
-        if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70){
+     }
+        if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
           EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
         }
     }
        void BuildAllChunksAsync(){
       if(chunkLoadingQueue.Count>0){
-        chunkLoadingQueue[0].StartLoadChunk();
-       /* if(chunkLoadingQueue.Count==1){
-             foreach(KeyValuePair<Vector2Int,Chunk> kvp in Chunk.Chunks){
-          kvp.Value.BuildChunk();
-        }
-           chunkLoadingQueue.Dequeue();
-           return;
-        }*/
-        chunkLoadingQueue.RemoveAt(0);
+      //  lock(chunkLoadingQueue){
+             chunkLoadingQueue.First.StartLoadChunk();
+     
+              chunkLoadingQueue.Remove(chunkLoadingQueue.First);
+     //   Debug.Log("loading speed:"+1/Time.deltaTime);
+        
+        return;
         
    
       }
 
     }
-
+public void FastChunkLoadingButtonOnValueChanged(bool b){
+  isChunkFastLoadingEnabled=b;
+}
     void Update(){
  
-
-
+      if(isChunkFastLoadingEnabled==true){
+      BuildAllChunksAsync();  
+      }
+       
         if(Input.GetKeyDown(KeyCode.H)){
      //   EntityBeh.SpawnNewEntity(0,100,0,0);
        // EntityBeh.SpawnNewEntity(0,100,0,1);

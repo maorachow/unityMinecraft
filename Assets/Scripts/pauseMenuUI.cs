@@ -9,12 +9,16 @@ public class pauseMenuUI : MonoBehaviour
     public Button SaveWorldButton;
     public Text viewRangeText;
     public Slider viewRangeSlider;
+    public Slider graphicsQualitySlider;
+    public Text graphicsQualityText;
     public PlayerMove player;
     public Button returnToMainMenuButton;
     void Start()
     {
         
         player=GameObject.Find("player").GetComponent<PlayerMove>();
+        graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
+        graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
         viewRangeSlider=GameObject.Find("viewrangeslider").GetComponent<Slider>();
         viewRangeText=GameObject.Find("viewrangetext").GetComponent<Text>();
         rebuildAllChunksButton=GameObject.Find("rebuildallchunksbutton").GetComponent<Button>();
@@ -24,6 +28,35 @@ public class pauseMenuUI : MonoBehaviour
         SaveWorldButton.onClick.AddListener(SaveWorldButtonOnClick);
         returnToMainMenuButton=GameObject.Find("pausemainmenubutton").GetComponent<Button>();
         returnToMainMenuButton.onClick.AddListener(ReturnToMainMenuButtonOnClick);
+        graphicsQualitySlider.onValueChanged.AddListener(GraphicsQualitySliderOnValueChanged);
+    }
+    void GraphicsQualitySliderOnValueChanged(float f){
+        switch((int)graphicsQualitySlider.value){
+            case 0:
+            graphicsQualityText.text="Very Low";
+            QualitySettings.SetQualityLevel(0, true);
+            break;
+            case 1:
+             graphicsQualityText.text="Low";
+            QualitySettings.SetQualityLevel(1, true);
+            break;
+            case 2:
+             graphicsQualityText.text="Medium";
+            QualitySettings.SetQualityLevel(2, true);
+            break;
+            case 3:
+             graphicsQualityText.text="High";
+            QualitySettings.SetQualityLevel(3, true);
+            break;
+            case 4:
+             graphicsQualityText.text="Very High";
+            QualitySettings.SetQualityLevel(4, true);
+            break;
+            case 5:
+             graphicsQualityText.text="Ultra";
+            QualitySettings.SetQualityLevel(5, true);
+            break;
+        }
     }
     void ViewRangeSliderOnValueChanged(float f){
         PlayerMove.viewRange=viewRangeSlider.value;

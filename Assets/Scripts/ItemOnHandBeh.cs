@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System.Threading.Tasks;
+using System.Threading;
 public class ItemOnHandBeh : MonoBehaviour
 {
     public Mesh itemMesh;
@@ -32,12 +33,12 @@ public class ItemOnHandBeh : MonoBehaviour
         isHandItemBuildCompleted=true;
     }
     }
-    public void OnBlockIDChanged(int blockID){
-        BuildItemModel(blockID);
+    public async void OnBlockIDChanged(int blockID){
+       await BuildItemModel(blockID);
     }
-    public void BuildItemModel(int itemID){
+    public async Task BuildItemModel(int itemID){
         transform.localPosition=new Vector3(0f,0f,0f);
-   itemMesh=new Mesh();
+    itemMesh=new Mesh();
     float x=-0.5f;
     float y=-0.5f;
     float z=-0.5f;
@@ -45,7 +46,7 @@ public class ItemOnHandBeh : MonoBehaviour
     uvs=new List<Vector2>();
     tris=new List<int>();
     if(itemID>150&&itemID<=200){
-        BuildFlatItemModel(itemID);
+       await BuildFlatItemModel(itemID);
     }
     if(itemID==0){
 
@@ -111,9 +112,9 @@ public class ItemOnHandBeh : MonoBehaviour
 }
 
 
- public void BuildFlatItemModel(int itemID)
+ public async Task BuildFlatItemModel(int itemID)
     {
-        transform.localPosition=new Vector3(0.1f,-0.2f,-0.3f);
+        transform.localPosition=new Vector3(0.05f,-0.2f,-0.3f);
     float x=0f;
     float y=0f;
     float z=0f;

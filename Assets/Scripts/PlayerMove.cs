@@ -93,11 +93,17 @@ public class PlayerMove : MonoBehaviour
         blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
     }
     public void BreakBlockButtonPress(){
+        if(isPlayerKilled==true||GameUIBeh.isPaused==true||GameUIBeh.instance.isCraftingMenuOpened==true){
+            return;
+        }
         if(breakBlockCD<=0f){
             BreakBlock();
             breakBlockCD=0.3f;}
     }
     public void PlaceBlockButtonPress(){
+          if(isPlayerKilled==true||GameUIBeh.isPaused==true||GameUIBeh.instance.isCraftingMenuOpened==true){
+            return;
+        }
         if(breakBlockCD<=0f){
             PlaceBlock();
             breakBlockCD=0.3f;}
@@ -143,7 +149,7 @@ public class PlayerMove : MonoBehaviour
   //  }
     void MouseLock()
     {
-        if(isPlayerKilled==true||GameUIBeh.isPaused==true|GameUIBeh.instance.isCraftingMenuOpened==true){
+        if(isPlayerKilled==true||GameUIBeh.isPaused==true||GameUIBeh.instance.isCraftingMenuOpened==true){
             return;
         }
         if(pi.Player.LeftClick.ReadValue<float>()>0.5f){
