@@ -563,8 +563,8 @@ public class PlayerMove : MonoBehaviour
                     chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
                //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
                //     chunk.isChunkPosInited=true;
-               if(chunk!=null){
-                chunk.SendMessage("ReInitData");
+                if(chunk!=null){
+                    chunk.SendMessage("ReInitData");
                }
                     
          //          WorldManager.chunksToLoad.Add(chunk);
