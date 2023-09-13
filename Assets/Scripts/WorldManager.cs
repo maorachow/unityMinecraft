@@ -28,32 +28,46 @@ public class WorldManager : MonoBehaviour
            await Task.Run(()=>EntityBeh.ReadEntityJson());
         
             EntityBeh.SpawnEntityFromFile();
-            ItemEntityBeh.ReadItemEntityJson();
+            await Task.Run(()=>ItemEntityBeh.ReadItemEntityJson());
             ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
             StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
             
     }
     void FixedUpdate(){
-     if(isChunkFastLoadingEnabled==false){
+  //   if(isChunkFastLoadingEnabled==false){
       BuildAllChunksAsync();
-     }
+  //   }
         if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
           EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
         }
     }
        void BuildAllChunksAsync(){
-      if(chunkLoadingQueue.Count>0){
+         if(isChunkFastLoadingEnabled==true){
+          for(int i=0;i<2;i++){
+              if(chunkLoadingQueue.Count>0){
+                 chunkLoadingQueue.First.StartLoadChunk();
+              chunkLoadingQueue.Dequeue(); 
+              }
+          
+          }
+          return;
+          
+        }else{
+          if(chunkLoadingQueue.Count>0){
       //  lock(chunkLoadingQueue){
+       
              chunkLoadingQueue.First.StartLoadChunk();
      
-              chunkLoadingQueue.Remove(chunkLoadingQueue.First);
+              chunkLoadingQueue.Dequeue();
      //   Debug.Log("loading speed:"+1/Time.deltaTime);
         
         return;
         
    
       }
+        }
+      
 
     }
 public void FastChunkLoadingButtonOnValueChanged(bool b){
@@ -61,9 +75,9 @@ public void FastChunkLoadingButtonOnValueChanged(bool b){
 }
     void Update(){
  
-      if(isChunkFastLoadingEnabled==true){
-      BuildAllChunksAsync();  
-      }
+   //   if(isChunkFastLoadingEnabled==true){
+    //  BuildAllChunksAsync();  
+   //   }
        
         if(Input.GetKeyDown(KeyCode.H)){
      //   EntityBeh.SpawnNewEntity(0,100,0,0);

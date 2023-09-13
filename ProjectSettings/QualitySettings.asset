@@ -4,7 +4,7 @@
 QualitySettings:
   m_ObjectHideFlags: 0
   serializedVersion: 5
-  m_CurrentQuality: 5
+  m_CurrentQuality: 3
   m_QualitySettings:
   - serializedVersion: 3
     name: Very Low
@@ -17,7 +17,7 @@ QualitySettings:
     shadowNearPlaneOffset: 3
     shadowCascade2Split: 0.33333334
     shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
-    shadowmaskMode: 0
+    shadowmaskMode: 1
     skinWeights: 1
     globalTextureMipmapLimit: 1
     textureMipmapLimitSettings:
@@ -33,7 +33,7 @@ QualitySettings:
     useLegacyDetailDistribution: 0
     vSyncCount: 0
     realtimeGICPUUsage: 25
-    lodBias: 0.3
+    lodBias: 1
     maximumLODLevel: 0
     enableLODCrossFade: 1
     streamingMipmapsActive: 0
@@ -270,14 +270,14 @@ QualitySettings:
     name: Ultra
     pixelLightCount: 4
     shadows: 2
-    shadowResolution: 2
+    shadowResolution: 3
     shadowProjection: 1
     shadowCascades: 4
-    shadowDistance: 150
+    shadowDistance: 200
     shadowNearPlaneOffset: 3
     shadowCascade2Split: 0.33333334
-    shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
-    shadowmaskMode: 0
+    shadowCascade4Split: {x: 0.05010171, y: 0.2, z: 0.46666664}
+    shadowmaskMode: 1
     skinWeights: 255
     globalTextureMipmapLimit: 0
     textureMipmapLimitSettings:
@@ -293,7 +293,7 @@ QualitySettings:
     useLegacyDetailDistribution: 0
     vSyncCount: 0
     realtimeGICPUUsage: 100
-    lodBias: 2
+    lodBias: 1
     maximumLODLevel: 0
     enableLODCrossFade: 1
     streamingMipmapsActive: 0

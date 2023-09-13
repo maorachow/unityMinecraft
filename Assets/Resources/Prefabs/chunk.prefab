@@ -246,6 +246,10 @@ MonoBehaviour:
   backChunk: {fileID: 0}
   leftChunk: {fileID: 0}
   rightChunk: {fileID: 0}
+  frontLeftChunk: {fileID: 0}
+  frontRightChunk: {fileID: 0}
+  backLeftChunk: {fileID: 0}
+  backRightChunk: {fileID: 0}
   chunkPos: {x: 0, y: 0}
   playerPos: {fileID: 0}
   playerDistance: 0
