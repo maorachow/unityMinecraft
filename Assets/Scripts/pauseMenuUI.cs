@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 public class pauseMenuUI : MonoBehaviour
 {
+    public Texture terrainNormal;
     public Button rebuildAllChunksButton;
     public Button SaveWorldButton;
     public Text viewRangeText;
@@ -15,7 +17,7 @@ public class pauseMenuUI : MonoBehaviour
     public Button returnToMainMenuButton;
     void Start()
     {
-        
+        terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
         player=GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
         graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
@@ -29,32 +31,45 @@ public class pauseMenuUI : MonoBehaviour
         returnToMainMenuButton=GameObject.Find("pausemainmenubutton").GetComponent<Button>();
         returnToMainMenuButton.onClick.AddListener(ReturnToMainMenuButtonOnClick);
         graphicsQualitySlider.onValueChanged.AddListener(GraphicsQualitySliderOnValueChanged);
+        
     }
     void GraphicsQualitySliderOnValueChanged(float f){
         switch((int)graphicsQualitySlider.value){
             case 0:
             graphicsQualityText.text="Very Low";
             QualitySettings.SetQualityLevel(0, true);
+            if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",null);
             break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
+             if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",null);
             break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
+             if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",null);
             break;
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
+             if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",null);
             break;
             case 4:
              graphicsQualityText.text="Very High";
             QualitySettings.SetQualityLevel(4, true);
+             if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",terrainNormal);
             break;
             case 5:
              graphicsQualityText.text="Ultra";
             QualitySettings.SetQualityLevel(5, true);
+             if(player.curChunk!=null)
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",terrainNormal);
             break;
         }
     }
@@ -64,12 +79,13 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
+          player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",terrainNormal);
         ZombieBeh.isZombiePrefabLoaded=false;
         SaveWorldButtonOnClick();
          SceneManager.LoadScene(0);
 
     }
-    void SaveWorldButtonOnClick(){
+     void SaveWorldButtonOnClick(){
         player.SavePlayerData();
         Chunk.SaveWorldData();
         EntityBeh.SaveWorldEntityData();
@@ -79,5 +95,9 @@ public class pauseMenuUI : MonoBehaviour
         foreach(KeyValuePair<Vector2Int,Chunk> kvp in Chunk.Chunks){
             kvp.Value.isChunkMapUpdated=true;
         }
+    }
+    
+    void OnApplicationQuit(){
+        player.curChunk.meshRenderer.sharedMaterial.SetTexture("_DetailNormalMap",terrainNormal);
     }
 }

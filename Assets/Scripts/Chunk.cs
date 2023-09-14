@@ -119,7 +119,7 @@ public class Chunk : MonoBehaviour
   //200-299hitbox nonsolid blocks
     public static Dictionary<int,AudioClip> blockAudioDic=new Dictionary<int,AudioClip>();
     public static FastNoise noiseGenerator=new FastNoise();
-    public static RuntimePlatform platform = Application.platform;
+    
     public static string gameWorldDataPath;
     public delegate bool TmpCheckFace(int x,int y,int z);
     public delegate void TmpBuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side);
@@ -221,11 +221,7 @@ public class Chunk : MonoBehaviour
     }
     public static void ReadJson(){
         chunkDataReadFromDisk.Clear();
-      if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
-        gameWorldDataPath="C:/";
-      }else{
-        gameWorldDataPath=Application.persistentDataPath;
-      }
+     gameWorldDataPath=WorldManager.gameWorldDataPath;
          
          if (!Directory.Exists(gameWorldDataPath+"unityMinecraftData")){
                 Directory.CreateDirectory(gameWorldDataPath+"unityMinecraftData");
@@ -257,8 +253,9 @@ public class Chunk : MonoBehaviour
 
 
 
-    void ReInitData(){
-
+   public async void ReInitData(){
+      //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
+   
        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
         if(Chunks.ContainsKey(chunkPos)){
        ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
@@ -274,8 +271,9 @@ public class Chunk : MonoBehaviour
        
 
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
+
             isSavedInDisk=true;
-           // Debug.Log(chunkPos);
+            Debug.Log(chunkPos);
         }
       //  StartLoadChunk();
    //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
@@ -296,7 +294,7 @@ public class Chunk : MonoBehaviour
         if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
         }
-         
+      
             SaveSingleChunk();
         Chunks.Remove(chunkPos);
           map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
@@ -322,6 +320,7 @@ public class Chunk : MonoBehaviour
         if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
         }
+     
      //   chunkMesh=new Mesh();
       //  chunkNonSolidMesh=new Mesh();
         SaveSingleChunk();
@@ -481,6 +480,7 @@ public class Chunk : MonoBehaviour
      //   File.AppendAllText(Application.dataPath+"/GameData/world.json",tmpData+"\n");
         c.Value.SaveSingleChunk();
         }
+        Debug.Log(chunkDataReadFromDisk.Count);
        foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
         string tmpData=JsonSerializer.ToJsonString(wd.Value);
         File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
@@ -513,17 +513,21 @@ public class Chunk : MonoBehaviour
         List<Vector2> uvs = new List<Vector2>();
         List<int> tris = new List<int>();
         if(isMapGenCompleted==true){
+            isModifiedInGame=true;
         GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
            return;
         }
         if(isSavedInDisk==true){
             if(isChunkPosInited==false){
-                FreshGenMap(pos);
+             //   FreshGenMap(pos);
+           //   Debug.Log("ReadF");
+             map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
                  isMapGenCompleted=true;
                 GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
                 return;
             }else{
-             map=chunkDataReadFromDisk[new Vector2Int((int)pos.x,(int)pos.y)].map;
+             map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
+       //      Debug.Log("Read");
             isMapGenCompleted=true;
             GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);   
             return;
@@ -1127,9 +1131,9 @@ public class Chunk : MonoBehaviour
     public async Task BuildChunk(){
         isMeshBuildCompleted=false;
         if(isChunkPosInited){
-      await Task.Run(() => InitMap(chunkPos));      
+        await Task.Run(() => InitMap(chunkPos));      
         }else{
-            ReInitData();
+           ReInitData();
           await Task.Run(() => InitMap(chunkPos));      
         }
      
@@ -1223,6 +1227,10 @@ public class Chunk : MonoBehaviour
   // combine[0].mesh=chunkMesh;
   // WorldMeshManager.combine.Add(new CombineInstance{mesh=chunkMesh,transform=transform.localToWorldMatrix});
  //  WorldMeshManager.OnAllChunkMeshesChanged();
+ if(meshFilter==null){
+    return;
+   
+ }
         meshFilter.sharedMesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
         a[0]=chunkMesh.GetInstanceID();
@@ -1568,6 +1576,7 @@ public class Chunk : MonoBehaviour
   //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
    //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
         if(isChunkMapUpdated==true){
+               isModifiedInGame=true;  
             if(isMapGenCompleted==true){
               isModifiedInGame=true;  
             }
@@ -1585,11 +1594,16 @@ public class Chunk : MonoBehaviour
          TryReleaseChunk();
     }
     void TryReleaseChunk(){
-         
-        if(Mathf.Abs(chunkPos.x-playerPos.position.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(chunkPos.y-playerPos.position.z)>PlayerMove.viewRange+Chunk.chunkWidth+3){
-            Chunk.Chunks.Remove(chunkPos);
-            ObjectPools.chunkPool.Remove(gameObject);
-           
+         if(!isChunkPosInited){
+            return;
+         }
+         Vector3 pos=transform.position;
+        if(Mathf.Abs(pos.x-playerPos.position.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(pos.z-playerPos.position.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(this)){
+       //     Chunk.Chunks.Remove(chunkPos);
+    //    ObjectPools.chunkPool.Remove(gameObject);
+      //      WorldManager.chunkLoadingQueue.Remove(this);
+           WorldManager.chunkUnloadingQueue.Add(this);
+           isChunkPosInited=false;
         }
     }
     

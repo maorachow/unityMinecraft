@@ -17,26 +17,31 @@ public class ItemOnHandBeh : MonoBehaviour
     List<Vector2> uvs=new List<Vector2>();
     List<int> tris=new List<int>();
     public int blockID;
+    public int prevBlockID;
     void Start()
     {
         mf=GetComponent<MeshFilter>();
         InvokeRepeating("InvokeBuildItem",0f,0.5f);
     }
     void InvokeBuildItem(){
-        OnBlockIDChanged(blockID);
+        if(blockID!=prevBlockID){
+            OnBlockIDChanged(blockID);
+            prevBlockID=blockID;
+        }
+   //     OnBlockIDChanged(blockID);
     }
     // Update is called once per frame
     void Update()
     {
-    if(isHandItemBuildCompleted==false){
-        OnBlockIDChanged(blockID);
-        isHandItemBuildCompleted=true;
+  //  if(isHandItemBuildCompleted==false){
+   //     OnBlockIDChanged(blockID);
+    //    isHandItemBuildCompleted=true;
+  //  }
     }
+    public void OnBlockIDChanged(int blockID){
+        BuildItemModel(blockID);
     }
-    public async void OnBlockIDChanged(int blockID){
-       await BuildItemModel(blockID);
-    }
-    public async Task BuildItemModel(int itemID){
+    public void BuildItemModel(int itemID){
         transform.localPosition=new Vector3(0f,0f,0f);
     itemMesh=new Mesh();
     float x=-0.5f;
@@ -46,7 +51,7 @@ public class ItemOnHandBeh : MonoBehaviour
     uvs=new List<Vector2>();
     tris=new List<int>();
     if(itemID>150&&itemID<=200){
-       await BuildFlatItemModel(itemID);
+        BuildFlatItemModel(itemID);
     }
     if(itemID==0){
 
@@ -112,7 +117,7 @@ public class ItemOnHandBeh : MonoBehaviour
 }
 
 
- public async Task BuildFlatItemModel(int itemID)
+ public void BuildFlatItemModel(int itemID)
     {
         transform.localPosition=new Vector3(0.05f,-0.2f,-0.3f);
     float x=0f;

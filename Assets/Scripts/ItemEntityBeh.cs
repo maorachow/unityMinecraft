@@ -166,7 +166,7 @@ public class ItemEntityBeh : MonoBehaviour
     public Chunk currentChunk;
    // public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
    
-    public static RuntimePlatform platform = Application.platform;
+   
     public static bool isItemEntitiesLoad=false;
     public static string gameWorldItemEntityDataPath;
     public static List<ItemData> itemEntityDataReadFromDisk=new List<ItemData>();
@@ -199,11 +199,7 @@ public class ItemEntityBeh : MonoBehaviour
         worldItemEntities.Remove(this);
     }
     public static void ReadItemEntityJson(){
-     if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
-        gameWorldItemEntityDataPath="C:/";
-      }else{
-        gameWorldItemEntityDataPath=Application.persistentDataPath;
-      }
+   gameWorldItemEntityDataPath=WorldManager.gameWorldDataPath;
          
          if (!Directory.Exists(gameWorldItemEntityDataPath+"unityMinecraftData")){
                 Directory.CreateDirectory(gameWorldItemEntityDataPath+"unityMinecraftData");
@@ -355,7 +351,7 @@ public class ItemEntityBeh : MonoBehaviour
         }
         AudioSource.PlayClipAtPoint(PlayerMove.playerDropItemClip,transform.position,1f);
         playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
-        playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
+       playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
         ReleaseItem();
     }
     }
@@ -460,10 +456,11 @@ public class ItemEntityBeh : MonoBehaviour
         float offsetX=-0.5f;
         float offsetY=-0.5f;
         float offsetZ=-0.5f;
-        for(int i=0;i<verts.Count;i++){
+        await Task.Run(()=>{for(int i=0;i<verts.Count;i++){
             verts[i]=new Vector3(verts[i].x+offsetX,verts[i].y+offsetY,verts[i].z+offsetZ);
            
-        }
+        }});
+        
         Debug.Log(Thread.CurrentThread.ManagedThreadId.ToString());
         mesh.vertices=verts.ToArray();
         mesh.uv=uvs.ToArray();

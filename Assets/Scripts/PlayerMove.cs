@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using System.IO;
 using Utf8Json;
 using UnityEngine.EventSystems;
@@ -26,7 +26,7 @@ public class PlayerMove : MonoBehaviour
     public float playerMaxHealth=20f;
     public Chunk curChunk;
     public Animator am;
-    public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
+  
     public static string gameWorldPlayerDataPath;
     public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
     public static bool isBlockNameDicAdded=false;
@@ -65,8 +65,7 @@ public class PlayerMove : MonoBehaviour
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
     void Awake(){
-        pi=new PlayerInput();
-        pi.Enable();
+       
         if(isBlockNameDicAdded==false){
         blockNameDic.Add(0,"None");
         blockNameDic.Add(1,"Stone");
@@ -85,11 +84,14 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(153,"Diamond");
         isBlockNameDicAdded=true;
         }
-        ReadPlayerJson();
+      
     }
     public void SetHotbarNum(int num){
         
         currentSelectedHotbar=num;
+        if(blockOnHandText==null){
+            blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
+        }
         blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
     }
     public void BreakBlockButtonPress(){
@@ -111,16 +113,15 @@ public class PlayerMove : MonoBehaviour
 
     void Start()
     {   
+          ReadPlayerJson();
+         pi=new PlayerInput();
+        pi.Enable();
          Input.multiTouchEnabled = true;
         AS=GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
-        if(platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer){
-            Application.targetFrameRate = 60;
-        }else{
-         Application.targetFrameRate = 1024;   
-        }        
+     
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -174,7 +175,7 @@ public class PlayerMove : MonoBehaviour
 
 
     public void AddItem(int itemTypeID,int itemCount){
-         playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
+         playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];  
        // inventoryDic[0]=1;
       //  inventoryItemNumberDic[0]=100;
         int itemCountTmp=itemCount;
@@ -402,7 +403,10 @@ public class PlayerMove : MonoBehaviour
                 if(Mathf.Abs(pi.Player.SwitchItemSlot.ReadValue<Vector2>().y)>0f){
                 currentSelectedHotbar-=(int)pi.Player.SwitchItemSlot.ReadValue<Vector2>().y;
                 currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
-                blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
+                if(blockOnHandText==null){
+                blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
+                }
+                    blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
         
           } };
            
@@ -426,7 +430,7 @@ public class PlayerMove : MonoBehaviour
          float mouseX=0f;
         float mouseY=0f;
         if(!GameUIBeh.instance.isCraftingMenuOpened){
-                 if(platform==RuntimePlatform.Android||platform==RuntimePlatform.IPhonePlayer){
+                 if(WorldManager.platform==RuntimePlatform.Android||WorldManager.platform==RuntimePlatform.IPhonePlayer){
             for(int i=0;i<Input.touches.Length;i++){
              EventSystem eventSystem = EventSystem.current;
             PointerEventData pointerEventData = new PointerEventData(eventSystem);
@@ -518,9 +522,11 @@ public class PlayerMove : MonoBehaviour
         PlayerDropItem(currentSelectedHotbar-1);
     }
     void PlayerDropItem(int slotID){
-
+        if(this==null){
+           return; 
+        }
         if(inventoryItemNumberDic[slotID]>0){
-            AudioSource.PlayClipAtPoint(playerDropItemClip,transform.position,1f);
+            AudioSource.PlayClipAtPoint(playerDropItemClip,gameObject.transform.position,1f);
             StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
             inventoryItemNumberDic[slotID]--;
             if(inventoryItemNumberDic[slotID]-1<=0){
@@ -546,25 +552,26 @@ public class PlayerMove : MonoBehaviour
         
        }
     }
-    void UpdateWorld()
+   async void UpdateWorld()
     {
         
-
-    for (float x = transform.position.x - viewRange; x < transform.position.x + viewRange; x += Chunk.chunkWidth)
+        Vector3 curPos=transform.position;
+    for (float x = curPos.x - viewRange; x < curPos.x + viewRange; x += Chunk.chunkWidth)
         {
-            for (float z = transform.position.z - viewRange; z < transform.position.z + viewRange; z += Chunk.chunkWidth)
+            for (float z = curPos.z - viewRange; z <curPos.z + viewRange; z += Chunk.chunkWidth)
             {
                 Vector3 pos = new Vector3(x, 0, z);
                // pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
             //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
-                Vector2Int chunkPos=Chunk.Vec3ToChunkPos(pos);
+                Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
+             //   await Task.Delay(1000);
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null) {continue;}else{
                     chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
                //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
                //     chunk.isChunkPosInited=true;
                 if(chunk!=null){
-                    chunk.SendMessage("ReInitData");
+                  chunk.ReInitData();
                }
                     
          //          WorldManager.chunksToLoad.Add(chunk);
@@ -663,11 +670,8 @@ public class PlayerMove : MonoBehaviour
     public void ReadPlayerJson(){
           inventoryDic=new int[9];
             inventoryItemNumberDic=new int[9];
-     if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
-        gameWorldPlayerDataPath="C:/";
-      }else{
-        gameWorldPlayerDataPath=Application.persistentDataPath;
-      }
+    
+    gameWorldPlayerDataPath=WorldManager.gameWorldDataPath;
          
          if (!Directory.Exists(gameWorldPlayerDataPath+"unityMinecraftData")){
                 Directory.CreateDirectory(gameWorldPlayerDataPath+"unityMinecraftData");

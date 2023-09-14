@@ -38,7 +38,7 @@ public class EntityBeh : MonoBehaviour
     public Chunk currentChunk;
     public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
     //0Creeper 1zombie
-    public static RuntimePlatform platform = Application.platform;
+    
     public static bool isEntitiesLoad=false;
     public static string gameWorldEntityDataPath;
     public static List<EntityData> entityDataReadFromDisk=new List<EntityData>();
@@ -61,11 +61,7 @@ public class EntityBeh : MonoBehaviour
         worldEntities.Remove(this);
     }
     public static void ReadEntityJson(){
-     if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
-        gameWorldEntityDataPath="C:/";
-      }else{
-        gameWorldEntityDataPath=Application.persistentDataPath;
-      }
+   gameWorldEntityDataPath=WorldManager.gameWorldDataPath;
          
          if (!Directory.Exists(gameWorldEntityDataPath+"unityMinecraftData")){
                 Directory.CreateDirectory(gameWorldEntityDataPath+"unityMinecraftData");

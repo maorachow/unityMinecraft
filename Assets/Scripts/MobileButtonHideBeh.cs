@@ -5,7 +5,7 @@ using UnityEngine;
 public class MobileButtonHideBeh : MonoBehaviour
 {
     public static bool isHidingButton=true;
-  public static RuntimePlatform platform{get{return EntityBeh.platform;}set{platform=EntityBeh.platform;}}
+  public static RuntimePlatform platform{get{return WorldManager.platform;}set{platform=WorldManager.platform;}}
     void Start()
     {
    //     isHidingButton=false;

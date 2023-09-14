@@ -285,7 +285,7 @@ QualitySettings:
       limitBiasMode: 0
       limitBias: -3
     anisotropicTextures: 2
-    antiAliasing: 2
+    antiAliasing: 8
     softParticles: 1
     softVegetation: 1
     realtimeReflectionProbes: 1
