@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
+using UnityEngine.Jobs;
 using Unity.Collections;
 using Unity.Burst;
 using UnityEngine.Rendering;
@@ -10,15 +11,24 @@ using System.Threading;
 using System.Threading.Tasks;
 //using Cysharp.Threading.Tasks;
 using Priority_Queue;
-
-
+using Unity.Collections;
+using MessagePack;
 using System.IO;
-using Utf8Json;
+
+[MessagePackObject]
 public class WorldData{
+    [Key(0)]
     public int posX;
+    [Key(1)]
     public int posZ;
+    [Key(2)]
     public int[,,] map;
-    
+
+    public WorldData(int posX,int posZ,int[,,] map){
+        this.posX=posX;
+        this.posZ=posZ;
+        this.map=map;
+    }
 }
 public struct RandomGenerator3D{
   //  public System.Random rand=new System.Random(0);
@@ -28,7 +38,7 @@ public struct RandomGenerator3D{
     } 
 }
 public class Chunk : MonoBehaviour
-{    [BurstCompile]
+{   
     public struct Vertex{
         public Vector3 pos;
         public Vector3 normal;
@@ -40,35 +50,34 @@ public class Chunk : MonoBehaviour
         }
     }
     [BurstCompile]
-    public struct BakeJob:IJobParallelFor{
-        public NativeArray<int> meshes;
-        public void Execute(int index){
-            Physics.BakeMesh(meshes[index],false);
+    public struct BakeJob:IJob{
+        public int meshID;
+        public void Execute(){
+            Physics.BakeMesh(meshID,false);
         }
     }
  
+  [BurstCompile]
     public struct MeshBuildJob:IJob{
        // public NativeArray<VertexAttributeDescriptor> vertexAttributes;
         public NativeArray<Vector3> verts;
+     //   public NativeArray<VertexAttributeDescriptor> vertsDes;
         public NativeArray<Vector2> uvs;
         public NativeArray<int> tris;
             public int vertLen;
-            public int uvsLen;
-            public int trisLen;
-            public Mesh.MeshDataArray dataArray;
+    
+        public Mesh.MeshDataArray dataArray;
          public void Execute(){
              // Allocate mesh data for one mesh.
       //  dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
+       
         // Tetrahedron vertices with positions and normals.
         // 4 faces with 3 unique vertices in each -- the faces
         // don't share the vertices since normals have to be
         // different for each face.
          /*   */
-        data.SetVertexBufferParams(vertLen,new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
-       );
+     
         // Four tetrahedron vertex positions:
    //     var sqrt075 = Mathf.Sqrt(0.75f);
    //     var p0 = new Vector3(0, 0, 0);
@@ -77,9 +86,22 @@ public class Chunk : MonoBehaviour
    //     var p3 = new Vector3(0.5f, sqrt075, sqrt075 / 3);
         // The first vertex buffer data stream is just positions;
         // fill them in.
-        var pos = data.GetVertexData<Vertex>();
+  
+        NativeArray<Vertex> pos = data.GetVertexData<Vertex>();
+        if(pos==null){
+             data.SetVertexBufferParams(verts.Length,new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2));
+             pos = data.GetVertexData<Vertex>();
+        }
+        //int posLen=;
       //  pos=verts;
+     // Debug.Log(pos.Length);
         for(int i=0;i<pos.Length;i++){
+            if(pos==null){
+                Debug.Log("null");
+                return;
+            }
             pos[i]=new Vertex(verts[i],new Vector3(1f,1f,1f),uvs[i]);
            
         }
@@ -90,6 +112,7 @@ public class Chunk : MonoBehaviour
     //    data.SetIndexBufferParams(verts.Length, IndexFormat.UInt16);
        data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt32);
         var ib = data.GetIndexData<int>();
+      
         for (int i = 0; i < ib.Length; ++i)
             ib[i] = tris[i];
         // One sub-mesh with all the indices.
@@ -119,7 +142,8 @@ public class Chunk : MonoBehaviour
   //200-299hitbox nonsolid blocks
     public static Dictionary<int,AudioClip> blockAudioDic=new Dictionary<int,AudioClip>();
     public static FastNoise noiseGenerator=new FastNoise();
-    
+    public static MessagePackSerializerOptions lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
+
     public static string gameWorldDataPath;
     public delegate bool TmpCheckFace(int x,int y,int z);
     public delegate void TmpBuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side);
@@ -146,11 +170,11 @@ public class Chunk : MonoBehaviour
     public static System.Random worldRandomGenerator=new System.Random(0);
     public static Dictionary<Vector2Int,Chunk> Chunks=new Dictionary<Vector2Int,Chunk>();
     public static Dictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new Dictionary<Vector2Int,WorldData>();
-
+    public static object chunkLock=new object();
     public MeshCollider meshCollider;
     public MeshRenderer meshRenderer;
     public MeshFilter meshFilter;
-    public MeshCollider meshColliderNS;
+   // public MeshCollider meshColliderNS;
     public MeshRenderer meshRendererNS;
     public MeshFilter meshFilterNS;
     public int[,,] map;
@@ -164,20 +188,31 @@ public class Chunk : MonoBehaviour
     public Chunk backLeftChunk;
     public Chunk backRightChunk;
     
-    
+     
     public Vector2Int chunkPos;
-    public Transform playerPos;
+    public static Transform playerPos;
     public float playerDistance;
-    
-
-
-
-    public Vector3[] opqVerts;
+   // public TransformAccessArray thisTransArray= new TransformAccessArray(transform);
+      public Vector3[] opqVerts;
     public Vector2[] opqUVs;
     public int[] opqTris;
     public Vector3[] NSVerts;
     public Vector2[] NSUVs;
     public int[] NSTris;
+    
+
+    public NativeArray<Vector3> opqVertsNA;
+    public NativeArray<Vector2> opqUVsNA;
+    public NativeArray<int> opqTrisNA;
+    public NativeArray<Vector3> NSVertsNA;
+    public NativeArray<Vector2> NSUVsNA;
+    public NativeArray<int> NSTrisNA;
+    public List<Vector3> opqVertsNL;
+    public List<Vector2> opqUVsNL;
+    public List<int> opqTrisNL;
+    public List<Vector3> NSVertsNL;
+    public List<Vector2> NSUVsNL;
+    public List<int> NSTrisNL;
     public static void AddBlockInfo(){
         //left right bottom top back front
         blockAudioDic.TryAdd(1,Resources.Load<AudioClip>("Audios/Stone_dig2"));
@@ -232,18 +267,23 @@ public class Chunk : MonoBehaviour
                 }
        
         if(!File.Exists(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json")){
-            File.Create(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json");
+            FileStream fs=File.Create(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json");
+            fs.Close();
         }
        
-        string[] worldData=File.ReadAllLines(gameWorldDataPath+"unityMinecraftData/GameData/world.json");
-        List<WorldData> tmpList=new List<WorldData>();
-        foreach(string s in worldData){
+        byte[] worldData=File.ReadAllBytes(gameWorldDataPath+"unityMinecraftData/GameData/world.json");
+      //  List<WorldData> tmpList=new List<WorldData>();
+       /* foreach(string s in worldData){
             WorldData tmp=JsonSerializer.Deserialize<WorldData>(s);
             tmpList.Add(tmp);
         }
         foreach(WorldData w in tmpList){
             chunkDataReadFromDisk.Add(new Vector2Int(w.posX,w.posZ),w);
+        }*/
+        if(worldData.Length>0){
+        chunkDataReadFromDisk=MessagePackSerializer.Deserialize<Dictionary<Vector2Int,WorldData>>(worldData,lz4Options);    
         }
+        
         isJsonReadFromDisk=true;
     }
  //   void Awake(){
@@ -255,38 +295,43 @@ public class Chunk : MonoBehaviour
 
    public async void ReInitData(){
       //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
-   
+
        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
-        if(Chunks.ContainsKey(chunkPos)){
-       ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
-         Chunks.Remove(chunkPos);  }
+
        isChunkPosInited=true;
-       if(Chunks.ContainsKey(chunkPos)){
-         ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
+       lock(chunkLock){
+         if(Chunks.ContainsKey(chunkPos)){
+      //  if(GetChunk(chunkPos).gameObject!=null){
+        //     ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
+        //}
+        
          Chunks.Remove(chunkPos);  
           Chunks.Add(chunkPos,this);   
        }else{
        Chunks.TryAdd(chunkPos,this);    
        }
+       }
+      
        
 
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
 
             isSavedInDisk=true;
-            Debug.Log(chunkPos);
+          //  Debug.Log(chunkPos);
         }
       //  StartLoadChunk();
    //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
          WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPos.position.x)+(int)Mathf.Abs(transform.position.z-playerPos.position.z));
     }
+    
     //strongload: simulate chunk mesh collider
     void StrongLoadChunk(){
         isStrongLoaded=true;
     }
     void StopChunkFromStrongSim(){
-        if(meshCollider.sharedMesh!=null||meshColliderNS.sharedMesh!=null){
+        if(meshCollider.sharedMesh!=null){
             meshCollider.sharedMesh=null;
-            meshColliderNS.sharedMesh=null;
+          //  meshColliderNS.sharedMesh=null;
         }
         isStrongLoaded=false;
     }
@@ -326,7 +371,7 @@ public class Chunk : MonoBehaviour
         SaveSingleChunk();
         Chunks.Remove(chunkPos);
         additiveMap=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
-          map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
+        //  map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         chunkPos=new Vector2Int(-10240,-10240);
         isChunkPosInited=false;
 
@@ -347,7 +392,7 @@ public class Chunk : MonoBehaviour
     }
 
 
-    void Start(){
+   // void Start(){
      
     //     chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
       //    Chunks.Add(chunkPos,this); 
@@ -364,15 +409,18 @@ public class Chunk : MonoBehaviour
 	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
         StartLoadChunk();*/
      //   StartCoroutine(ReInitData());
-    }
+   // }
 
     void Awake(){
-           playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        if(playerPos==null){
+          playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();  
+        }
+           
         meshRenderer = GetComponent<MeshRenderer>();
 	    meshCollider = GetComponent<MeshCollider>();
 	    meshFilter = GetComponent<MeshFilter>();
         meshRendererNS = transform.GetChild(0).gameObject.GetComponent<MeshRenderer>();
-	    meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
+	  //  meshColliderNS = transform.GetChild(0).gameObject.GetComponent<MeshCollider>();
 	    meshFilterNS = transform.GetChild(0).gameObject.GetComponent<MeshFilter>();
     }
  
@@ -381,7 +429,7 @@ public class Chunk : MonoBehaviour
         
      
     
-          await BuildChunk();
+           BuildChunk();
             
      
       //  Vector3 pos=transform.position;
@@ -442,17 +490,14 @@ public class Chunk : MonoBehaviour
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             chunkDataReadFromDisk.Remove(chunkPos);
          int[,,] worldDataMap=map;
-            WorldData wd=new WorldData();
-            wd.map=worldDataMap;
-            wd.posX=chunkPos.x;
-            wd.posZ=chunkPos.y;
+            WorldData wd=new WorldData(chunkPos.x,chunkPos.y,worldDataMap);
+          //  wd.map=worldDataMap;
+          //  wd.posX=chunkPos.x;
+          //  wd.posZ=chunkPos.y;
             chunkDataReadFromDisk.Add(chunkPos,wd);
         }else{
             int[,,] worldDataMap=map;
-            WorldData wd=new WorldData();
-            wd.map=worldDataMap;
-            wd.posX=chunkPos.x;
-            wd.posZ=chunkPos.y;
+            WorldData wd=new WorldData(chunkPos.x,chunkPos.y,worldDataMap);
             chunkDataReadFromDisk.Add(chunkPos,wd);
         }
     }
@@ -481,10 +526,12 @@ public class Chunk : MonoBehaviour
         c.Value.SaveSingleChunk();
         }
         Debug.Log(chunkDataReadFromDisk.Count);
-       foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
-        string tmpData=JsonSerializer.ToJsonString(wd.Value);
-        File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
-       }
+   //    foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
+      //  string tmpData=JsonSerializer.ToJsonString(wd.Value);
+      //  File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
+   //    }
+        byte[] tmpData=MessagePackSerializer.Serialize(chunkDataReadFromDisk,lz4Options);
+        File.WriteAllBytes(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData);
         isWorldDataSaved=true;
     }
 
@@ -506,15 +553,15 @@ public class Chunk : MonoBehaviour
      
        
        // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
-        List<Vector3> vertsNS = new List<Vector3>();
-        List<Vector2> uvsNS = new List<Vector2>();
-        List<int> trisNS = new List<int>();
-        List<Vector3> verts = new List<Vector3>();
-        List<Vector2> uvs = new List<Vector2>();
-        List<int> tris = new List<int>();
+         List<Vector3> opqVertsNL=new List<Vector3>();
+        List<Vector2> opqUVsNL=new List<Vector2>();
+        List<int> opqTrisNL=new List<int>();
+        List<Vector3> NSVertsNL=new List<Vector3>();
+        List<Vector2> NSUVsNL=new List<Vector2>();
+        List<int> NSTrisNL=new List<int>();
         if(isMapGenCompleted==true){
             isModifiedInGame=true;
-        GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
+        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
            return;
         }
         if(isSavedInDisk==true){
@@ -523,13 +570,13 @@ public class Chunk : MonoBehaviour
            //   Debug.Log("ReadF");
              map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
                  isMapGenCompleted=true;
-                GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
+                GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
                 return;
             }else{
              map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
        //      Debug.Log("Read");
             isMapGenCompleted=true;
-            GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);   
+            GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);   
             return;
             }
             
@@ -907,28 +954,28 @@ public class Chunk : MonoBehaviour
             }
         }
                                 if(isLeftChunkUpdated==true){
-                                   WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
+                            //       WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
                                }
                                if(isRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
                                }
                                if(isBackChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
                                }
                                if(isFrontChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
                                }
                                if(isFrontLeftChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
                                }
                                if(isFrontRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
                                }
                                if(isBackLeftChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
                                }
                                if(isBackRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
+                              //   WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
                                }
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
@@ -947,7 +994,7 @@ public class Chunk : MonoBehaviour
         }
         
 
-        GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS);
+        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
    
     }
 
@@ -1119,6 +1166,12 @@ public class Chunk : MonoBehaviour
         NSVerts=vertsNS.ToArray();
         NSUVs=uvsNS.ToArray();
         NSTris=trisNS.ToArray();
+        opqVertsNA=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
+        opqUVsNA=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
+        opqTrisNA=new NativeArray<int>(opqTris,Allocator.TempJob);
+        NSVertsNA=new NativeArray<Vector3>(NSVerts,Allocator.TempJob);
+        NSUVsNA=new NativeArray<Vector2>(NSUVs,Allocator.TempJob);
+        NSTrisNA=new NativeArray<int>(NSTris,Allocator.TempJob);
         
         isMeshBuildCompleted=true;
     }
@@ -1128,7 +1181,9 @@ public class Chunk : MonoBehaviour
 
 
 
-    public async Task BuildChunk(){
+    public async void BuildChunk(){
+    //    System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+    //    sw.Start();
         isMeshBuildCompleted=false;
         if(isChunkPosInited){
         await Task.Run(() => InitMap(chunkPos));      
@@ -1149,12 +1204,11 @@ public class Chunk : MonoBehaviour
     ///    yield return 10;
    // }
 
-        if(chunkMesh==null){
-         chunkMesh=new Mesh();   
-        }
-        if(chunkNonSolidMesh==null){
+      
+            chunkMesh=new Mesh();   
+
              chunkNonSolidMesh=new Mesh();
-        }
+        
        
 
      
@@ -1175,23 +1229,22 @@ public class Chunk : MonoBehaviour
        // Task.Run(()=>GenerateMesh(verts,uvs,tris,vertsNS,uvsNS,trisNS));
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
-        NativeArray<int> a=new NativeArray<int>(2,Allocator.TempJob);
+   
      
-        NativeArray<Vector3> vertsNative=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
-        NativeArray<int> trisNative=new NativeArray<int>(opqTris,Allocator.TempJob);
-        NativeArray<Vector2> uvsNative=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
-        MeshBuildJob mbj=new MeshBuildJob{verts=vertsNative,tris=trisNative,vertLen=opqVerts.Length,trisLen=opqTris.Length,uvs=uvsNative,dataArray=Mesh.AllocateWritableMeshData(1)};
+       
+   /*     NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
+        Mesh.MeshDataArray mbjMeshData=Mesh.AllocateWritableMeshData(1);
+        Mesh.MeshDataArray mbjMeshDataNS=Mesh.AllocateWritableMeshData(1);
+        mbjMeshData[0].SetVertexBufferParams(opqVerts.Length,vertexAttributesDes);
+        mbjMeshDataNS[0].SetVertexBufferParams(NSVerts.Length,vertexAttributesDes);
+       
+        MeshBuildJob mbj=new MeshBuildJob{verts=opqVertsNA,tris=opqTrisNA,vertLen=opqVerts.Length,uvs=opqUVsNA,dataArray=mbjMeshData};
         JobHandle jh=mbj.Schedule();
-        
-      
-       
-       
-
-        NativeArray<Vector3> vertsNSNative=new NativeArray<Vector3>(NSVerts,Allocator.TempJob);
-        NativeArray<int> trisNSNative=new NativeArray<int>(NSTris,Allocator.TempJob);
-        NativeArray<Vector2> uvsNSNative=new NativeArray<Vector2>(NSUVs,Allocator.TempJob);
-        MeshBuildJob mbjNS=new MeshBuildJob{verts=vertsNSNative,tris=trisNSNative,vertLen=NSVerts.Length,trisLen=NSTris.Length,uvs=uvsNSNative,dataArray=Mesh.AllocateWritableMeshData(1)};
+        MeshBuildJob mbjNS=new MeshBuildJob{verts=NSVertsNA,tris=NSTrisNA,vertLen=NSVerts.Length,uvs=NSUVsNA,dataArray=mbjMeshDataNS};
         JobHandle jhNS=mbjNS.Schedule();
+        //多线程构建网格
    //     yield return new WaitUntil(()=>jhNS.IsCompleted==true);
    //     Task t=new Task(async ()=>{JobHandle.CompleteAll(ref jh,ref jhNS);});
       //  await t.RunSynchronously();
@@ -1199,25 +1252,27 @@ public class Chunk : MonoBehaviour
         
         Mesh.ApplyAndDisposeWritableMeshData(mbjNS.dataArray,chunkNonSolidMesh); 
          Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
+
         chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
-        vertsNSNative.Dispose();
-        trisNSNative.Dispose();
-        uvsNSNative.Dispose();
-        vertsNative.Dispose();
-        uvsNative.Dispose();
-        trisNative.Dispose();
-/*
-        chunkNonSolidMesh.vertices = NSVerts;
-        chunkNonSolidMesh.uv = NSUVs;
-        chunkNonSolidMesh.triangles = NSTris;
-        chunkMesh.vertices = opqVerts;
-        chunkMesh.uv = opqUVs;
-        chunkMesh.triangles = opqTris;
 
-*/
         chunkNonSolidMesh.RecalculateBounds();
+        chunkNonSolidMesh.RecalculateNormals();*/
+       
+
+        chunkMesh.indexFormat=IndexFormat.UInt32;
+        chunkNonSolidMesh.indexFormat=IndexFormat.UInt32;
+        chunkNonSolidMesh.SetVertices(NSVerts);
+        chunkNonSolidMesh.SetUVs(0,NSUVs);
+        chunkNonSolidMesh.triangles = NSTris;
+        chunkMesh.SetVertices(opqVerts);
+        chunkMesh.SetUVs(0,opqUVs);
+        chunkMesh.triangles = opqTris;
+ 
         chunkNonSolidMesh.RecalculateNormals();
+   
+        chunkMesh.RecalculateNormals();
+        
         
    //     var job=new BakeJob();
      //   job.meshes.Add(chunkMesh.GetInstanceID());
@@ -1227,25 +1282,37 @@ public class Chunk : MonoBehaviour
   // combine[0].mesh=chunkMesh;
   // WorldMeshManager.combine.Add(new CombineInstance{mesh=chunkMesh,transform=transform.localToWorldMatrix});
  //  WorldMeshManager.OnAllChunkMeshesChanged();
- if(meshFilter==null){
-    return;
+        if(meshFilter==null){
+        return;
    
- }
+        }  
         meshFilter.sharedMesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
-        a[0]=chunkMesh.GetInstanceID();
-        a[1]=chunkNonSolidMesh.GetInstanceID();
-        BakeJob job=new BakeJob();
-        job.meshes=a;
-        JobHandle handle = job.Schedule(a.Length, 1);
+
+     //   NativeArray<int> a=new NativeArray<int>(1,Allocator.TempJob);
+      //  a[0]=chunkMesh.GetInstanceID();
+     //   a[1]=chunkNonSolidMesh.GetInstanceID();
+        BakeJob bj=new BakeJob();
+        bj.meshID=chunkMesh.GetInstanceID();
+        JobHandle bjHandle = bj.Schedule();
   //    yield return new WaitUntil(()=>handle.IsCompleted==true&&chunkMesh!=null);
     //   yield return new WaitForSeconds(0.01f);
-        handle.Complete();
-        a.Dispose();
+        bjHandle.Complete();
+        await Task.Run(()=>{
+        NSVertsNA.Dispose();
+        NSUVsNA.Dispose();
+        NSTrisNA.Dispose();
+        opqVertsNA.Dispose();
+        opqUVsNA.Dispose();
+        opqTrisNA.Dispose();
+   //     a.Dispose();
+  
+        });
         meshCollider.sharedMesh = chunkMesh;
-        meshColliderNS.sharedMesh = chunkNonSolidMesh;
-        
+      //  meshColliderNS.sharedMesh = chunkNonSolidMesh;
         isChunkMapUpdated=false;
+       // sw.Stop();
+     //   Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
     }
 
@@ -1473,7 +1540,7 @@ public class Chunk : MonoBehaviour
         }
         
     }
-            [BurstCompile]
+      
     public static Vector2Int Vec3ToChunkPos(Vector3 pos){
         Vector3 tmp=pos;
         tmp.x = Mathf.Floor(tmp.x / (float)chunkWidth) * chunkWidth;
@@ -1481,7 +1548,7 @@ public class Chunk : MonoBehaviour
         Vector2Int value=new Vector2Int((int)tmp.x,(int)tmp.z);
         return value;
     }
-            [BurstCompile]
+       
     public static int FloatToInt(float f){
         if(f>=0){
             return (int)f;
@@ -1489,18 +1556,21 @@ public class Chunk : MonoBehaviour
             return (int)f-1;
         }
     }
-        [BurstCompile]
+    
     public static Vector3Int Vec3ToBlockPos(Vector3 pos){
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         return intPos;
     }
-        [BurstCompile]
+     
     public static void SetBlock(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+            return;
+        }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         chunkNeededUpdate.isChunkMapUpdated=true;
         if(chunkNeededUpdate.frontChunk!=null){
@@ -1517,23 +1587,29 @@ public class Chunk : MonoBehaviour
         }
     }
 
-        [BurstCompile]
+     
     public static void SetBlockWithoutUpdate(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+            return;
+        }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
    
     }
-        [BurstCompile]
+      
     public static void SetBlockByHand(Vector3 pos,int blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+            return;
+        }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         chunkNeededUpdate.isChunkMapUpdated=true;
         if(chunkNeededUpdate.frontChunk!=null){
@@ -1570,11 +1646,16 @@ public class Chunk : MonoBehaviour
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+       if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+            return 0;
+        }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
     }
+
    async void Update(){
   //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
    //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
+  
         if(isChunkMapUpdated==true){
                isModifiedInGame=true;  
             if(isMapGenCompleted==true){
@@ -1582,7 +1663,7 @@ public class Chunk : MonoBehaviour
             }
             
             if(isMeshBuildCompleted==true){
-                await BuildChunk();
+                 BuildChunk();
             }
           
            //InitMap(chunkPos);
@@ -1590,21 +1671,23 @@ public class Chunk : MonoBehaviour
         }
       
     }
-    void FixedUpdate(){
-         TryReleaseChunk();
+     void FixedUpdate(){
+
+     TryReleaseChunk();
     }
+
     void TryReleaseChunk(){
          if(!isChunkPosInited){
             return;
          }
-         Vector3 pos=transform.position;
-        if(Mathf.Abs(pos.x-playerPos.position.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(pos.z-playerPos.position.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(this)){
-       //     Chunk.Chunks.Remove(chunkPos);
-    //    ObjectPools.chunkPool.Remove(gameObject);
-      //      WorldManager.chunkLoadingQueue.Remove(this);
-           WorldManager.chunkUnloadingQueue.Add(this);
+       //  TransformAccessArray t=new TransformAccessArray(new Transform[]{playerPos},1);
+         Vector3 pos=playerPos.position;
+       if(Mathf.Abs(chunkPos.x-pos.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(chunkPos.y-pos.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(this)){
+
+           WorldManager.chunkUnloadingQueue.Enqueue(this,1-((int)Mathf.Abs(transform.position.x-playerPos.position.x)+(int)Mathf.Abs(transform.position.z-playerPos.position.z)));
            isChunkPosInited=false;
         }
+      
     }
     
     public int updateCount=0;

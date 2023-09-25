@@ -2,17 +2,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using Utf8Json;
+
 using System.Threading.Tasks;
 using System.Threading;
+using MessagePack;
+[MessagePackObject]
 public class ItemData{
+    [Key(0)]
     public int itemID;
+    [Key(1)]
     public int itemCount;
+    [Key(2)]
     public float posX;
+    [Key(3)]
     public float posY;
+    [Key(4)]
     public float posZ;
+    [Key(5)]
     public string guid;
+    [Key(6)]
     public float lifeTime;
+    public ItemData(int itemID,int itemCount,float posX,float posY,float posZ,string guid,float lifeTime){
+        this.itemID=itemID;
+         this.itemCount=itemCount;
+          this.posX=posX;
+           this.posY=posY;
+            this.posZ=posZ;
+             this.guid=guid;
+             this.lifeTime=lifeTime;
+    }
 }
 public class ItemEntityBeh : MonoBehaviour
 {
@@ -210,18 +228,21 @@ public class ItemEntityBeh : MonoBehaviour
                 }
        
         if(!File.Exists(gameWorldItemEntityDataPath+"unityMinecraftData"+"/GameData/worlditementities.json")){
-            File.Create(gameWorldItemEntityDataPath+"unityMinecraftData"+"/GameData/worlditementities.json");
+             FileStream fs=File.Create(gameWorldItemEntityDataPath+"unityMinecraftData"+"/GameData/worlditementities.json");
+             fs.Close();
         }
        
-        string[] worldItemEntitiesData=File.ReadAllLines(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json");
-        foreach(string s in worldItemEntitiesData){
-       
-            itemEntityDataReadFromDisk.Add(JsonSerializer.Deserialize<ItemData>(s));
-        }
+        byte[] worldItemEntitiesData=File.ReadAllBytes(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json");
+      
+  //          itemEntityDataReadFromDisk.Add(JsonSerializer.Deserialize<ItemData>(s));
+  if(worldItemEntitiesData.Length>0){
+    itemEntityDataReadFromDisk=MessagePackSerializer.Deserialize<List<ItemData>>(worldItemEntitiesData);
+  }
+        
             //isEntitiesReadFromDisk=true;
     }
     public void RemoveItemEntityFromSave(){
-        ItemData tmpData=new ItemData();
+      ItemData tmpData=new ItemData(itemID,itemCount,transform.position.x,transform.position.y,transform.position.z,this.guid,lifeTime);
         tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){
             if(ed.guid==this.guid){
@@ -232,8 +253,8 @@ public class ItemEntityBeh : MonoBehaviour
     }
     public void SaveSingleItemEntity(){
    //     Debug.Log(this.guid);
-        ItemData tmpData=new ItemData();
-        tmpData.guid=this.guid;
+        ItemData tmpData=new ItemData(itemID,itemCount,transform.position.x,transform.position.y,transform.position.z,this.guid,lifeTime);
+       // tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){
             if(ed.guid==this.guid){
              //   Debug.Log("dupli");
@@ -241,12 +262,12 @@ public class ItemEntityBeh : MonoBehaviour
                 break;
             }
         }
-        tmpData.itemID=itemID;
+    /*    tmpData.itemID=itemID;
         tmpData.itemCount=itemCount;
         tmpData.posX=transform.position.x;
         tmpData.posY=transform.position.y;
         tmpData.lifeTime=lifeTime;
-        tmpData.posZ=transform.position.z;
+        tmpData.posZ=transform.position.z;*/
       //  tmpData.rotationX=transform.eulerAngles.x;
       //  tmpData.rotationY=transform.eulerAngles.y;
       //  tmpData.rotationZ=transform.eulerAngles.z;
@@ -269,10 +290,12 @@ public class ItemEntityBeh : MonoBehaviour
             e.SaveSingleItemEntity();
         }
      //   Debug.Log(itemEntityDataReadFromDisk.Count);
-       foreach(ItemData ed in itemEntityDataReadFromDisk){
+     /*  foreach(ItemData ed in itemEntityDataReadFromDisk){
         string tmpData=JsonSerializer.ToJsonString(ed);
         File.AppendAllText(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json",tmpData+"\n");
-       }
+       }*/
+       byte[] tmpData=MessagePackSerializer.Serialize(itemEntityDataReadFromDisk);
+        File.WriteAllBytes(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json",tmpData);
       //  isWorldItemEntityDataSaved=true;
     }
     public static IEnumerator SpawnNewItem(float posX,float posY,float posZ,int itemID,Vector3 startingSpeed){
@@ -290,9 +313,9 @@ public class ItemEntityBeh : MonoBehaviour
 
 
     public static IEnumerator SpawnItemEntityFromFile(){
-        foreach(ItemData ed in itemEntityDataReadFromDisk){
+        for(int i=0;i<itemEntityDataReadFromDisk.Count;i++){
           //  Debug.Log(ed.guid);
-          
+          ItemData ed=itemEntityDataReadFromDisk[i];
                 GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(ed.posX,ed.posY,ed.posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
            //     a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
@@ -461,7 +484,7 @@ public class ItemEntityBeh : MonoBehaviour
            
         }});
         
-        Debug.Log(Thread.CurrentThread.ManagedThreadId.ToString());
+      //  Debug.Log(Thread.CurrentThread.ManagedThreadId.ToString());
         mesh.vertices=verts.ToArray();
         mesh.uv=uvs.ToArray();
         mesh.triangles=tris.ToArray();

@@ -3549,13 +3549,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.41368774, y: -0.172898, z: 0.08670394, w: 0.8896354}
+  m_LocalRotation: {x: 0.4126005, y: 0.19616088, z: -0.09147132, w: 0.8848247}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -21.53, z: 1}
+  m_LocalEulerAnglesHint: {x: 50, y: 25, z: 0}
 --- !u!114 &705507996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4928,6 +4928,7 @@ MonoBehaviour:
   doMonstersSpawn: 1
   playerPos: {fileID: 0}
   playerCam: {fileID: 0}
+  lightSource: {fileID: 0}
 --- !u!23 &899113440
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11126,7 +11127,6 @@ MonoBehaviour:
   gravity: -9.8
   playerY: 0
   jumpHeight: 2
-  mouseSens: 10
   currentSpeed: 0
   playerVec: {x: 0, y: 0, z: 0}
   playerMotionVec: {x: 0, y: 0, z: 0}
@@ -11236,7 +11236,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
-  m_Antialiasing: 0
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -11627,7 +11627,7 @@ Camera:
   m_FocusDistance: 10
   m_FocalLength: 10.069196
   m_BladeCount: 5
-  m_Curvature: {x: 2.4400187, y: 11.440019}
+  m_Curvature: {x: 5.723235, y: 14.723233}
   m_BarrelClipping: 0.25
   m_Anamorphism: 0
   m_SensorSize: {x: 52.476, y: 23.012}

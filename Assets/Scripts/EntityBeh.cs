@@ -9,16 +9,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using System.IO;
-using Utf8Json;
+
+using MessagePack;
+[MessagePackObject]
 public class EntityData{
-  
+  [Key(0)]
     public float posX;
+    [Key(1)]
     public float posY;
+    [Key(2)]
     public float posZ;
+    [Key(3)]
     public float rotationX;
+    [Key(4)]
     public float rotationY;
+    [Key(5)]
     public float rotationZ;
+    [Key(6)]
     public int entityTypeID;
+    [Key(7)]
     public string guid;
     public bool Equals(EntityData other)
     {   
@@ -31,6 +40,16 @@ public class EntityData{
         else {
             return false;
         }
+    }
+    public EntityData(float posX,float posY,float posZ,float rotationX,float rotationY,float rotationZ,int entityTypeID,string guid){
+        this.posX=posX;
+        this.posY=posY;
+        this.posZ=posZ;
+        this.rotationX=rotationX;
+        this.rotationY=rotationY;
+        this.rotationZ=rotationZ;
+        this.entityTypeID=entityTypeID;
+        this.guid=guid;
     }
 }
 public class EntityBeh : MonoBehaviour
@@ -72,20 +91,20 @@ public class EntityBeh : MonoBehaviour
                 }
        
         if(!File.Exists(gameWorldEntityDataPath+"unityMinecraftData"+"/GameData/worldentities.json")){
-            File.Create(gameWorldEntityDataPath+"unityMinecraftData"+"/GameData/worldentities.json");
+            FileStream fs=File.Create(gameWorldEntityDataPath+"unityMinecraftData"+"/GameData/worldentities.json");
+            fs.Close();
         }
        
-        string[] worldEntitiesData=File.ReadAllLines(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json");
-        foreach(string s in worldEntitiesData){
-       //     Debug.Log(s);
-            entityDataReadFromDisk.Add(JsonSerializer.Deserialize<EntityData>(s));
+        byte[] worldEntitiesData=File.ReadAllBytes(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json");
+        if(worldEntitiesData.Length>0){
+            entityDataReadFromDisk=MessagePackSerializer.Deserialize<List<EntityData>>(worldEntitiesData);
         }
+     
             isEntitiesReadFromDisk=true;
             return;
     }
     public void RemoveEntityFromSave(){
-        EntityData tmpData=new EntityData();
-        tmpData.guid=this.guid;
+      EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID,guid);
         foreach(EntityData ed in entityDataReadFromDisk){
             if(ed.guid==this.guid){
                 entityDataReadFromDisk.Remove(ed);
@@ -95,8 +114,8 @@ public class EntityBeh : MonoBehaviour
     }
     public void SaveSingleEntity(){
     //    Debug.Log(this.guid);
-        EntityData tmpData=new EntityData();
-        tmpData.guid=this.guid;
+        EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID,guid);
+    //    tmpData.guid=this.guid;
         foreach(EntityData ed in entityDataReadFromDisk){
             if(ed.guid==this.guid){
              //   Debug.Log("dupli");
@@ -104,13 +123,13 @@ public class EntityBeh : MonoBehaviour
                 break;
             }
         }
-        tmpData.entityTypeID=entityTypeID;
+   /*     tmpData.entityTypeID=entityTypeID;
         tmpData.posX=transform.position.x;
         tmpData.posY=transform.position.y;
         tmpData.posZ=transform.position.z;
         tmpData.rotationX=transform.eulerAngles.x;
         tmpData.rotationY=transform.eulerAngles.y;
-        tmpData.rotationZ=transform.eulerAngles.z;
+        tmpData.rotationZ=transform.eulerAngles.z;*/
         entityDataReadFromDisk.Add(tmpData);
     }
     public static void SaveWorldEntityData(){
@@ -130,10 +149,12 @@ public class EntityBeh : MonoBehaviour
         e.SaveSingleEntity();
         }
      //   Debug.Log(entityDataReadFromDisk.Count);
-       foreach(EntityData ed in entityDataReadFromDisk){
+     /*  foreach(EntityData ed in entityDataReadFromDisk){
         string tmpData=JsonSerializer.ToJsonString(ed);
         File.AppendAllText(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json",tmpData+"\n");
-       }
+       }*/
+       byte[] tmpData=MessagePackSerializer.Serialize(entityDataReadFromDisk);
+       File.WriteAllBytes(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json",tmpData);
         isWorldEntityDataSaved=true;
     }
     public static void SpawnNewEntity(float posX,float posY,float posZ,int entityID){

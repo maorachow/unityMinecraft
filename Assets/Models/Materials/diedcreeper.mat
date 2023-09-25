@@ -39,7 +39,7 @@ Material:
     - _GlossMapScale: 0
     - _GlossyReflections: 0
     - _Parallax: 0.005
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     m_Colors:
     - _BaseColor: {r: 0.7529412, g: 0.23921569, b: 0.23921569, a: 1}
     - _Color: {r: 0.7529412, g: 0.23921564, b: 0.23921564, a: 1}

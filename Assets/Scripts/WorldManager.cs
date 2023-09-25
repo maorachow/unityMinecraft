@@ -10,10 +10,12 @@ public class WorldManager : MonoBehaviour
   public static string gameWorldDataPath;
     public bool isChunkFastLoadingEnabled=false;
     public bool doMonstersSpawn=true;
+    public static SimplePriorityQueue<Vector2Int> chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
     public static SimplePriorityQueue<Chunk> chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
-    public static List<Chunk> chunkUnloadingQueue=new List<Chunk>();
+    public static SimplePriorityQueue<Chunk> chunkUnloadingQueue=new SimplePriorityQueue<Chunk>();
     public Transform playerPos;
     public Camera playerCam;
+    public GameObject lightSource;
     void Awake(){
 
        if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
@@ -34,7 +36,7 @@ public class WorldManager : MonoBehaviour
        Task t=Task.Run(()=>Chunk.ReadJson());
       t.Wait();
         //    Chunk.ReadJson();
-        
+        lightSource=GameObject.Find("Directional Light");
         playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         playerCam=GameObject.Find("Main Camera").GetComponent<Camera>();
             if(!EntityBeh.isEntitiesLoad){
@@ -47,29 +49,53 @@ public class WorldManager : MonoBehaviour
             await Task.Run(()=>ItemEntityBeh.ReadItemEntityJson());
             ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
             StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
-            
+            chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
+            chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
+            chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
     }
     void FixedUpdate(){
   //   if(isChunkFastLoadingEnabled==false){
+      SpawnChunksAsync();
       BuildAllChunksAsync();
-      DisableAllChunksAsync();
+      DisableChunksAsync();
+      
   //   }
         if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
           EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
         }
     }
-    void DisableAllChunksAsync(){
-    Debug.Log(chunkUnloadingQueue.Count);
+    void DisableChunksAsync(){
+  //  Debug.Log(chunkUnloadingQueue.Count);
      if(chunkUnloadingQueue.Count>0){
-      if(chunkUnloadingQueue[0]==null){
-        chunkUnloadingQueue.RemoveAt(0);
+      if(chunkUnloadingQueue.First==null){
+        chunkUnloadingQueue.Dequeue();
       }
-      ObjectPools.chunkPool.Remove(chunkUnloadingQueue[0].gameObject);
-      chunkUnloadingQueue.RemoveAt(0);
+      ObjectPools.chunkPool.Remove(chunkUnloadingQueue.First.gameObject);
+      chunkUnloadingQueue.Dequeue();
        
         
        }
+    }
+    async void SpawnChunksAsync(){
+    //  (var c in chunkSpawningQueue){
+    //  await Task.Delay(10);
+      if(chunkSpawningQueue.Count>0){
+        
+        Vector2Int cPos=chunkSpawningQueue.First;
+        if(Chunk.GetChunk(cPos)!=null){
+           chunkSpawningQueue.Dequeue();
+          return;
+        }
+        Chunk c=ObjectPools.chunkPool.Get(cPos).GetComponent<Chunk>();
+        c.ReInitData();
+        chunkSpawningQueue.Dequeue();
+      }
+        
+   //   }
+
+
+
     }
        void BuildAllChunksAsync(){
          if(isChunkFastLoadingEnabled==true){
@@ -77,7 +103,11 @@ public class WorldManager : MonoBehaviour
               if(chunkLoadingQueue.Count>0){
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                   chunkLoadingQueue.First.StartLoadChunk();
-              chunkLoadingQueue.Dequeue(); 
+                  chunkLoadingQueue.Dequeue(); 
+                }else{
+                   chunkUnloadingQueue.Remove(chunkLoadingQueue.First); 
+                   chunkLoadingQueue.First.StartLoadChunk();
+                  chunkLoadingQueue.Dequeue(); 
                 }
                  
               }
@@ -88,10 +118,14 @@ public class WorldManager : MonoBehaviour
         }else{
           if(chunkLoadingQueue.Count>0){
       //  lock(chunkLoadingQueue){
-       
-             chunkLoadingQueue.First.StartLoadChunk();
-     
-              chunkLoadingQueue.Dequeue();
+         if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
+                  chunkLoadingQueue.First.StartLoadChunk();
+                  chunkLoadingQueue.Dequeue(); 
+                }else{
+                   chunkUnloadingQueue.Remove(chunkLoadingQueue.First); 
+                   chunkLoadingQueue.First.StartLoadChunk();
+                  chunkLoadingQueue.Dequeue(); 
+                }
      //   Debug.Log("loading speed:"+1/Time.deltaTime);
         
         return;
@@ -106,7 +140,7 @@ public void FastChunkLoadingButtonOnValueChanged(bool b){
   isChunkFastLoadingEnabled=b;
 }
     void Update(){
- 
+      lightSource.transform.Rotate(new Vector3(Time.deltaTime,0f,0f));
    //   if(isChunkFastLoadingEnabled==true){
     //  BuildAllChunksAsync();  
    //   }
@@ -117,11 +151,11 @@ public void FastChunkLoadingButtonOnValueChanged(bool b){
       // StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,151,Vector3.up));
    //   playerPos.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1.1f,new Vector3(1f,1f,1f));
       //  }
-              //  if(Input.GetKeyDown(KeyCode.L)){
+           //     if(Input.GetKeyDown(KeyCode.L)){
 
-            //            StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,152,Vector3.up));
+               //         StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,151,Vector3.up));
 ///
-           //     }
+               // }
      //   EntityBeh.SpawnNewEntity(0,100,0,0);
        // EntityBeh.SpawnNewEntity(0,100,0,1);
      //  StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));

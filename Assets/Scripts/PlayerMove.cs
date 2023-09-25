@@ -4,16 +4,31 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using System.IO;
-using Utf8Json;
-using UnityEngine.EventSystems;
 
+using UnityEngine.EventSystems;
+using MessagePack;
+[MessagePackObject]
 public class PlayerData{
+    [Key(0)]
     public float playerHealth;
+    [Key(1)]
     public float posX;
+    [Key(2)]
     public float posY;
+    [Key(3)]
     public float posZ;
+    [Key(4)]
     public int[] inventoryDic;
+    [Key(5)]
     public int[] inventoryItemNumberDic;
+    public PlayerData(float playerHealth,float posX,float posY,float posZ,int[] inventoryDic,int[] inventoryItemNumberDic){
+        this.playerHealth=playerHealth;
+        this.posX=posX;
+        this.posY=posY;
+        this.posZ=posZ;
+        this.inventoryDic=inventoryDic;
+        this.inventoryItemNumberDic=inventoryItemNumberDic;
+    }
 }
 public class PlayerMove : MonoBehaviour
 {   
@@ -50,7 +65,8 @@ public class PlayerMove : MonoBehaviour
     public float gravity=-9.8f;
     public float playerY=0f;
     public float jumpHeight=2f;
-    public float mouseSens=10f;
+    public static float mouseSens=1f;
+    public static float cameraFOV=90f;
     public float currentSpeed;
     public Vector3 playerVec;
     public Vector3 playerMotionVec;
@@ -136,6 +152,7 @@ public class PlayerMove : MonoBehaviour
         playerMoveRef=headPos.GetChild(1);
         playerBodyPos=transform.GetChild(0).GetChild(1);
         mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
+        mainCam.fieldOfView=cameraFOV;
         chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
       GameUIBeh.instance.CloseCraftingUI();
@@ -439,11 +456,11 @@ public class PlayerMove : MonoBehaviour
             List<RaycastResult> uiRaycastResultCache = new List<RaycastResult>();
             eventSystem.RaycastAll(pointerEventData, uiRaycastResultCache);
             if (uiRaycastResultCache.Count == 0){
-                 mouseX=Input.touches[i].deltaPosition.x;mouseY=Input.touches[i].deltaPosition.y;
+                 mouseX=Input.touches[i].deltaPosition.x*mouseSens;mouseY=Input.touches[i].deltaPosition.y*mouseSens;
             }
         }
         }else{
-            mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x;mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y;
+            mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x*mouseSens;mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y*mouseSens;
         }
         }
    
@@ -554,9 +571,11 @@ public class PlayerMove : MonoBehaviour
     }
    async void UpdateWorld()
     {
-        
         Vector3 curPos=transform.position;
-    for (float x = curPos.x - viewRange; x < curPos.x + viewRange; x += Chunk.chunkWidth)
+   //     await Task.Delay(1000);
+      await Task.Run(()=>{  
+    
+        for (float x = curPos.x - viewRange; x < curPos.x + viewRange; x += Chunk.chunkWidth)
         {
             for (float z = curPos.z - viewRange; z <curPos.z + viewRange; z += Chunk.chunkWidth)
             {
@@ -564,20 +583,26 @@ public class PlayerMove : MonoBehaviour
                // pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
             //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
                 Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
-             //   await Task.Delay(1000);
+               
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-                if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null) {continue;}else{
-                    chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
+                if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
+                                        continue;
+                            }else{
+                 //   chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
                //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
                //     chunk.isChunkPosInited=true;
-                if(chunk!=null){
-                  chunk.ReInitData();
-               }
+             //   if(chunk!=null){
+              //    chunk.ReInitData();
+             //  }
+             if(!WorldManager.chunkSpawningQueue.Contains(chunkPos)){
+               WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-curPos.x)+(int)Mathf.Abs(chunkPos.y-curPos.z)); 
+             }
                     
          //          WorldManager.chunksToLoad.Add(chunk);
                 }
             }
-        }
+        }});  
+       
      
     }
 
@@ -623,11 +648,41 @@ public class PlayerMove : MonoBehaviour
             if(tmpID==0){
                 return;
             }
+            if(inventoryDic[currentSelectedHotbar-1]==151){
+             //   return;
+               AttackAnimate();
+            Invoke("cancelAttackInvoke",0.1f);
+             for(float x=-1f;x<=1f;x++){
+                for(float y=-1f;y<=1f;y++){
+                    for(float z=-1f;z<=1f;z++){
+                        Vector3 blockPointArea=blockPoint+new Vector3(x,y,z);
+                    int tmpID2=Chunk.GetBlock(blockPointArea);
+                    Chunk.SetBlockByHand(blockPointArea,0);
+
+                   if(tmpID2==0){
+                    continue;
+                    }
+                       GameObject a=ObjectPools.particleEffectPool.Get();
+                    a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f);
+                    a.GetComponent<particleAndEffectBeh>().blockID=tmpID2;
+                    a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+                    if(tmpID2==10){
+                        StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
+                    }else{
+                        StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,tmpID2,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));   
+                    }
+
+                    }
+                }
+             }
+             return;
+            }
+
             Chunk.SetBlockByHand(blockPoint,0);
-            GameObject a=ObjectPools.particleEffectPool.Get();
-            a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
-            a.GetComponent<particleAndEffectBeh>().blockID=tmpID;
-            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+            GameObject b=ObjectPools.particleEffectPool.Get();
+            b.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
+            b.GetComponent<particleAndEffectBeh>().blockID=tmpID;
+            b.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
             if(tmpID==10){
                  StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
             }else{
@@ -682,15 +737,19 @@ public class PlayerMove : MonoBehaviour
                 }
        
         if(!File.Exists(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json")){
-            File.Create(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json");
+            FileStream fs=File.Create(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json");
+            fs.Close();
         }
        
-        string[] worldPlayerData=File.ReadAllLines(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json");
+       byte[] worldPlayerData=File.ReadAllBytes(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json");
          //   isEntitiesReadFromDisk=true;
 
-          PlayerData pd=new PlayerData();
+          PlayerData pd;
          if(worldPlayerData.Length>0){
-                pd=JsonSerializer.Deserialize<PlayerData>(worldPlayerData[0]);  
+                pd=MessagePackSerializer.Deserialize<PlayerData>(worldPlayerData);  
+         }else{
+            pd=new PlayerData(20f,0f,150f,0f,new int[9],new int[9]);
+        //    return;
          }
          
          if(pd.posX!=0f&&pd.posY!=0f&&pd.posZ!=0f&&pd.inventoryDic!=null&&pd.inventoryItemNumberDic!=null){
@@ -707,13 +766,8 @@ public class PlayerMove : MonoBehaviour
          
     }
     public void SavePlayerData(){
-        PlayerData pd=new PlayerData();
-        pd.playerHealth=playerHealth;
-        pd.posX=transform.position.x;
-        pd.posY=transform.position.y;
-        pd.posZ=transform.position.z;
-        pd.inventoryDic=inventoryDic;
-        pd.inventoryItemNumberDic=inventoryItemNumberDic;
+        PlayerData pd=new PlayerData(playerHealth,transform.position.x,transform.position.y,transform.position.z,inventoryDic,inventoryItemNumberDic);
+   
         FileStream fs;
         if (File.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json"))
         {
@@ -724,7 +778,7 @@ public class PlayerMove : MonoBehaviour
                  fs = new FileStream(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json", FileMode.Create, FileAccess.Write);
         }
         fs.Close();
-        string tmpData=JsonSerializer.ToJsonString(pd);
-        File.AppendAllText(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json",tmpData+"\n");
+        byte[] tmpData=MessagePackSerializer.Serialize(pd);
+        File.WriteAllBytes(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json",tmpData);
     }
 }

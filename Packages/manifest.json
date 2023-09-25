@@ -2,6 +2,7 @@
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.burst": "1.8.8",
+    "com.unity.collections": "2.2.1",
     "com.unity.inputsystem": "1.6.3",
     "com.unity.memoryprofiler": "1.0.0",
     "com.unity.render-pipelines.universal": "14.0.8",

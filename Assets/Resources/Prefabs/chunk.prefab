@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 943342251314489419}
   - component: {fileID: 7803789489427179060}
   - component: {fileID: 2534815729054847635}
-  - component: {fileID: 8225579238700148456}
   m_Layer: 0
   m_Name: nonsolidlayer
   m_TagString: Untagged
@@ -84,28 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &8225579238700148456
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 210474514778231077}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
 --- !u!1 &8898208128959863545
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,7 +189,7 @@ MeshCollider:
   m_Enabled: 1
   serializedVersion: 5
   m_Convex: 0
-  m_CookingOptions: -1
+  m_CookingOptions: 0
   m_Mesh: {fileID: 0}
 --- !u!114 &4527141361843899130
 MonoBehaviour:
@@ -239,7 +216,6 @@ MonoBehaviour:
   meshCollider: {fileID: 0}
   meshRenderer: {fileID: 0}
   meshFilter: {fileID: 0}
-  meshColliderNS: {fileID: 0}
   meshRendererNS: {fileID: 0}
   meshFilterNS: {fileID: 0}
   frontChunk: {fileID: 0}
@@ -251,13 +227,6 @@ MonoBehaviour:
   backLeftChunk: {fileID: 0}
   backRightChunk: {fileID: 0}
   chunkPos: {x: 0, y: 0}
-  playerPos: {fileID: 0}
   playerDistance: 0
-  opqVerts: []
-  opqUVs: []
-  opqTris: 
-  NSVerts: []
-  NSUVs: []
-  NSTris: 
   updateCount: 0
   BFSIsWorking: 0

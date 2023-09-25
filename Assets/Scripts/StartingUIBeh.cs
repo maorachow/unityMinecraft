@@ -8,9 +8,11 @@ public class StartingUIBeh : MonoBehaviour
 {   
     public static RuntimePlatform platform=Application.platform;
    public Transform cameraPos;
+   public GameObject settingsUI;
    public Button startNewWorldButton;
    public Button continuePlayingButton;
    public Button quitButton;
+   public Button settingsButton;
    public float UILifeTime;
    public static string gameWorldDataPath;
    public static string gameWorldPlayerDataPath;
@@ -19,16 +21,23 @@ public class StartingUIBeh : MonoBehaviour
    void Start(){
     Time.timeScale=1f;
     startNewWorldButton=GameObject.Find("createnewworldbutton").GetComponent<Button>();
+    settingsUI=GameObject.Find("settingsUI");
+    settingsUI.SetActive(false);
+    settingsButton=GameObject.Find("settingsbutton").GetComponent<Button>();
     continuePlayingButton=GameObject.Find("continueplayingbutton").GetComponent<Button>();
     quitButton=GameObject.Find("quitbutton").GetComponent<Button>();
     startNewWorldButton.onClick.AddListener(StartNewWorldButtonOnClick);
     continuePlayingButton.onClick.AddListener(ContinuePlayingButtonOnClick);
     quitButton.onClick.AddListener(QuitButtonOnClick);
+    settingsButton.onClick.AddListener(SettingsButtonOnClick);
      cameraPos=GameObject.Find("Main Camera").GetComponent<Transform>();
    }
    void StartNewWorldButtonOnClick(){
     CreateGameDirectory();
      SceneManager.LoadScene(1);
+   }
+   void SettingsButtonOnClick(){
+    settingsUI.SetActive(true);
    }
    void CreateGameDirectory(){
      if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){

@@ -107,7 +107,7 @@ public class ZombieBeh : MonoBehaviour
             diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             cc.enabled=true;
-            Destroy(diedZombieTrans.gameObject,10f);
+            Destroy(diedZombieTrans.gameObject,30f);
             ObjectPools.zombieEntityPool.Release(gameObject);
     }
 

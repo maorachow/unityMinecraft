@@ -124,7 +124,7 @@ public class CreeperBeh : MonoBehaviour
            diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            cc.enabled=true;
-           Destroy(diedCreeperTrans.gameObject,10f);
+           Destroy(diedCreeperTrans.gameObject,30f);
            ObjectPools.creeperEntityPool.Release(gameObject);
     }
 
