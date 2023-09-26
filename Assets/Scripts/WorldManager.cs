@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
 using Priority_Queue;
+using UnityEngine.Events;
 public class WorldManager : MonoBehaviour
 {
   public static RuntimePlatform platform = Application.platform;
@@ -52,6 +53,11 @@ public class WorldManager : MonoBehaviour
             chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
             chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
             chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
+            UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
+          Thread t2=new Thread(()=>t2ThreadFunc());
+          t2.Start();
+          Thread t3=new Thread(()=>Chunk.TryReleaseChunkThread());
+          t3.Start();
     }
     void FixedUpdate(){
   //   if(isChunkFastLoadingEnabled==false){
@@ -140,6 +146,7 @@ public void FastChunkLoadingButtonOnValueChanged(bool b){
   isChunkFastLoadingEnabled=b;
 }
     void Update(){
+      Chunk.playerPosVec=playerPos.position;
       lightSource.transform.Rotate(new Vector3(Time.deltaTime,0f,0f));
    //   if(isChunkFastLoadingEnabled==true){
     //  BuildAllChunksAsync();  

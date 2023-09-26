@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
 using System.IO;
-
+using System.Threading;
 using UnityEngine.EventSystems;
 using MessagePack;
 [MessagePackObject]
@@ -80,6 +80,7 @@ public class PlayerMove : MonoBehaviour
     public static GameObject pauseMenu;
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
+    public Vector2 playerChunkLoadingPos;
     void Awake(){
        
         if(isBlockNameDicAdded==false){
@@ -157,6 +158,7 @@ public class PlayerMove : MonoBehaviour
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
       GameUIBeh.instance.CloseCraftingUI();
          GameUIBeh.instance.Resume();
+     
     }
 
 
@@ -364,7 +366,7 @@ public class PlayerMove : MonoBehaviour
         playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
         curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
         if(curChunk==null||curChunk.isMeshBuildCompleted==false){
-            UpdateWorld();
+      //      UpdateWorld();
             return;
         }
         currentSpeed=Speed();
@@ -528,9 +530,10 @@ public class PlayerMove : MonoBehaviour
        
     }
     void FixedUpdate(){
-     if(cc.velocity.magnitude>0.1f){
-            UpdateWorld();
-     }
+  //   if(cc.velocity.magnitude>0.1f){
+   // //        UpdateWorld();
+   //  }
+     playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
         
         
@@ -569,7 +572,40 @@ public class PlayerMove : MonoBehaviour
         
        }
     }
-   async void UpdateWorld()
+   public void TryUpdateWorldThread(){
+        while(true){
+            Thread.Sleep(20);  
+            for (float x = playerChunkLoadingPos.x - viewRange; x < playerChunkLoadingPos.x + viewRange; x += Chunk.chunkWidth)
+        {
+            for (float z = playerChunkLoadingPos.y - viewRange; z <playerChunkLoadingPos.y + viewRange; z += Chunk.chunkWidth)
+            {
+                Vector3 pos = new Vector3(x, 0, z);
+               // pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
+            //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
+                Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
+               
+                Chunk chunk = Chunk.GetChunk(chunkPos);
+                if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
+                                        continue;
+                            }else{
+                 //   chunk=ObjectPools.chunkPool.Get(chunkPos).GetComponent<Chunk>();
+               //     chunk.transform.position=new Vector3(chunkPos.x,0,chunkPos.y);
+               //     chunk.isChunkPosInited=true;
+             //   if(chunk!=null){
+              //    chunk.ReInitData();
+             //  }
+             if(!WorldManager.chunkSpawningQueue.Contains(chunkPos)){
+               WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-playerChunkLoadingPos.x)+(int)Mathf.Abs(chunkPos.y-playerChunkLoadingPos.y)); 
+             }
+                    
+         //          WorldManager.chunksToLoad.Add(chunk);
+                }
+            }
+        }
+        }
+        
+    }
+ /*  async void UpdateWorld()
     {
         Vector3 curPos=transform.position;
    //     await Task.Delay(1000);
@@ -604,7 +640,7 @@ public class PlayerMove : MonoBehaviour
         }});  
        
      
-    }
+    }*/
 
     void cancelAttackInvoke(){
         am.SetBool("isattacking",false);

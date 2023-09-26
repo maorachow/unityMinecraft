@@ -57,7 +57,7 @@ public class Chunk : MonoBehaviour
         }
     }
  
-  [BurstCompile]
+  //[BurstCompile]
     public struct MeshBuildJob:IJob{
        // public NativeArray<VertexAttributeDescriptor> vertexAttributes;
         public NativeArray<Vector3> verts;
@@ -190,7 +190,8 @@ public class Chunk : MonoBehaviour
     
      
     public Vector2Int chunkPos;
-    public static Transform playerPos;
+//    public static Transform playerPos;
+    public static Vector3 playerPosVec;
     public float playerDistance;
    // public TransformAccessArray thisTransArray= new TransformAccessArray(transform);
       public Vector3[] opqVerts;
@@ -207,12 +208,13 @@ public class Chunk : MonoBehaviour
     public NativeArray<Vector3> NSVertsNA;
     public NativeArray<Vector2> NSUVsNA;
     public NativeArray<int> NSTrisNA;
-    public List<Vector3> opqVertsNL;
-    public List<Vector2> opqUVsNL;
-    public List<int> opqTrisNL;
-    public List<Vector3> NSVertsNL;
-    public List<Vector2> NSUVsNL;
-    public List<int> NSTrisNL;
+    public NativeList<Vector3> opqVertsNL;
+    public NativeList<Vector2> opqUVsNL;
+    public NativeList<int> opqTrisNL;
+    public NativeList<Vector3> NSVertsNL;
+    public NativeList<Vector2> NSUVsNL;
+    public NativeList<int> NSTrisNL;
+    public JobHandle bakeJobHandle;
     public static void AddBlockInfo(){
         //left right bottom top back front
         blockAudioDic.TryAdd(1,Resources.Load<AudioClip>("Audios/Stone_dig2"));
@@ -321,7 +323,7 @@ public class Chunk : MonoBehaviour
         }
       //  StartLoadChunk();
    //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
-         WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPos.position.x)+(int)Mathf.Abs(transform.position.z-playerPos.position.z));
+         WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPosVec.x)+(int)Mathf.Abs(transform.position.z-playerPosVec.z));
     }
     
     //strongload: simulate chunk mesh collider
@@ -412,9 +414,9 @@ public class Chunk : MonoBehaviour
    // }
 
     void Awake(){
-        if(playerPos==null){
-          playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();  
-        }
+     //   if(playerPos==null){
+     //     playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();  
+      //  }
            
         meshRenderer = GetComponent<MeshRenderer>();
 	    meshCollider = GetComponent<MeshCollider>();
@@ -537,7 +539,7 @@ public class Chunk : MonoBehaviour
 
 
      
-     void  InitMap(Vector2Int pos){
+     void  InitMap(Vector2Int pos,Mesh.MeshDataArray mda,Mesh.MeshDataArray mdaNS){
       //  Thread.Sleep(1000);
         frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
         frontLeftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y+chunkWidth));
@@ -553,15 +555,15 @@ public class Chunk : MonoBehaviour
      
        
        // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
-         List<Vector3> opqVertsNL=new List<Vector3>();
-        List<Vector2> opqUVsNL=new List<Vector2>();
-        List<int> opqTrisNL=new List<int>();
-        List<Vector3> NSVertsNL=new List<Vector3>();
-        List<Vector2> NSUVsNL=new List<Vector2>();
-        List<int> NSTrisNL=new List<int>();
+         NativeList<Vector3> opqVertsNL=new NativeList<Vector3>(Allocator.TempJob);
+        NativeList<Vector2> opqUVsNL=new NativeList<Vector2>(Allocator.TempJob);
+        NativeList<int> opqTrisNL=new NativeList<int>(Allocator.TempJob);
+        NativeList<Vector3> NSVertsNL=new NativeList<Vector3>(Allocator.TempJob);
+        NativeList<Vector2> NSUVsNL=new NativeList<Vector2>(Allocator.TempJob);
+        NativeList<int> NSTrisNL=new NativeList<int>(Allocator.TempJob);
         if(isMapGenCompleted==true){
             isModifiedInGame=true;
-        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
+        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS);
            return;
         }
         if(isSavedInDisk==true){
@@ -570,13 +572,13 @@ public class Chunk : MonoBehaviour
            //   Debug.Log("ReadF");
              map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
                  isMapGenCompleted=true;
-                GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
+                GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS);
                 return;
             }else{
              map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
        //      Debug.Log("Read");
             isMapGenCompleted=true;
-            GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);   
+            GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS);   
             return;
             }
             
@@ -954,28 +956,28 @@ public class Chunk : MonoBehaviour
             }
         }
                                 if(isLeftChunkUpdated==true){
-                            //       WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
+                                   WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
                                }
                                if(isRightChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
                                }
                                if(isBackChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
                                }
                                if(isFrontChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
                                }
                                if(isFrontLeftChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
                                }
                                if(isFrontRightChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
                                }
                                if(isBackLeftChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
                                }
                                if(isBackRightChunkUpdated==true){
-                              //   WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
                                }
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
@@ -994,16 +996,16 @@ public class Chunk : MonoBehaviour
         }
         
 
-        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL);
+        GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS);
    
     }
 
 
 
-    public void GenerateMesh(List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS){
+    public void GenerateMesh(NativeList<Vector3> verts, NativeList<Vector2> uvs, NativeList<int> tris, NativeList<Vector3> vertsNS, NativeList<Vector2> uvsNS, NativeList<int> trisNS,Mesh.MeshDataArray mda,Mesh.MeshDataArray mdaNS){
      //   Thread.Sleep(10);
-         TmpCheckFace tmp=new TmpCheckFace(CheckNeedBuildFace);
-        TmpBuildFace TmpBuildFace=new TmpBuildFace(BuildFace);
+    //     TmpCheckFace tmp=new TmpCheckFace(CheckNeedBuildFace);
+    //    TmpBuildFace TmpBuildFace=new TmpBuildFace(BuildFace);
         for (int x = 0; x < chunkWidth; x++){
             for (int y = 0; y < chunkHeight; y++){
                 for (int z = 0; z < chunkWidth; z++){
@@ -1012,25 +1014,25 @@ public class Chunk : MonoBehaviour
         int typeid = this.map[x, y, z];
         if(0<typeid&&typeid<100){
         //Left
-        if (tmp(x - 1, y, z))
-          TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
+        if (CheckNeedBuildFace(x - 1, y, z))
+          BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
         //Right
-        if (tmp(x + 1, y, z))
-         TmpBuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
+        if (CheckNeedBuildFace(x + 1, y, z))
+         BuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
 
         //Bottom
-        if (tmp(x, y - 1, z))
-         TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
+        if (CheckNeedBuildFace(x, y - 1, z))
+         BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
         //Top
-        if (tmp(x, y + 1, z))
-        TmpBuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
+        if (CheckNeedBuildFace(x, y + 1, z))
+        BuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
 
         //Back
-        if (tmp(x, y, z - 1))
-        TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
+        if (CheckNeedBuildFace(x, y, z - 1))
+        BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
         //Front
-        if (tmp(x, y, z + 1))
-        TmpBuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
+        if (CheckNeedBuildFace(x, y, z + 1))
+        BuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
 
 
 
@@ -1042,15 +1044,15 @@ public class Chunk : MonoBehaviour
 
         //water
         //left
-        if (tmp(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
+        if (CheckNeedBuildFace(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+            BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
 
 
 
 
             }else{
-     TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
+     BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
 
 
 
@@ -1062,14 +1064,14 @@ public class Chunk : MonoBehaviour
         }
             
         //Right
-        if (tmp(x+1,y,z)&&GetBlockType(x+1,y,z)!=100){
+        if (CheckNeedBuildFace(x+1,y,z)&&GetBlockType(x+1,y,z)!=100){
                 if(GetBlockType(x,y+1,z)!=100){
-     TmpBuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+     BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
 
 
 
                 }else{
-         TmpBuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
+         BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
 
 
 
@@ -1080,8 +1082,8 @@ public class Chunk : MonoBehaviour
             
 
         //Bottom
-        if (tmp(x,y-1,z)&&GetBlockType(x,y-1,z)!=100){
-       TmpBuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
+        if (CheckNeedBuildFace(x,y-1,z)&&GetBlockType(x,y-1,z)!=100){
+       BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
 
 
 
@@ -1089,8 +1091,8 @@ public class Chunk : MonoBehaviour
         }
             
         //Top
-        if (tmp(x,y+1,z)&&GetBlockType(x,y+1,z)!=100){
-        TmpBuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
+        if (CheckNeedBuildFace(x,y+1,z)&&GetBlockType(x,y+1,z)!=100){
+        BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
 
 
 
@@ -1101,15 +1103,15 @@ public class Chunk : MonoBehaviour
 
 
         //Back
-        if (tmp(x,y,z-1)&&GetBlockType(x,y,z-1)!=100){
+        if (CheckNeedBuildFace(x,y,z-1)&&GetBlockType(x,y,z-1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+            BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
 
 
 
        
             }else{
-            TmpBuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
+            BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
 
 
 
@@ -1123,13 +1125,13 @@ public class Chunk : MonoBehaviour
 
             
         //Front
-        if (tmp(x,y,z+1)&&GetBlockType(x,y,z+1)!=100){
+        if (CheckNeedBuildFace(x,y,z+1)&&GetBlockType(x,y,z+1)!=100){
             if(GetBlockType(x,y+1,z)!=100){
-            TmpBuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5) ;
+            BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5) ;
 
 
             }else{
-            TmpBuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
+            BuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
 
             }
              
@@ -1138,19 +1140,19 @@ public class Chunk : MonoBehaviour
             
         if(typeid>=101&&typeid<150){
             Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
-            TmpBuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
+            BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
             
 
 
-            TmpBuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
+            BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
 
 
 
-          TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
+          BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0);
 
 
 
-         TmpBuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
+         BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0);
 
 
         }
@@ -1160,18 +1162,110 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
-        opqVerts=verts.ToArray();
-        opqUVs=uvs.ToArray();
-        opqTris=tris.ToArray();
-        NSVerts=vertsNS.ToArray();
-        NSUVs=uvsNS.ToArray();
-        NSTris=trisNS.ToArray();
-        opqVertsNA=new NativeArray<Vector3>(opqVerts,Allocator.TempJob);
-        opqUVsNA=new NativeArray<Vector2>(opqUVs,Allocator.TempJob);
-        opqTrisNA=new NativeArray<int>(opqTris,Allocator.TempJob);
-        NSVertsNA=new NativeArray<Vector3>(NSVerts,Allocator.TempJob);
-        NSUVsNA=new NativeArray<Vector2>(NSUVs,Allocator.TempJob);
-        NSTrisNA=new NativeArray<int>(NSTris,Allocator.TempJob);
+        opqVertsNA=verts.AsArray();
+        opqUVsNA=uvs.AsArray();
+        opqTrisNA=tris.AsArray();
+        NSVertsNA=vertsNS.AsArray();
+        NSUVsNA=uvsNS.AsArray();
+        NSTrisNA=trisNS.AsArray();
+
+        
+        NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
+    //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
+    //    mdaNS[0].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);
+     //   mda[1].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);   
+        var data = mda[0];
+        data.SetVertexBufferParams(opqVertsNA.Length,vertexAttributesDes);
+        NativeArray<Vertex> pos = data.GetVertexData<Vertex>();
+     
+        for(int i=0;i<opqVertsNA.Length;i++){
+            if(pos==null){
+                Debug.Log("null");
+                return;
+            }
+            pos[i]=new Vertex(opqVertsNA[i],new Vector3(1f,1f,1f),opqUVsNA[i]);
+           
+        }
+       data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt32);
+        var ib = data.GetIndexData<int>();
+        for (int i = 0; i < ib.Length; ++i)
+            ib[i] = opqTrisNA[i];
+
+        data.subMeshCount = 1;
+        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
+
+           pos.Dispose();
+           ib.Dispose();
+
+
+
+        var dataNS = mdaNS[0];
+        dataNS.SetVertexBufferParams(NSVertsNA.Length,vertexAttributesDes);
+        NativeArray<Vertex> posNS = dataNS.GetVertexData<Vertex>();
+      
+        for(int i=0;i<NSVertsNA.Length;i++){
+            if(posNS==null){
+                Debug.Log("null");
+                return;
+            }
+            posNS[i]=new Vertex(NSVertsNA[i],new Vector3(1f,1f,1f),NSUVsNA[i]);
+           
+        }
+       dataNS.SetIndexBufferParams((int)(posNS.Length/2)*3, IndexFormat.UInt32);
+        var ibNS = dataNS.GetIndexData<int>();
+        for (int i = 0; i <ibNS.Length;++i){
+           ibNS[i] = NSTrisNA[i];  
+        }
+           
+
+            dataNS.subMeshCount = 1;
+            dataNS.SetSubMesh(0, new SubMeshDescriptor(0, ibNS.Length));
+           posNS.Dispose();
+           ibNS.Dispose();
+        verts.Dispose();
+        uvs.Dispose();
+        tris.Dispose();
+        vertsNS.Dispose();
+        uvsNS.Dispose();
+        trisNS.Dispose();
+      /*  var data=mda[0];
+           // Tetrahedron vertices with positions and normals.
+        // 4 faces with 3 unique vertices in each -- the faces
+        // don't share the vertices since normals have to be
+        // different for each face.
+        data.SetVertexBufferParams(12,
+            new VertexAttributeDescriptor(VertexAttribute.Position),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1));
+        // Four tetrahedron vertex positions:
+        var sqrt075 = Mathf.Sqrt(0.75f);
+        var p0 = new Vector3(0, 0, 0);
+        var p1 = new Vector3(1, 0, 0);
+        var p2 = new Vector3(0.5f, 0, sqrt075);
+        var p3 = new Vector3(0.5f, sqrt075, sqrt075 / 3);
+        // The first vertex buffer data stream is just positions;
+        // fill them in.
+        var pos = data.GetVertexData<Vector3>();
+        pos[0] = p0; pos[1] = p1; pos[2] = p2;
+        pos[3] = p0; pos[4] = p2; pos[5] = p3;
+        pos[6] = p2; pos[7] = p1; pos[8] = p3;
+        pos[9] = p0; pos[10] = p3; pos[11] = p1;
+        // Note: normals will be calculated later in RecalculateNormals.
+        // Tetrahedron index buffer: 4 triangles, 3 indices per triangle.
+        // All vertices are unique so the index buffer is just a
+        // 0,1,2,...,11 sequence.
+        data.SetIndexBufferParams(12, IndexFormat.UInt16);
+        var ib = data.GetIndexData<ushort>();
+        for (ushort i = 0; i < ib.Length; ++i)
+            ib[i] = i;
+        // One sub-mesh with all the indices.
+        data.subMeshCount = 1;
+        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));*/
+
+
+           
+
         
         isMeshBuildCompleted=true;
     }
@@ -1182,15 +1276,10 @@ public class Chunk : MonoBehaviour
 
 
     public async void BuildChunk(){
-    //    System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
-    //    sw.Start();
+        System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+        sw.Start();
         isMeshBuildCompleted=false;
-        if(isChunkPosInited){
-        await Task.Run(() => InitMap(chunkPos));      
-        }else{
-           ReInitData();
-          await Task.Run(() => InitMap(chunkPos));      
-        }
+     
      
    //     t.Start();
     /*    ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
@@ -1204,10 +1293,34 @@ public class Chunk : MonoBehaviour
     ///    yield return 10;
    // }
 
-      
-            chunkMesh=new Mesh();   
+   
+        Mesh.MeshDataArray mbjMeshData=Mesh.AllocateWritableMeshData(1);
+        Mesh.MeshDataArray mbjMeshDataNS=Mesh.AllocateWritableMeshData(1);
+        
 
-             chunkNonSolidMesh=new Mesh();
+    /*    NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
+         mbjMeshData[0].SetVertexBufferParams(opqVertsNA.Length,vertexAttributesDes);
+        mbjMeshData[1].SetVertexBufferParams(NSVertsNA.Length,vertexAttributesDes);   */
+        
+
+        if(isChunkPosInited){
+        await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS));      
+        }else{
+           ReInitData();
+          await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS));      
+        }
+
+
+       //     if(chunkMesh==null){
+             chunkMesh=new Mesh();    
+       //     }
+              
+        //    if(chunkNonSolidMesh==null){
+              chunkNonSolidMesh=new Mesh();   
+         //   }
+            
         
        
 
@@ -1230,38 +1343,35 @@ public class Chunk : MonoBehaviour
        // t1.Wait();
      //   yield return new WaitUntil(()=>isMeshBuildCompleted==true); 
    
+    
      
        
-   /*     NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
-        Mesh.MeshDataArray mbjMeshData=Mesh.AllocateWritableMeshData(1);
-        Mesh.MeshDataArray mbjMeshDataNS=Mesh.AllocateWritableMeshData(1);
-        mbjMeshData[0].SetVertexBufferParams(opqVerts.Length,vertexAttributesDes);
-        mbjMeshDataNS[0].SetVertexBufferParams(NSVerts.Length,vertexAttributesDes);
+    
        
-        MeshBuildJob mbj=new MeshBuildJob{verts=opqVertsNA,tris=opqTrisNA,vertLen=opqVerts.Length,uvs=opqUVsNA,dataArray=mbjMeshData};
+       
+      
+     /*   MeshBuildJob mbj=new MeshBuildJob{verts=opqVertsNA,tris=opqTrisNA,vertLen=opqVertsNA.Length,uvs=opqUVsNA,dataArray=mbjMeshData};
         JobHandle jh=mbj.Schedule();
-        MeshBuildJob mbjNS=new MeshBuildJob{verts=NSVertsNA,tris=NSTrisNA,vertLen=NSVerts.Length,uvs=NSUVsNA,dataArray=mbjMeshDataNS};
+        MeshBuildJob mbjNS=new MeshBuildJob{verts=NSVertsNA,tris=NSTrisNA,vertLen=NSVertsNA.Length,uvs=NSUVsNA,dataArray=mbjMeshDataNS};
         JobHandle jhNS=mbjNS.Schedule();
-        //多线程构建网格
-   //     yield return new WaitUntil(()=>jhNS.IsCompleted==true);
-   //     Task t=new Task(async ()=>{JobHandle.CompleteAll(ref jh,ref jhNS);});
-      //  await t.RunSynchronously();
-        JobHandle.CompleteAll(ref jh,ref jhNS);
-        
-        Mesh.ApplyAndDisposeWritableMeshData(mbjNS.dataArray,chunkNonSolidMesh); 
-         Mesh.ApplyAndDisposeWritableMeshData(mbj.dataArray,chunkMesh);
+       
 
+        JobHandle.CompleteAll(ref jh,ref jhNS);*/
+        
+        Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData,chunkMesh); 
+        Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS,chunkNonSolidMesh);
+        BakeJob bj=new BakeJob();
+        bj.meshID=chunkMesh.GetInstanceID();
+        JobHandle bjHandle = bj.Schedule();
         chunkMesh.RecalculateBounds();
         chunkMesh.RecalculateNormals();
 
         chunkNonSolidMesh.RecalculateBounds();
-        chunkNonSolidMesh.RecalculateNormals();*/
+        chunkNonSolidMesh.RecalculateNormals();
        
 
-        chunkMesh.indexFormat=IndexFormat.UInt32;
-        chunkNonSolidMesh.indexFormat=IndexFormat.UInt32;
+       // chunkMesh.indexFormat=IndexFormat.UInt32;
+       /* chunkNonSolidMesh.indexFormat=IndexFormat.UInt32;
         chunkNonSolidMesh.SetVertices(NSVerts);
         chunkNonSolidMesh.SetUVs(0,NSUVs);
         chunkNonSolidMesh.triangles = NSTris;
@@ -1271,7 +1381,7 @@ public class Chunk : MonoBehaviour
  
         chunkNonSolidMesh.RecalculateNormals();
    
-        chunkMesh.RecalculateNormals();
+        chunkMesh.RecalculateNormals();*/
         
         
    //     var job=new BakeJob();
@@ -1292,13 +1402,11 @@ public class Chunk : MonoBehaviour
      //   NativeArray<int> a=new NativeArray<int>(1,Allocator.TempJob);
       //  a[0]=chunkMesh.GetInstanceID();
      //   a[1]=chunkNonSolidMesh.GetInstanceID();
-        BakeJob bj=new BakeJob();
-        bj.meshID=chunkMesh.GetInstanceID();
-        JobHandle bjHandle = bj.Schedule();
+      
   //    yield return new WaitUntil(()=>handle.IsCompleted==true&&chunkMesh!=null);
     //   yield return new WaitForSeconds(0.01f);
         bjHandle.Complete();
-        await Task.Run(()=>{
+       Task.Run(()=>{
         NSVertsNA.Dispose();
         NSUVsNA.Dispose();
         NSTrisNA.Dispose();
@@ -1309,10 +1417,10 @@ public class Chunk : MonoBehaviour
   
         });
         meshCollider.sharedMesh = chunkMesh;
-      //  meshColliderNS.sharedMesh = chunkNonSolidMesh;
+      //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
         isChunkMapUpdated=false;
-       // sw.Stop();
-     //   Debug.Log("Time used:"+sw.ElapsedMilliseconds);
+        sw.Stop();
+        Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
     }
 
@@ -1484,8 +1592,8 @@ public class Chunk : MonoBehaviour
 
 
 
-     void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
-        int index = verts.Count;
+     void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, NativeList<Vector3> verts, NativeList<Vector2> uvs, NativeList<int> tris, int side){
+        int index = verts.Length;
     
         verts.Add (corner);
         verts.Add (corner + up);
@@ -1655,7 +1763,7 @@ public class Chunk : MonoBehaviour
    async void Update(){
   //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
    //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
-  
+        
         if(isChunkMapUpdated==true){
                isModifiedInGame=true;  
             if(isMapGenCompleted==true){
@@ -1671,12 +1779,33 @@ public class Chunk : MonoBehaviour
         }
       
     }
-     void FixedUpdate(){
+   //  void FixedUpdate(){
 
-     TryReleaseChunk();
+  //   TryReleaseChunk();
+ //   }
+
+  public static void TryReleaseChunkThread(){
+    while(true){
+         Thread.Sleep(500);
+           List<Vector2Int> keys=new List<Vector2Int>(Chunks.Keys);
+       for(int i=0;i<keys.Count;i++){
+         if(Chunks[keys[i]].isChunkPosInited==false){
+            continue;
+         }
+            Vector2Int cPos=Chunks[keys[i]].chunkPos;
+             if(Mathf.Abs(cPos.x-playerPosVec.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(cPos.y-playerPosVec.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&Chunks[keys[i]].isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(Chunks[keys[i]])){
+
+           WorldManager.chunkUnloadingQueue.Enqueue(Chunks[keys[i]],1-((int)Mathf.Abs(cPos.x-playerPosVec.x)+(int)Mathf.Abs(cPos.y-playerPosVec.z)));
+           Chunks[keys[i]].isChunkPosInited=false;
+        } 
+       }
+
+        }
+      
+       
     }
-
-    void TryReleaseChunk(){
+  /*  void TryReleaseChunk(){
+        
          if(!isChunkPosInited){
             return;
          }
@@ -1688,7 +1817,7 @@ public class Chunk : MonoBehaviour
            isChunkPosInited=false;
         }
       
-    }
+    }*/
     
     public int updateCount=0;
     public bool BFSIsWorking=false;
