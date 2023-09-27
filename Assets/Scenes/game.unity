@@ -14,12 +14,12 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
-  m_FogColor: {r: 0.67058825, g: 0.8117648, b: 0.9843138, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.7920256, g: 0.8697056, b: 0.9716981, a: 1}
   m_FogMode: 2
-  m_FogDensity: 0.005
+  m_FogDensity: 0.002
   m_LinearFogStart: 0
-  m_LinearFogEnd: 100
+  m_LinearFogEnd: 500
   m_AmbientSkyColor: {r: 0.95608616, g: 1, b: 0.84339625, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
@@ -11138,6 +11138,7 @@ MonoBehaviour:
   inventoryItemNumberDic: 000000000000000000000000000000000000000000000000000000000000000000000000
   lerpItemSlotAxis: 0
   lerpPlayerVec: {x: 0, y: 0, z: 0}
+  playerChunkLoadingPos: {x: 0, y: 0}
 --- !u!4 &6095466469615324927
 Transform:
   m_ObjectHideFlags: 0

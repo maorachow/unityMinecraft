@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Priority_Queue;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 public class WorldManager : MonoBehaviour
 {
+//  public static UnityAction<Scene,Scene> sceneChangedEvent;
   public static RuntimePlatform platform = Application.platform;
   public static string gameWorldDataPath;
     public bool isChunkFastLoadingEnabled=false;
@@ -17,6 +19,9 @@ public class WorldManager : MonoBehaviour
     public Transform playerPos;
     public Camera playerCam;
     public GameObject lightSource;
+    public Thread t2;
+    public Thread t3;
+    public Thread t4;
     void Awake(){
 
        if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
@@ -31,7 +36,7 @@ public class WorldManager : MonoBehaviour
         }        
     }
     async void Start(){
-
+        
           Chunk.AddBlockInfo();  
         
        Task t=Task.Run(()=>Chunk.ReadJson());
@@ -54,10 +59,22 @@ public class WorldManager : MonoBehaviour
             chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
             chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
             UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
-          Thread t2=new Thread(()=>t2ThreadFunc());
+       //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
+         // SceneManager.activeSceneChanged-=sceneChangedEvent;  
+        //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
+      
+          t2=new Thread(()=>t2ThreadFunc());
           t2.Start();
-          Thread t3=new Thread(()=>Chunk.TryReleaseChunkThread());
+         t3=new Thread(()=>Chunk.TryReleaseChunkThread());
           t3.Start();
+         t4=new Thread(()=>Chunk.TryUpdateChunkThread());
+          t4.Start();
+          
+    }
+    void OnDestroy(){
+        t2.Abort();
+        t3.Abort();
+        t4.Abort();
     }
     void FixedUpdate(){
   //   if(isChunkFastLoadingEnabled==false){
@@ -85,7 +102,7 @@ public class WorldManager : MonoBehaviour
     }
     async void SpawnChunksAsync(){
     //  (var c in chunkSpawningQueue){
-    //  await Task.Delay(10);
+      await Task.Delay(20);
       if(chunkSpawningQueue.Count>0){
         
         Vector2Int cPos=chunkSpawningQueue.First;

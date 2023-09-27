@@ -32,6 +32,9 @@ public class MyChunkObjectPool{
         {
             // 将对象出队
             tmp = objectPool.Dequeue();
+            if(tmp==null){
+               return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+            }
             tmp.transform.position=new Vector3(pos.x,0,pos.y);
             tmp.SetActive(true);
         }
