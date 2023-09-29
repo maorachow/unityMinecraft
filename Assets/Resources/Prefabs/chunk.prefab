@@ -228,5 +228,11 @@ MonoBehaviour:
   backRightChunk: {fileID: 0}
   chunkPos: {x: 0, y: 0}
   playerDistance: 0
+  opqVerts: []
+  opqUVs: []
+  opqTris: 
+  NSVerts: []
+  NSUVs: []
+  NSTris: 
   updateCount: 0
   BFSIsWorking: 0

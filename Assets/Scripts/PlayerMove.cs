@@ -94,6 +94,7 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(7,"WoodY");
         blockNameDic.Add(8,"WoodZ");
         blockNameDic.Add(9,"Leaves");
+        blockNameDic.Add(11,"Sand");
         blockNameDic.Add(100,"Water");
         blockNameDic.Add(101,"Grass Crop");
         blockNameDic.Add(151,"Diamond Pickaxe");
@@ -530,8 +531,8 @@ public class PlayerMove : MonoBehaviour
        
     }
     void FixedUpdate(){
-  //   if(cc.velocity.magnitude>0.1f){
-   // //        UpdateWorld();
+    // if(cc.velocity.magnitude>0.1f){
+    //       UpdateWorld();
    //  }
      playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
@@ -574,14 +575,16 @@ public class PlayerMove : MonoBehaviour
     }
    public void TryUpdateWorldThread(){
         while(true){
+             if(WorldManager.isGoingToQuitGame==true){
+                return;
+            }
             Thread.Sleep(20);  
             for (float x = playerChunkLoadingPos.x - viewRange; x < playerChunkLoadingPos.x + viewRange; x += Chunk.chunkWidth)
         {
             for (float z = playerChunkLoadingPos.y - viewRange; z <playerChunkLoadingPos.y + viewRange; z += Chunk.chunkWidth)
             {
                 Vector3 pos = new Vector3(x, 0, z);
-               // pos.x = Mathf.Floor(pos.x / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
-            //    pos.z = Mathf.Floor(pos.z / (float)Chunk.chunkWidth) * Chunk.chunkWidth;
+
                 Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
                
                 Chunk chunk = Chunk.GetChunk(chunkPos);
@@ -594,9 +597,9 @@ public class PlayerMove : MonoBehaviour
              //   if(chunk!=null){
               //    chunk.ReInitData();
              //  }
-             if(!WorldManager.chunkSpawningQueue.Contains(chunkPos)){
+     
                WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-playerChunkLoadingPos.x)+(int)Mathf.Abs(chunkPos.y-playerChunkLoadingPos.y)); 
-             }
+             
                     
          //          WorldManager.chunksToLoad.Add(chunk);
                 }
@@ -608,7 +611,7 @@ public class PlayerMove : MonoBehaviour
  /*  async void UpdateWorld()
     {
         Vector3 curPos=transform.position;
-   //     await Task.Delay(1000);
+      //  await Task.Delay(100);
       await Task.Run(()=>{  
     
         for (float x = curPos.x - viewRange; x < curPos.x + viewRange; x += Chunk.chunkWidth)

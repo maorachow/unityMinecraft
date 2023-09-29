@@ -38,38 +38,32 @@ public class pauseMenuUI : MonoBehaviour
             case 0:
             graphicsQualityText.text="Very Low";
             QualitySettings.SetQualityLevel(0, true);
-            if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",null);
+              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
-             if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",null);
+               ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
-             if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",null);
+                ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
-             if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",null);
+               ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 4:
              graphicsQualityText.text="Very High";
             QualitySettings.SetQualityLevel(4, true);
-             if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
             break;
             case 5:
              graphicsQualityText.text="Ultra";
             QualitySettings.SetQualityLevel(5, true);
-             if(player.curChunk!=null)
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+           ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
             break;
         }
     }
@@ -79,8 +73,9 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
-          player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+         ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
         ZombieBeh.isZombiePrefabLoaded=false;
+        WorldManager.isGoingToQuitGame=true;
         SaveWorldButtonOnClick();
          SceneManager.LoadScene(0);
 

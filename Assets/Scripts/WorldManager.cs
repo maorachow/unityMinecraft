@@ -9,19 +9,21 @@ using UnityEngine.SceneManagement;
 public class WorldManager : MonoBehaviour
 {
 //  public static UnityAction<Scene,Scene> sceneChangedEvent;
-  public static RuntimePlatform platform = Application.platform;
-  public static string gameWorldDataPath;
+    public static RuntimePlatform platform = Application.platform;
+    public static string gameWorldDataPath;
     public bool isChunkFastLoadingEnabled=false;
     public bool doMonstersSpawn=true;
+    public static bool isGoingToQuitGame=false;
+
     public static SimplePriorityQueue<Vector2Int> chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
     public static SimplePriorityQueue<Chunk> chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
     public static SimplePriorityQueue<Chunk> chunkUnloadingQueue=new SimplePriorityQueue<Chunk>();
     public Transform playerPos;
     public Camera playerCam;
     public GameObject lightSource;
-    public Thread t2;
-    public Thread t3;
-    public Thread t4;
+    public Task t2;
+    public Task t3;
+    public Task t4;
     void Awake(){
 
        if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
@@ -39,15 +41,15 @@ public class WorldManager : MonoBehaviour
         
           Chunk.AddBlockInfo();  
         
-       Task t=Task.Run(()=>Chunk.ReadJson());
-      t.Wait();
+        Task t=Task.Run(()=>Chunk.ReadJson());
+        t.Wait();
         //    Chunk.ReadJson();
-        lightSource=GameObject.Find("Directional Light");
-        playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-        playerCam=GameObject.Find("Main Camera").GetComponent<Camera>();
+            lightSource=GameObject.Find("Directional Light");
+            playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+            playerCam=GameObject.Find("Main Camera").GetComponent<Camera>();
             if(!EntityBeh.isEntitiesLoad){
             EntityBeh.LoadEntities();
-        }
+            }
          
            await Task.Run(()=>EntityBeh.ReadEntityJson());
         
@@ -58,24 +60,21 @@ public class WorldManager : MonoBehaviour
             chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
             chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
             chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
+            isGoingToQuitGame=false;
             UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
        //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
          // SceneManager.activeSceneChanged-=sceneChangedEvent;  
         //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
-      
-          t2=new Thread(()=>t2ThreadFunc());
-          t2.Start();
-         t3=new Thread(()=>Chunk.TryReleaseChunkThread());
-          t3.Start();
-         t4=new Thread(()=>Chunk.TryUpdateChunkThread());
-          t4.Start();
+          Chunk.Chunks.Clear();
+          t2=Task.Run(()=>t2ThreadFunc());
+       //   t2.Start();
+         t3=Task.Run(()=>Chunk.TryReleaseChunkThread());
+       //   t3.Start();
+         t4=Task.Run(()=>Chunk.TryUpdateChunkThread());
+       //   t4.Start();
           
     }
-    void OnDestroy(){
-        t2.Abort();
-        t3.Abort();
-        t4.Abort();
-    }
+
     void FixedUpdate(){
   //   if(isChunkFastLoadingEnabled==false){
       SpawnChunksAsync();
@@ -100,9 +99,9 @@ public class WorldManager : MonoBehaviour
         
        }
     }
-    async void SpawnChunksAsync(){
+     void SpawnChunksAsync(){
     //  (var c in chunkSpawningQueue){
-      await Task.Delay(20);
+ //     await Task.Delay(20);
       if(chunkSpawningQueue.Count>0){
         
         Vector2Int cPos=chunkSpawningQueue.First;
@@ -113,6 +112,7 @@ public class WorldManager : MonoBehaviour
         Chunk c=ObjectPools.chunkPool.Get(cPos).GetComponent<Chunk>();
         c.ReInitData();
         chunkSpawningQueue.Dequeue();
+           return;
       }
         
    //   }
@@ -124,6 +124,10 @@ public class WorldManager : MonoBehaviour
          if(isChunkFastLoadingEnabled==true){
           for(int i=0;i<2;i++){
               if(chunkLoadingQueue.Count>0){
+                if(chunkLoadingQueue.First==null){
+                    chunkLoadingQueue.Dequeue(); 
+                    return;
+                }
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                   chunkLoadingQueue.First.StartLoadChunk();
                   chunkLoadingQueue.Dequeue(); 
