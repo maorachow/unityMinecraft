@@ -109,6 +109,10 @@ public class WorldManager : MonoBehaviour
            chunkSpawningQueue.Dequeue();
           return;
         }
+        if(chunkUnloadingQueue.Contains(Chunk.GetChunk(cPos))){
+           chunkSpawningQueue.Dequeue();
+          return;
+        }
         Chunk c=ObjectPools.chunkPool.Get(cPos).GetComponent<Chunk>();
         c.ReInitData();
         chunkSpawningQueue.Dequeue();
@@ -128,12 +132,13 @@ public class WorldManager : MonoBehaviour
                     chunkLoadingQueue.Dequeue(); 
                     return;
                 }
+           
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                   chunkLoadingQueue.First.StartLoadChunk();
                   chunkLoadingQueue.Dequeue(); 
                 }else{
-                   chunkUnloadingQueue.Remove(chunkLoadingQueue.First); 
-                   chunkLoadingQueue.First.StartLoadChunk();
+                 
+                 //  chunkLoadingQueue.First.StartLoadChunk();
                   chunkLoadingQueue.Dequeue(); 
                 }
                  
@@ -149,8 +154,7 @@ public class WorldManager : MonoBehaviour
                   chunkLoadingQueue.First.StartLoadChunk();
                   chunkLoadingQueue.Dequeue(); 
                 }else{
-                   chunkUnloadingQueue.Remove(chunkLoadingQueue.First); 
-                   chunkLoadingQueue.First.StartLoadChunk();
+                
                   chunkLoadingQueue.Dequeue(); 
                 }
      //   Debug.Log("loading speed:"+1/Time.deltaTime);

@@ -7,6 +7,7 @@ public class ZombieBeh : MonoBehaviour
     public AudioSource AS;
     public static AudioClip zombieIdleClip;
     public Transform targetPosition;
+    public Transform currentTrans;
     public static GameObject diedZombiePrefab;
     public bool isZombieDied=false;
     private CharacterController cc;
@@ -54,7 +55,7 @@ public class ZombieBeh : MonoBehaviour
          diedZombiePrefab=Resources.Load<GameObject>("Prefabs/diedzombie");
          isZombiePrefabLoaded=true;
         }
-        
+            currentTrans=transform;
         targetPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         headTransform=transform.GetChild(0).GetChild(1);
         entityFacingPos=transform.rotation.eulerAngles;
@@ -80,23 +81,24 @@ public class ZombieBeh : MonoBehaviour
     public void ZombieDie(Vector3 knockback){
     AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
         isZombieDied=true;
-            Transform diedZombieTrans=Instantiate(diedZombiePrefab,transform.position,transform.rotation).GetComponent<Transform>();
+            Transform curTrans=transform;
+            Transform diedZombieTrans=Instantiate(diedZombiePrefab,curTrans.position,curTrans.rotation).GetComponent<Transform>();
        
 
             cc.enabled=false;
-            diedZombieTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(1).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(2).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(3).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(4).GetChild(0).position;
-            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().position=transform.GetChild(0).GetChild(5).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(1).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(2).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(3).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(4).GetChild(0).position;
+            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().position=curTrans.GetChild(0).GetChild(5).GetChild(0).position;
 
-            diedZombieTrans.GetChild(0).GetChild(0).rotation=transform.GetChild(0).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(1).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(2).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(3).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(4).GetChild(0).rotation;
-            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().rotation=transform.GetChild(0).GetChild(5).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(0).rotation=curTrans.GetChild(0).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().rotation=curTrans.GetChild(0).GetChild(1).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().rotation=curTrans.GetChild(0).GetChild(2).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().rotation=curTrans.GetChild(0).GetChild(3).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().rotation=curTrans.GetChild(0).GetChild(4).GetChild(0).rotation;
+            diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().rotation=curTrans.GetChild(0).GetChild(5).GetChild(0).rotation;
 
          
 
@@ -145,11 +147,12 @@ public class ZombieBeh : MonoBehaviour
 
     public void FixedUpdate(){
         if(Random.Range(0f,100f)>99f){
-             AudioSource.PlayClipAtPoint(zombieIdleClip,transform.position,1f);
+             AudioSource.PlayClipAtPoint(zombieIdleClip,currentTrans.position,1f);
         }
     }
 
     public void Update () {
+       
         if(zombieHealth<=0f&&isZombieDied==false){
             ZombieDie(entityMotionVec);
         }
@@ -159,7 +162,7 @@ public class ZombieBeh : MonoBehaviour
             return;
         }
      
-        if(transform.position.y<-40f){
+        if(currentTrans.position.y<-40f){
             ObjectPools.zombieEntityPool.Release(gameObject);
         }
           if(attackCD>0f){
@@ -174,16 +177,16 @@ public class ZombieBeh : MonoBehaviour
     
         targetDir = targetPosition.position;
         
-        transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
+        currentTrans.rotation=Quaternion.Slerp(currentTrans.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(targetDir);
        
       
-        if(Vector3.Magnitude(transform.position - targetDir)<1.6f){
+        if(Vector3.Magnitude(currentTrans.position - targetDir)<1.6f){
              entityVec.x=0f;
               if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime); 
             }else{
-                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+                 cc.Move((currentTrans.forward*entityVec.x+currentTrans.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
             }
             entitySpeed=Mathf.Lerp(entitySpeed,Speed(),5f*Time.deltaTime);
    //     Debug.Log(Speed());
@@ -199,7 +202,7 @@ public class ZombieBeh : MonoBehaviour
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime); 
             }else{
-                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+                 cc.Move((currentTrans.forward*entityVec.x+currentTrans.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
             }
         
         entitySpeed=Speed();

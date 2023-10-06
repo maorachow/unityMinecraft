@@ -70,8 +70,8 @@ public class CreeperBeh : MonoBehaviour
     }
     void InvokeRevertColor(){
               transform.GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
-         transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
-          transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+             transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
            transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
            transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
            transform.GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
@@ -159,7 +159,8 @@ public class CreeperBeh : MonoBehaviour
 	}
 
     public void Update () {
-        
+        Transform trans=transform;
+        Vector3 position=trans.position;
         entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,Time.deltaTime*3f);
         if(creeperHealth<=0f&&isCreeperDied==false){
             CreeperDie(entityMotionVec);
@@ -170,7 +171,7 @@ public class CreeperBeh : MonoBehaviour
      
       
    //      seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
-        if(transform.position.y<-40f){
+        if(position.y<-40f){
            ObjectPools.creeperEntityPool.Release(gameObject);
         }
             
@@ -197,16 +198,16 @@ public class CreeperBeh : MonoBehaviour
        // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
        // entityFacingPos=targetRotation.eulerAngles;
         
-        transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
+        trans.rotation=Quaternion.Slerp(trans.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(targetDir);
-         transform.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           transform.GetChild(3).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           transform.GetChild(4).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           transform.GetChild(5).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+         trans.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            trans.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            trans.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+           trans.GetChild(3).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+           trans.GetChild(4).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+           trans.GetChild(5).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
     
-        if((transform.position-targetDir).magnitude>=3f){ 
+        if((trans.position-targetDir).magnitude>=3f){ 
               if(entitySpeed<0.1f){
             Jump();
             }
@@ -230,7 +231,7 @@ public class CreeperBeh : MonoBehaviour
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime); 
             }else{
-                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+                 cc.Move((trans.forward*entityVec.x+trans.right*entityVec.z)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
             }
             entitySpeed=Speed();
             am.SetFloat("speed",entitySpeed);

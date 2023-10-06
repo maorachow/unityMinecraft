@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Priority_Queue;
-
+using System.Collections.Concurrent;
 using MessagePack;
 using System.IO;
 //using FastNoise;
@@ -171,8 +171,8 @@ public class Chunk : MonoBehaviour
     public static int chunkHeight=256;
     public static int chunkSeaLevel=63;
     public static System.Random worldRandomGenerator=new System.Random(0);
-    public static Dictionary<Vector2Int,Chunk> Chunks=new Dictionary<Vector2Int,Chunk>();
-    public static Dictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new Dictionary<Vector2Int,WorldData>();
+    public static ConcurrentDictionary<Vector2Int,Chunk> Chunks=new ConcurrentDictionary<Vector2Int,Chunk>();
+    public static ConcurrentDictionary<Vector2Int,WorldData> chunkDataReadFromDisk=new ConcurrentDictionary<Vector2Int,WorldData>();
     public static object chunkLock=new object();
     public static object chunkDataLock=new object();
     public MeshCollider meshCollider;
@@ -288,7 +288,7 @@ public class Chunk : MonoBehaviour
             chunkDataReadFromDisk.Add(new Vector2Int(w.posX,w.posZ),w);
         }*/
         if(worldData.Length>0){
-        chunkDataReadFromDisk=MessagePackSerializer.Deserialize<Dictionary<Vector2Int,WorldData>>(worldData,lz4Options);    
+        chunkDataReadFromDisk=MessagePackSerializer.Deserialize<ConcurrentDictionary<Vector2Int,WorldData>>(worldData,lz4Options);    
         }
         
         isJsonReadFromDisk=true;
@@ -314,18 +314,18 @@ public class Chunk : MonoBehaviour
        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
 
        isChunkPosInited=true;
-       lock(chunkLock){
+    //   lock(chunkLock){
          if(Chunks.ContainsKey(chunkPos)){
       //  if(GetChunk(chunkPos).gameObject!=null){
         //     ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
         //}
-        
-         Chunks.Remove(chunkPos);  
-          Chunks.Add(chunkPos,this);   
+        Chunk c;
+         Chunks.TryRemove(chunkPos,out c);  
+          Chunks.TryAdd(chunkPos,this);   
        }else{
        Chunks.TryAdd(chunkPos,this);    
        }
-       }
+    //   }
       
        
 
@@ -359,7 +359,8 @@ public class Chunk : MonoBehaviour
      //   chunkMesh=new Mesh();
       //  chunkNonSolidMesh=new Mesh();
         SaveSingleChunk();
-        Chunks.Remove(chunkPos);
+          Chunk c;
+        Chunks.Remove(chunkPos,out c);
         additiveMap=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         //  map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
         chunkPos=new Vector2Int(-10240,-10240);
@@ -486,12 +487,13 @@ public class Chunk : MonoBehaviour
           //  wd.map=worldDataMap;
           //  wd.posX=chunkPos.x;
           //  wd.posZ=chunkPos.y;
-            chunkDataReadFromDisk.Remove(chunkPos);
-            chunkDataReadFromDisk.Add(chunkPos,wd);
+        WorldData wdtmp;
+            chunkDataReadFromDisk.TryRemove(chunkPos,out wdtmp);
+            chunkDataReadFromDisk.TryAdd(chunkPos,wd);
         }else{
      //       int[,,] worldDataMap=map;
             WorldData wd=new WorldData(chunkPos.x,chunkPos.y,map);
-            chunkDataReadFromDisk.Add(chunkPos,wd);
+            chunkDataReadFromDisk.TryAdd(chunkPos,wd);
         }   
         }
        
@@ -1387,8 +1389,8 @@ public class Chunk : MonoBehaviour
 
 
     public async void BuildChunk(){
-       System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
-       sw.Start();
+  //     System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+    //   sw.Start();
         isMeshBuildCompleted=false;
      
      
@@ -1473,14 +1475,15 @@ public class Chunk : MonoBehaviour
         
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData,chunkMesh); 
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS,chunkNonSolidMesh);
-    //    BakeJob bj=new BakeJob();
-     //   bj.meshID=chunkMesh.GetInstanceID();
-     //   JobHandle bjHandle = bj.Schedule();
-        chunkMesh.RecalculateBounds();
-      // chunkMesh.RecalculateNormals();
+         chunkMesh.RecalculateBounds();
+        BakeJob bj=new BakeJob();
+        bj.meshID=chunkMesh.GetInstanceID();
+        JobHandle bjHandle = bj.Schedule();
+       
+       chunkMesh.RecalculateNormals();
 
         chunkNonSolidMesh.RecalculateBounds();
-     //   chunkNonSolidMesh.RecalculateNormals();
+        chunkNonSolidMesh.RecalculateNormals();
        
 
        // chunkMesh.indexFormat=IndexFormat.UInt32;
@@ -1518,7 +1521,7 @@ public class Chunk : MonoBehaviour
       
   //    yield return new WaitUntil(()=>handle.IsCompleted==true&&chunkMesh!=null);
     //   yield return new WaitForSeconds(0.01f);
-     //   bjHandle.Complete();
+        
   
       /*  NSVertsNA.Dispose();
         NSUVsNA.Dispose();
@@ -1534,12 +1537,15 @@ public class Chunk : MonoBehaviour
         opqTrisNL.Dispose();*/
    //     a.Dispose();
   
-    
+        if(WorldManager.chunkUnloadingQueue.Contains(this)){
+            return;
+        }
+        bjHandle.Complete();
         meshCollider.sharedMesh = chunkMesh;
       //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
         isChunkMapUpdated=false;
-        sw.Stop();
-        Debug.Log("Time used:"+sw.ElapsedMilliseconds);
+     //   sw.Stop();
+   //     Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
     }
 
@@ -1737,59 +1743,30 @@ public class Chunk : MonoBehaviour
             tris.Add(index + 0);
             tris.Add(index + 1);
             tris.Add(index + 2);
-            Vector3 a =vert0;
-            Vector3 b =vert1;
-            Vector3 c =vert2;
- 
-            Vector3 U = b - a;
-            Vector3 V = c - a;
- 
-            Vector3 normal = Vector3.Cross(U, V);
-            norms.Add(normal);
-            norms.Add(normal);
+        
             tris.Add(index + 2);
             tris.Add(index + 3);
             tris.Add(index + 0);
-
-            Vector3 a1 =vert2;
-            Vector3 b1 =vert3;
-            Vector3 c1 =vert0;
- 
-            Vector3 U1 = b1 - a1;
-            Vector3 V1 = c1 - a1;
- 
-            Vector3 normal1 = Vector3.Cross(U1, V1);
-            norms.Add(normal1);
-            norms.Add(normal1);
+            Vector3 v1 = Vector3.Cross(vert0 - vert1, vert0 - vert3);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
             }
             else
             {
             tris.Add(index + 1);
             tris.Add(index + 0);
             tris.Add(index + 2);
-            Vector3 a =vert1;
-            Vector3 b =vert0;
-            Vector3 c =vert2;
- 
-            Vector3 U = b - a;
-            Vector3 V = c - a;
- 
-            Vector3 normal = Vector3.Cross(U, V);
-            norms.Add(normal);
-            norms.Add(normal);
+        
             tris.Add(index + 3);
             tris.Add(index + 2);
             tris.Add(index + 0);
-            Vector3 a1 =vert3;
-            Vector3 b1 =vert2;
-            Vector3 c1 =vert0;
- 
-            Vector3 U1 = b1 - a1;
-            Vector3 V1 = c - a1;
- 
-            Vector3 normal1 = Vector3.Cross(U1, V1);
-            norms.Add(normal1);
-            norms.Add(normal1);
+            Vector3 v1 = Vector3.Cross(vert0 - vert1, vert0 - vert3);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
         }
     
     }
@@ -1944,32 +1921,29 @@ public class Chunk : MonoBehaviour
                 return;
             }
          //   Thread.Sleep(100);
-            try{
-         
-            List<Vector2Int> keys=new List<Vector2Int>(Chunks.Keys);
-            for(int i=0;i<keys.Count;i++){
-            if(Chunks[keys[i]].isChunkMapUpdated==true){
-               Chunks[keys[i]].isModifiedInGame=true;  
+          
+            foreach(var c in Chunks){
+            if(c.Value.isChunkMapUpdated==true){
+               c.Value.isModifiedInGame=true;  
           
             
-            if(Chunks[keys[i]].isMeshBuildCompleted==true){
-                 WorldManager.chunkLoadingQueue.Enqueue(Chunks[keys[i]],-100);
+            if(c.Value.isMeshBuildCompleted==true){
+                 WorldManager.chunkLoadingQueue.Enqueue(c.Value,-100);
             }
           
            //InitMap(chunkPos);
-            Chunks[keys[i]].isChunkMapUpdated=false;
+           c.Value.isChunkMapUpdated=false;
             }
-            }
-            }catch{
-           //     Debug.Log("modified");
-            }
+                }
+         
+          
                  
         }
           
     }
   public static void TryReleaseChunkThread(){
     while(true){
-         if(WorldManager.isGoingToQuitGame==true){
+      /*   if(WorldManager.isGoingToQuitGame==true){
                 return;
             }
          Thread.Sleep(100);
@@ -1987,8 +1961,26 @@ public class Chunk : MonoBehaviour
            WorldManager.chunkUnloadingQueue.Enqueue(Chunks[keys[i]],1-((int)Mathf.Abs(cPos.x-playerPosVec.x)+(int)Mathf.Abs(cPos.y-playerPosVec.z)));
            Chunks[keys[i]].isChunkPosInited=false;
         } 
-       }
+       }*/
+        Thread.Sleep(100);
+            if(WorldManager.isGoingToQuitGame==true){
+                return;
+            } 
+        foreach(var c in Chunks){
+            if(!Chunks.ContainsKey(c.Key)){
+            return;
+        }
+        if(c.Value.isChunkPosInited==false&&WorldManager.chunkUnloadingQueue.Contains(c.Value)){
+            continue;
+         }
+           Vector2Int cPos=c.Key;
 
+        if(Mathf.Abs(cPos.x-playerPosVec.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(cPos.y-playerPosVec.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&c.Value.isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(c.Value)){
+
+           WorldManager.chunkUnloadingQueue.Enqueue(c.Value,1-((int)Mathf.Abs(cPos.x-playerPosVec.x)+(int)Mathf.Abs(cPos.y-playerPosVec.z)));
+          c.Value.isChunkPosInited=false;
+        } 
+        }
         }
       
        
