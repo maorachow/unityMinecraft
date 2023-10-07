@@ -134,6 +134,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""SwitchCameraPos"",
+                    ""type"": ""Button"",
+                    ""id"": ""55468058-d393-437c-b541-c3c2f1f98e69"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -367,6 +376,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""MouseDragFourth"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ad7881f6-c985-47b1-ac56-e2976b2bb57c"",
+                    ""path"": ""<Keyboard>/f5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SwitchCameraPos"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -387,6 +407,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Player_MouseDragSec = m_Player.FindAction("MouseDragSec", throwIfNotFound: true);
         m_Player_MouseDragTri = m_Player.FindAction("MouseDragTri", throwIfNotFound: true);
         m_Player_MouseDragFourth = m_Player.FindAction("MouseDragFourth", throwIfNotFound: true);
+        m_Player_SwitchCameraPos = m_Player.FindAction("SwitchCameraPos", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -460,6 +481,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_MouseDragSec;
     private readonly InputAction m_Player_MouseDragTri;
     private readonly InputAction m_Player_MouseDragFourth;
+    private readonly InputAction m_Player_SwitchCameraPos;
     public struct PlayerActions
     {
         private @PlayerInput m_Wrapper;
@@ -476,6 +498,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         public InputAction @MouseDragSec => m_Wrapper.m_Player_MouseDragSec;
         public InputAction @MouseDragTri => m_Wrapper.m_Player_MouseDragTri;
         public InputAction @MouseDragFourth => m_Wrapper.m_Player_MouseDragFourth;
+        public InputAction @SwitchCameraPos => m_Wrapper.m_Player_SwitchCameraPos;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -521,6 +544,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragFourth.started += instance.OnMouseDragFourth;
             @MouseDragFourth.performed += instance.OnMouseDragFourth;
             @MouseDragFourth.canceled += instance.OnMouseDragFourth;
+            @SwitchCameraPos.started += instance.OnSwitchCameraPos;
+            @SwitchCameraPos.performed += instance.OnSwitchCameraPos;
+            @SwitchCameraPos.canceled += instance.OnSwitchCameraPos;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -561,6 +587,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @MouseDragFourth.started -= instance.OnMouseDragFourth;
             @MouseDragFourth.performed -= instance.OnMouseDragFourth;
             @MouseDragFourth.canceled -= instance.OnMouseDragFourth;
+            @SwitchCameraPos.started -= instance.OnSwitchCameraPos;
+            @SwitchCameraPos.performed -= instance.OnSwitchCameraPos;
+            @SwitchCameraPos.canceled -= instance.OnSwitchCameraPos;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -592,5 +621,6 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         void OnMouseDragSec(InputAction.CallbackContext context);
         void OnMouseDragTri(InputAction.CallbackContext context);
         void OnMouseDragFourth(InputAction.CallbackContext context);
+        void OnSwitchCameraPos(InputAction.CallbackContext context);
     }
 }

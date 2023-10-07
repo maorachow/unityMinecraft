@@ -57,7 +57,7 @@ public class EntityBeh : MonoBehaviour
     public Chunk currentChunk;
     public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
     //0Creeper 1zombie
-    
+    public CharacterController cc;
     public static bool isEntitiesLoad=false;
     public static string gameWorldEntityDataPath;
     public static List<EntityData> entityDataReadFromDisk=new List<EntityData>();
@@ -216,17 +216,19 @@ public class EntityBeh : MonoBehaviour
     }
     void OnEnable(){
         worldEntities.Add(this); 
+        cc=GetComponent<CharacterController>();
     }
    // void Awake(){
     //    worldEntities.Add(this);
    // }
     void FixedUpdate(){
+         
         currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
         if(currentChunk==null||currentChunk.isMeshBuildCompleted==false){
-            GetComponent<CharacterController>().enabled=false;
+          cc.enabled=false;
             isInUnloadedChunks=true;
         }else{
-             GetComponent<CharacterController>().enabled=true;
+            cc.enabled=true;
              isInUnloadedChunks=false;
         }
     }

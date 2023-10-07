@@ -46,7 +46,7 @@ public class PlayerMove : MonoBehaviour
     public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
-    public int cameraPosMode=0;
+    public int cameraPosMode=0;//0fp 1sp 2tp
     
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
@@ -77,7 +77,7 @@ public class PlayerMove : MonoBehaviour
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
-    public static GameObject pauseMenu;
+    //public static GameObject pauseMenu;
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
     public Vector2 playerChunkLoadingPos;
@@ -159,7 +159,7 @@ public class PlayerMove : MonoBehaviour
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
       GameUIBeh.instance.CloseCraftingUI();
          GameUIBeh.instance.Resume();
-     
+        cameraPos=mainCam.transform;
     }
 
 
@@ -265,7 +265,7 @@ public class PlayerMove : MonoBehaviour
 //0diamond to pickaxe 1diamond to sword
     public void ExchangeItem(int exchangeID){
         if(exchangeID==0){
-    if(GetItemFromSlot(153)==-1){
+        if(GetItemFromSlot(153)==-1){
             return;
         }else{
             
@@ -275,7 +275,7 @@ public class PlayerMove : MonoBehaviour
 
         }else if(exchangeID==1){
 
-      if(GetItemFromSlot(153)==-1){
+        if(GetItemFromSlot(153)==-1){
             return;
         }else{
             
@@ -413,6 +413,10 @@ public class PlayerMove : MonoBehaviour
              blockOutline.GetComponent<MeshRenderer>().enabled=false;
             collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
         }
+        if(cameraPosMode==1){
+            blockOutline.GetComponent<MeshRenderer>().enabled=false;
+            collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
+        }
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
        //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
        
@@ -430,11 +434,47 @@ public class PlayerMove : MonoBehaviour
         
           } };
            
-          
+          pi.Player.SwitchCameraPos.performed+=ctx=>{
+            cameraPosMode++;
+            if(cameraPosMode>=3){
+                cameraPosMode=0;
+            }
+          };
+          Ray playerHeadForwardRay=new Ray(headPos.position,headPos.position+headPos.forward*5f);
+            Ray playerHeadBackRay=new Ray(headPos.position,headPos.position+headPos.forward*-5f);
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
-            
+       //     Debug.DrawLine(headPos.position,headPos.position+headPos.forward*5f,Color.green);
+       //     Debug.DrawLine(headPos.position,headPos.position+headPos.forward*-5f,Color.green);
+        RaycastHit infoForward=new RaycastHit();
+        RaycastHit infoBack=new RaycastHit();
+        bool isForwardPointHit=false;
+        bool isBackPointHit=false;
+        if(Physics.Linecast(headPos.position,headPos.position+headPos.forward*5f,out infoForward)){
+            isForwardPointHit=true;
+       //     Debug.DrawLine(infoForward.point,infoForward.point+new Vector3(0f,1f,0f),Color.green);
+        }
+        if(Physics.Linecast(headPos.position,headPos.position+headPos.forward*(-5f),out infoBack)){
+            isBackPointHit=true;
+          //   Debug.DrawLine(infoBack.point,infoBack.point+new Vector3(0f,1f,0f),Color.green);
+        }
        
-        
+        switch(cameraPosMode){
+            case 0:cameraPos.localPosition=new Vector3(0f,0.28f,-0.1f);cameraPos.localEulerAngles=new Vector3(0f,0f,0f);break;
+            case 1: if(isForwardPointHit==true){
+                cameraPos.position=infoForward.point;
+            }else{
+                cameraPos.localPosition=new Vector3(0f,0f,5f)+new Vector3(0f,0.28f,-0.1f);
+            }
+            cameraPos.localEulerAngles=new Vector3(0f,-180f,0f);
+            break;
+            case 2:if(isBackPointHit==true){
+                cameraPos.position=infoBack.point;
+            }else{
+                cameraPos.localPosition=new Vector3(0f,0f,-5f)+new Vector3(0f,0.28f,-0.1f);
+            }
+            cameraPos.localEulerAngles=new Vector3(0f,0f,0f);
+            break;
+        }
       
         if(cc.isGrounded!=true){
             playerY+=gravity*Time.deltaTime;
@@ -653,7 +693,7 @@ public class PlayerMove : MonoBehaviour
     }
     void AttackEnemy(GameObject go){
          AttackAnimate();
-     Invoke("cancelAttackInvoke",0.1f);
+     Invoke("cancelAttackInvoke",0.13f);
         if(go.GetComponent<ZombieBeh>()!=null){
             if(inventoryDic[currentSelectedHotbar-1]==152){
              go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-20f);   
@@ -675,6 +715,9 @@ public class PlayerMove : MonoBehaviour
         }
     }
     void BreakBlock(){
+        if(cameraPosMode==1){
+            return;
+        }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
@@ -690,7 +733,7 @@ public class PlayerMove : MonoBehaviour
             if(inventoryDic[currentSelectedHotbar-1]==151){
              //   return;
                AttackAnimate();
-            Invoke("cancelAttackInvoke",0.1f);
+            Invoke("cancelAttackInvoke",0.13f);
              for(float x=-1f;x<=1f;x++){
                 for(float y=-1f;y<=1f;y++){
                     for(float z=-1f;z<=1f;z++){
@@ -733,11 +776,14 @@ public class PlayerMove : MonoBehaviour
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
         chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
      AttackAnimate();
-     Invoke("cancelAttackInvoke",0.1f);
+     Invoke("cancelAttackInvoke",0.13f);
         }
     }
 
     void PlaceBlock(){
+        if(cameraPosMode==1){
+            return;
+        }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
@@ -756,7 +802,7 @@ public class PlayerMove : MonoBehaviour
              AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
              AttackAnimate();
-     Invoke("cancelAttackInvoke",0.1f);
+     Invoke("cancelAttackInvoke",0.13f);
         }
     }
     

@@ -293,12 +293,13 @@ public class Chunk : MonoBehaviour
         
         isJsonReadFromDisk=true;
         biomeNoiseGenerator.SetSeed(20000);
-        biomeNoiseGenerator.SetFrequency(0.005f);
+        biomeNoiseGenerator.SetFrequency(0.006f);
         biomeNoiseGenerator.SetNoiseType(FastNoise.NoiseType.Cellular);
-         noiseGenerator.SetFrequency(0.006f);
+        noiseGenerator.SetNoiseType(FastNoise.NoiseType.Perlin);
+         noiseGenerator.SetFrequency(0.002f);
          noiseGenerator.SetFractalType(FastNoise.FractalType.FBM);
           noiseGenerator. SetFractalOctaves(10);
-           noiseGenerator.SetFractalLacunarity(100f);
+       //    noiseGenerator.SetFractalLacunarity(100f);
            noiseGenerator. SetNoiseType(FastNoise.NoiseType.Value);
     }
  //   void Awake(){
@@ -559,7 +560,7 @@ public class Chunk : MonoBehaviour
          //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
                 //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
 
-                heightMap[i,j]=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+(i-1)*8,pos.y+(j-1)*8)*20f+chunkBiomeMap[i,j]*25f;
+                heightMap[i,j]=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+(i-1)*8,pos.y+(j-1)*8)*20f+chunkBiomeMap[i,j]*15f;
                 }
 
             }//32,32
@@ -702,8 +703,13 @@ public class Chunk : MonoBehaviour
                         float q22=chunkBiomeMap[x2Ori,y2Ori];
                         float fxy1=(float)(x2-x)/(x2-x1)*q11+(float)(x-x1)/(x2-x1)*q21;
                         float fxy2=(float)(x2-x)/(x2-x1)*q12+(float)(x-x1)/(x2-x1)*q22;
-                        int fxy=(int)((int)(y2-y)/(y2-y1)*fxy1+(int)(y-y1)/(y2-y1)*fxy2);
-                        chunkBiomeMapInterpolated[x,y]=fxy;
+                        float fxyf=((y2-y)/(y2-y1)*fxy1+(y-y1)/(y2-y1)*fxy2);
+                        if(fxyf-(int)fxyf>=0.5f){
+                        chunkBiomeMapInterpolated[x,y]=(int)fxyf+1; 
+                        }else{
+                                chunkBiomeMapInterpolated[x,y]=(int)fxyf; 
+                        }
+                      
                  //       Debug.Log(fxy);
                     //    Debug.Log(x1);
                       //  Debug.Log(x2);
@@ -1288,7 +1294,7 @@ public class Chunk : MonoBehaviour
      //   NSTrisNA=trisNS.AsArray();
 
         
-        NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+            NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
     //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
@@ -1484,7 +1490,7 @@ public class Chunk : MonoBehaviour
 
         chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();
-       
+      
 
        // chunkMesh.indexFormat=IndexFormat.UInt32;
        /* chunkNonSolidMesh.indexFormat=IndexFormat.UInt32;
@@ -1859,18 +1865,23 @@ public class Chunk : MonoBehaviour
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-        chunkNeededUpdate.isChunkMapUpdated=true;
+      //  chunkNeededUpdate.isChunkMapUpdated=true;
+        WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate,-100);
         if(chunkNeededUpdate.frontChunk!=null){
-           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
+           //chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
+           WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.frontChunk,-100);
         }
         if(chunkNeededUpdate.backChunk!=null){
-            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
+         //   chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
+         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.backChunk,-100);
         }
         if(chunkNeededUpdate.leftChunk!=null){
-            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
+        //    chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
+        WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.leftChunk,-100);
         }
         if(chunkNeededUpdate.rightChunk!=null){
-            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
+         //   chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
+         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.rightChunk,-100);
         }
     }
         [BurstCompile]
@@ -1928,7 +1939,7 @@ public class Chunk : MonoBehaviour
           
             
             if(c.Value.isMeshBuildCompleted==true){
-                 WorldManager.chunkLoadingQueue.Enqueue(c.Value,-100);
+                 WorldManager.chunkLoadingQueue.Enqueue(c.Value,-50);
             }
           
            //InitMap(chunkPos);
