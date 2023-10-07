@@ -51,7 +51,7 @@ public class Chunk : MonoBehaviour
             uvPos=v2; 
         }
     }
-    [BurstCompile]
+   [BurstCompile]
     public struct BakeJob:IJob{
         public int meshID;
         public void Execute(){
@@ -1482,11 +1482,12 @@ public class Chunk : MonoBehaviour
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData,chunkMesh); 
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS,chunkNonSolidMesh);
          chunkMesh.RecalculateBounds();
+       
         BakeJob bj=new BakeJob();
         bj.meshID=chunkMesh.GetInstanceID();
         JobHandle bjHandle = bj.Schedule();
        
-       chunkMesh.RecalculateNormals();
+         chunkMesh.RecalculateNormals();
 
         chunkNonSolidMesh.RecalculateBounds();
         chunkNonSolidMesh.RecalculateNormals();

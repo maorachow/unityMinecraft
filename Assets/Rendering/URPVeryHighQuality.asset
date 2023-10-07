@@ -20,22 +20,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 170445abc706c7141a1b781f37a92215, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
-  m_RequireOpaqueTexture: 1
+  m_RequireOpaqueTexture: 0
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
-  m_SupportsHDR: 0
+  m_SupportsHDR: 1
   m_HDRColorBufferPrecision: 0
   m_MSAA: 1
-  m_RenderScale: 1.2
+  m_RenderScale: 0.7
   m_UpscalingFilter: 0
   m_FsrOverrideSharpness: 0
   m_FsrSharpness: 0.92
   m_EnableLODCrossFade: 1
-  m_LODCrossFadeDitheringType: 0
+  m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
   m_MainLightRenderingMode: 1
   m_MainLightShadowsSupported: 1
-  m_MainLightShadowmapResolution: 2048
+  m_MainLightShadowmapResolution: 4096
   m_AdditionalLightsRenderingMode: 1
   m_AdditionalLightsPerObjectLimit: 4
   m_AdditionalLightShadowsSupported: 0
@@ -45,11 +45,11 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierHigh: 1024
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
-  m_ShadowDistance: 100
+  m_ShadowDistance: 50
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
-  m_Cascade4Split: {x: 0.088, y: 0.24799998, z: 0.467}
+  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
   m_CascadeBorder: 0.2
   m_ShadowDepthBias: 0
   m_ShadowNormalBias: 0
@@ -57,11 +57,11 @@ MonoBehaviour:
   m_SoftShadowsSupported: 1
   m_ConservativeEnclosingSphere: 0
   m_NumIterationsEnclosingSphere: 64
-  m_SoftShadowQuality: 1
+  m_SoftShadowQuality: 2
   m_AdditionalLightsCookieResolution: 2048
   m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
-  m_SupportsDynamicBatching: 1
+  m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
   m_SupportsLightCookies: 1
   m_SupportsLightLayers: 0
@@ -69,7 +69,7 @@ MonoBehaviour:
   m_StoreActionsOptimization: 0
   m_EnableRenderGraph: 0
   m_UseAdaptivePerformance: 1
-  m_ColorGradingMode: 1
+  m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
   m_UseFastSRGBLinearConversion: 0
   m_SupportDataDrivenLensFlare: 1
