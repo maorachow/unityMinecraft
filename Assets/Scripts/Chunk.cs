@@ -341,14 +341,10 @@ public class Chunk : MonoBehaviour
     }
     
     //strongload: simulate chunk mesh collider
-    void StrongLoadChunk(){
+    public void StrongLoadChunk(){
         isStrongLoaded=true;
     }
-    void StopChunkFromStrongSim(){
-        if(meshCollider.sharedMesh!=null){
-            meshCollider.sharedMesh=null;
-          //  meshColliderNS.sharedMesh=null;
-        }
+   public void StopChunkFromStrongSim(){
         isStrongLoaded=false;
     }
    
@@ -417,11 +413,11 @@ public class Chunk : MonoBehaviour
     }
  
 
-    public void StartLoadChunk(){
+    public void StartLoadChunk(bool isStrongLoading){
         
      
     
-           BuildChunk();
+           BuildChunk(isStrongLoading);
             
      
       //  Vector3 pos=transform.position;
@@ -1394,7 +1390,7 @@ public class Chunk : MonoBehaviour
 
 
 
-    public async void BuildChunk(){
+    public async void BuildChunk(bool isStrongLoading){
   //     System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
     //   sw.Start();
         isMeshBuildCompleted=false;
@@ -1437,7 +1433,6 @@ public class Chunk : MonoBehaviour
        //     if(chunkMesh==null){
                 chunkMesh=new Mesh();    
        //     }
-              
         //    if(chunkNonSolidMesh==null){
               chunkNonSolidMesh=new Mesh();   
          //   }
@@ -1519,7 +1514,7 @@ public class Chunk : MonoBehaviour
         return;
    
         }  
-        meshFilter.sharedMesh = chunkMesh;
+        meshFilter.mesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
 
      //   NativeArray<int> a=new NativeArray<int>(1,Allocator.TempJob);
@@ -1548,9 +1543,12 @@ public class Chunk : MonoBehaviour
             return;
         }
         bjHandle.Complete();
-        meshCollider.sharedMesh = chunkMesh;
+    if(isStrongLoading==true){
+         meshCollider.sharedMesh = chunkMesh;  
+    }
+    
       //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
-        isChunkMapUpdated=false;
+      //  isChunkMapUpdated=false;
      //   sw.Stop();
    //     Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
@@ -1866,23 +1864,30 @@ public class Chunk : MonoBehaviour
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-      //  chunkNeededUpdate.isChunkMapUpdated=true;
         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate,-100);
+        WorldManager.chunkStrongLoadingQueue.Add(chunkNeededUpdate.chunkPos);
+        chunkNeededUpdate.isChunkMapUpdated=true;
+
+        
         if(chunkNeededUpdate.frontChunk!=null){
-           //chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
-           WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.frontChunk,-100);
+           WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.frontChunk,-100); 
+           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
+           
         }
         if(chunkNeededUpdate.backChunk!=null){
-         //   chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
-         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.backChunk,-100);
+          WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.backChunk,-100);  
+            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
+         
         }
         if(chunkNeededUpdate.leftChunk!=null){
-        //    chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
-        WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.leftChunk,-100);
+        WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.leftChunk,-100);    
+            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
+        
         }
         if(chunkNeededUpdate.rightChunk!=null){
-         //   chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
-         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.rightChunk,-100);
+          WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate.rightChunk,-100);  
+            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
+         
         }
     }
         [BurstCompile]
@@ -1929,20 +1934,29 @@ public class Chunk : MonoBehaviour
      //   mainBuildChunk callback;
      
         while(true){
-              if(WorldManager.isGoingToQuitGame==true){
+            if(WorldManager.isGoingToQuitGame==true){
                 return;
             }
-         //   Thread.Sleep(100);
+         
           
             foreach(var c in Chunks){
             if(c.Value.isChunkMapUpdated==true){
+             
+               
                c.Value.isModifiedInGame=true;  
-          
-            
+         
             if(c.Value.isMeshBuildCompleted==true){
                  WorldManager.chunkLoadingQueue.Enqueue(c.Value,-50);
+              
+                 WorldManager.chunkStrongLoadingQueue.Add(c.Key); 
+
+                 
+                
+                
+               
             }
-          
+        
+            
            //InitMap(chunkPos);
            c.Value.isChunkMapUpdated=false;
             }

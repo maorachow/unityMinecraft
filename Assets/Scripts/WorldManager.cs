@@ -6,8 +6,23 @@ using System.Threading.Tasks;
 using Priority_Queue;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using System.Collections.Concurrent;
+using Unity.Collections;
+using Unity.Burst;
+using Unity.Jobs;
+using Cysharp.Threading.Tasks;
 public class WorldManager : MonoBehaviour
 {
+
+
+
+    [BurstCompile]
+    public struct BakeJobFor:IJobParallelFor{
+        public NativeArray<int> meshID;
+        public void Execute(int i){
+            Physics.BakeMesh(meshID[i],false);
+        }
+    }
 //  public static UnityAction<Scene,Scene> sceneChangedEvent;
     public static RuntimePlatform platform = Application.platform;
     public static string gameWorldDataPath;
@@ -18,12 +33,14 @@ public class WorldManager : MonoBehaviour
     public static SimplePriorityQueue<Vector2Int> chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
     public static SimplePriorityQueue<Chunk> chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
     public static SimplePriorityQueue<Chunk> chunkUnloadingQueue=new SimplePriorityQueue<Chunk>();
+    public static List<Vector2Int> chunkStrongLoadingQueue=new List<Vector2Int>();
     public Transform playerPos;
     public Camera playerCam;
     public GameObject lightSource;
     public Task t2;
     public Task t3;
     public Task t4;
+
     void Awake(){
 
        if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
@@ -62,6 +79,7 @@ public class WorldManager : MonoBehaviour
             chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
             isGoingToQuitGame=false;
             UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
+       
        //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
          // SceneManager.activeSceneChanged-=sceneChangedEvent;  
         //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
@@ -72,7 +90,7 @@ public class WorldManager : MonoBehaviour
        //   t3.Start();
          t4=Task.Run(()=>Chunk.TryUpdateChunkThread());
        //   t4.Start();
-          
+
     }
 
     void FixedUpdate(){
@@ -80,7 +98,7 @@ public class WorldManager : MonoBehaviour
       SpawnChunksAsync();
       BuildAllChunksAsync();
       DisableChunksAsync();
-      
+      StrongLoadChunkInQueue();
   //   }
         if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
@@ -99,6 +117,44 @@ public class WorldManager : MonoBehaviour
         
        }
     }
+
+
+  public async void StrongLoadChunkInQueue(){
+   // NativeList<int> meshesID=new NativeList<int>(Allocator.TempJob);
+   // List<Chunk> meshChunks=new List<Chunk>();
+    while(chunkStrongLoadingQueue.Count>0){
+      //  Debug.Log(chunkStrongLoadingQueue.Count);
+      Chunk c=Chunk.GetChunk(chunkStrongLoadingQueue[0]);
+      if(c==null){
+      //  chunkStrongLoadingQueue.RemoveAt(0);
+      //    continue;
+      c=Chunk.GetUnloadedChunk(chunkStrongLoadingQueue[0]);
+      if(c==null){
+           chunkStrongLoadingQueue.RemoveAt(0);
+         continue;
+      }
+      }
+      
+      if(c.isChunkMapUpdated==false){
+       
+      
+        c.meshCollider.sharedMesh=c.chunkMesh;
+        c.isStrongLoaded=true;
+        chunkStrongLoadingQueue.RemoveAt(0);
+         continue;
+        }else{
+         await UniTask.WaitUntil(() => c.isChunkMapUpdated==false);
+        c.meshCollider.sharedMesh=c.chunkMesh;
+       
+          c.isStrongLoaded=true;
+        chunkStrongLoadingQueue.RemoveAt(0);
+         continue;
+      }
+    
+    }
+ 
+   
+  }
      void SpawnChunksAsync(){
     //  (var c in chunkSpawningQueue){
  //     await Task.Delay(20);
@@ -134,7 +190,13 @@ public class WorldManager : MonoBehaviour
                 }
            
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
-                  chunkLoadingQueue.First.StartLoadChunk();
+                  if(chunkStrongLoadingQueue.Contains( chunkLoadingQueue.First.chunkPos)){
+                   chunkLoadingQueue.First.StartLoadChunk(true); 
+                   chunkStrongLoadingQueue.Remove(chunkLoadingQueue.First.chunkPos);
+                  }else{
+                      chunkLoadingQueue.First.StartLoadChunk(false); 
+                  }
+                  
                   chunkLoadingQueue.Dequeue(); 
                 }else{
                  
@@ -151,7 +213,13 @@ public class WorldManager : MonoBehaviour
           if(chunkLoadingQueue.Count>0){
       //  lock(chunkLoadingQueue){
          if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
-                  chunkLoadingQueue.First.StartLoadChunk();
+                  if(chunkStrongLoadingQueue.Contains(chunkLoadingQueue.First.chunkPos)){
+                   chunkLoadingQueue.First.StartLoadChunk(true); 
+                   chunkStrongLoadingQueue.Remove( chunkLoadingQueue.First.chunkPos);
+                  }else{
+                      chunkLoadingQueue.First.StartLoadChunk(false); 
+                  }
+                  
                   chunkLoadingQueue.Dequeue(); 
                 }else{
                 
@@ -169,6 +237,9 @@ public class WorldManager : MonoBehaviour
     }
 public void FastChunkLoadingButtonOnValueChanged(bool b){
   isChunkFastLoadingEnabled=b;
+}
+void OnApplicationQuit(){
+  isGoingToQuitGame=true;
 }
     void Update(){
       Chunk.playerPosVec=playerPos.position;

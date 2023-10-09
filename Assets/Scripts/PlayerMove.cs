@@ -77,6 +77,7 @@ public class PlayerMove : MonoBehaviour
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
+    public static float chunkStrongLoadingRange=40;
     //public static GameObject pauseMenu;
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
@@ -146,7 +147,7 @@ public class PlayerMove : MonoBehaviour
         collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
 
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
-   
+        chunkStrongLoadingRange=64;
         viewRange=64;
         am=transform.GetChild(0).GetComponent<Animator>();
         cc=GetComponent<CharacterController>();
@@ -366,7 +367,11 @@ public class PlayerMove : MonoBehaviour
         }
         playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
         curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
-        if(curChunk==null||curChunk.isMeshBuildCompleted==false){
+        if(curChunk!=null&&curChunk.meshCollider.sharedMesh==null){
+            WorldManager.chunkStrongLoadingQueue.Add(curChunk.chunkPos);
+            return;
+        }
+        if(curChunk==null||curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false){
       //      UpdateWorld();
             return;
         }
@@ -461,14 +466,14 @@ public class PlayerMove : MonoBehaviour
         switch(cameraPosMode){
             case 0:cameraPos.localPosition=new Vector3(0f,0.28f,-0.1f);cameraPos.localEulerAngles=new Vector3(0f,0f,0f);break;
             case 1: if(isForwardPointHit==true){
-                cameraPos.position=infoForward.point;
+                cameraPos.position=Vector3.Lerp(headPos.position,infoForward.point,0.97f);
             }else{
                 cameraPos.localPosition=new Vector3(0f,0f,5f)+new Vector3(0f,0.28f,-0.1f);
             }
             cameraPos.localEulerAngles=new Vector3(0f,-180f,0f);
             break;
             case 2:if(isBackPointHit==true){
-                cameraPos.position=infoBack.point;
+                cameraPos.position=Vector3.Lerp(headPos.position,infoBack.point,0.97f);
             }else{
                 cameraPos.localPosition=new Vector3(0f,0f,-5f)+new Vector3(0f,0.28f,-0.1f);
             }
@@ -620,9 +625,9 @@ public class PlayerMove : MonoBehaviour
             }
             Thread.Sleep(20);  
             for (float x = playerChunkLoadingPos.x - viewRange; x < playerChunkLoadingPos.x + viewRange; x += Chunk.chunkWidth)
-        {
-            for (float z = playerChunkLoadingPos.y - viewRange; z <playerChunkLoadingPos.y + viewRange; z += Chunk.chunkWidth)
             {
+            for (float z = playerChunkLoadingPos.y - viewRange; z <playerChunkLoadingPos.y + viewRange; z += Chunk.chunkWidth)
+                {
                 Vector3 pos = new Vector3(x, 0, z);
 
                 Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
@@ -637,17 +642,41 @@ public class PlayerMove : MonoBehaviour
              //   if(chunk!=null){
               //    chunk.ReInitData();
              //  }
-     
+               
                WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-playerChunkLoadingPos.x)+(int)Mathf.Abs(chunkPos.y-playerChunkLoadingPos.y)); 
-             
-                    
+
+
          //          WorldManager.chunksToLoad.Add(chunk);
                 }
             }
         }
+
+        for (float x = playerChunkLoadingPos.x - chunkStrongLoadingRange; x < playerChunkLoadingPos.x + chunkStrongLoadingRange; x += Chunk.chunkWidth)
+            {
+            for (float z = playerChunkLoadingPos.y - chunkStrongLoadingRange; z <playerChunkLoadingPos.y + chunkStrongLoadingRange; z += Chunk.chunkWidth)
+                {
+                Vector3 pos = new Vector3(x, 0, z);
+
+                Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
+               
+                Chunk chunk = Chunk.GetChunk(chunkPos);
+              if(chunk==null||chunk.isChunkPosInited==false){
+                continue;
+              }
+              if(chunk.isStrongLoaded==false){
+                if(!WorldManager.chunkStrongLoadingQueue.Contains(chunkPos)){
+                  WorldManager.chunkStrongLoadingQueue.Add(chunkPos);   
+                }
+               
+             //   chunk.isStrongLoaded=true;
+              }
+            }
+        }
+
         }
         
     }
+
  /*  async void UpdateWorld()
     {
         Vector3 curPos=transform.position;

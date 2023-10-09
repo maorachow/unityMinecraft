@@ -390,7 +390,7 @@ public class ItemEntityBeh : MonoBehaviour
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
         }
         currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
-        if(currentChunk==null){
+        if(currentChunk==null||currentChunk.isMeshBuildCompleted==false||currentChunk.isStrongLoaded==false||currentChunk.meshCollider.sharedMesh==null){
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             isInUnloadedChunks=true;
         }else{
