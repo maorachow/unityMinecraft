@@ -7,6 +7,12 @@ using System.IO;
 using System.Threading;
 using UnityEngine.EventSystems;
 using MessagePack;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Burst;
+using Cysharp.Threading.Tasks;
+using System;
+using Random=UnityEngine.Random;
 [MessagePackObject]
 public class PlayerData{
     [Key(0)]
@@ -33,6 +39,7 @@ public class PlayerData{
 public class PlayerMove : MonoBehaviour
 {   
     public static AudioClip playerDropItemClip;
+    public static AudioClip playerSweepAttackClip;
     public AudioSource AS;
     public float playerCameraZShakeValue;
     public float playerCameraZShakeLerpValue;
@@ -47,7 +54,7 @@ public class PlayerMove : MonoBehaviour
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
     public int cameraPosMode=0;//0fp 1sp 2tp
-    
+    public static GameObject playerSweepParticlePrefab;
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
     public GameObject collidingBlockOutline;
@@ -59,7 +66,7 @@ public class PlayerMove : MonoBehaviour
     public Camera mainCam;
     public CharacterController cc;
     public float cameraX;
-    
+    public float critAttackCD=1f;
     public float breakBlockCD=0.2f;
     public float moveSpeed=5f;
     public float gravity=-9.8f;
@@ -77,11 +84,12 @@ public class PlayerMove : MonoBehaviour
     public int[] inventoryDic=new int[9];
     public int[] inventoryItemNumberDic=new int[9];
     public static float viewRange=32;
-    public static float chunkStrongLoadingRange=40;
+    public static float chunkStrongLoadingRange=48;
     //public static GameObject pauseMenu;
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
     public Vector2 playerChunkLoadingPos;
+    public List<Chunk> chunksToStrongLoad=new List<Chunk>();
     void Awake(){
        
         if(isBlockNameDicAdded==false){
@@ -140,7 +148,7 @@ public class PlayerMove : MonoBehaviour
         // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
-     
+        playerSweepAttackClip=Resources.Load<AudioClip>("Audios/Sweep_attack1");
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -161,6 +169,9 @@ public class PlayerMove : MonoBehaviour
       GameUIBeh.instance.CloseCraftingUI();
          GameUIBeh.instance.Resume();
         cameraPos=mainCam.transform;
+                transform.GetChild(0).localRotation=Quaternion.Euler(0f,0f,0f);
+        transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
+        playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
     }
 
 
@@ -234,6 +245,16 @@ public class PlayerMove : MonoBehaviour
    
 		return Vector3.Magnitude(new Vector3(cc.velocity.x,0f,cc.velocity.z));
 	}
+
+   
+    void InvokeRevertColor(){
+            transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+            transform.GetChild(0).GetChild(1).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
+    }
     public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
         AS.Play();
         //GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
@@ -241,11 +262,18 @@ public class PlayerMove : MonoBehaviour
         playerHealth-=damageAmount;
          GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         playerMotionVec=knockback;
+        transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<MeshRenderer>().material.color=Color.red;
+            transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+            transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+            transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+            transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+            transform.GetChild(0).GetChild(1).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
+            Invoke("InvokeRevertColor",0.2f);
     }
     public void PlayerDie(){
           AS.Play();
            playerCameraZShakeLerpValue=0f;
-       playerCameraZShakeValue=0f;
+            playerCameraZShakeValue=0f;
           GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
       //   transform.position=new Vector3(0f,150f,0f);
         for(int i=0;i<inventoryDic.Length;i++){
@@ -256,11 +284,15 @@ public class PlayerMove : MonoBehaviour
         }
         Cursor.lockState = CursorLockMode.Confined;
           cc.enabled = false;
-        transform.rotation=Quaternion.Euler(0f,0f,-90f);
+        transform.GetChild(0).localRotation=Quaternion.Euler(0f,0f,-90f);
+        transform.GetChild(0).localPosition=new Vector3(0.65f,-0.68f,0f);
         cc.enabled = true;
          
         isPlayerKilled=true;
+        am.SetBool("iskilled",true);
+        am.SetFloat("speed",0f);
         RespawnUI.instance.gameObject.SetActive(true);
+        
     }
 
 //0diamond to pickaxe 1diamond to sword
@@ -305,6 +337,8 @@ public class PlayerMove : MonoBehaviour
         transform.position = new Vector3(0f,150f,0f);
         headPos.rotation=Quaternion.identity;
         playerBodyPos.rotation=Quaternion.identity;
+        transform.GetChild(0).rotation=Quaternion.Euler(0f,0f,0f);
+        transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
         cc.enabled = true;
         
         
@@ -367,12 +401,10 @@ public class PlayerMove : MonoBehaviour
         }
         playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
         curChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
-        if(curChunk!=null&&curChunk.meshCollider.sharedMesh==null){
-            WorldManager.chunkStrongLoadingQueue.Add(curChunk.chunkPos);
+         if(curChunk==null||curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false){
             return;
         }
-        if(curChunk==null||curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false){
-      //      UpdateWorld();
+          if(curChunk!=null&&(curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false)){
             return;
         }
         currentSpeed=Speed();
@@ -539,6 +571,10 @@ public class PlayerMove : MonoBehaviour
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
+        if(critAttackCD>0f){
+        critAttackCD-=Time.deltaTime;    
+        }
+        
         pi.Player.DropItem.performed+=ctx=>{
             
             PlayerDropItem(currentSelectedHotbar-1);
@@ -579,6 +615,7 @@ public class PlayerMove : MonoBehaviour
     // if(cc.velocity.magnitude>0.1f){
     //       UpdateWorld();
    //  }
+  TryStrongLoadChunkThread();
      playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
         
@@ -600,7 +637,7 @@ public class PlayerMove : MonoBehaviour
             }
   
                 AttackAnimate();
-                Invoke("cancelAttackInvoke",0.1f);
+                Invoke("cancelAttackInvoke",0.16f);
             }else{
           
         }
@@ -651,6 +688,25 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
+     
+
+        }
+        
+    }
+
+     
+
+      [BurstCompile]
+    public struct BakeJobFor:IJobParallelFor{
+        public NativeArray<int> meshID;
+        public void Execute(int i){
+            Physics.BakeMesh(meshID[i],false);
+        }
+    }
+
+  public void TryStrongLoadChunkThread(){
+      //  chunksToStrongLoad.Clear();
+      
         for (float x = playerChunkLoadingPos.x - chunkStrongLoadingRange; x < playerChunkLoadingPos.x + chunkStrongLoadingRange; x += Chunk.chunkWidth)
             {
             for (float z = playerChunkLoadingPos.y - chunkStrongLoadingRange; z <playerChunkLoadingPos.y + chunkStrongLoadingRange; z += Chunk.chunkWidth)
@@ -660,23 +716,28 @@ public class PlayerMove : MonoBehaviour
                 Vector2Int chunkPos=  Chunk.Vec3ToChunkPos(pos);
                
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-              if(chunk==null||chunk.isChunkPosInited==false){
-                continue;
-              }
-              if(chunk.isStrongLoaded==false){
-                if(!WorldManager.chunkStrongLoadingQueue.Contains(chunkPos)){
-                  WorldManager.chunkStrongLoadingQueue.Add(chunkPos);   
+                if(chunk==null||chunk.isChunkPosInited==false){
+                 //   if(!WorldManager.chunkSpawningQueue.Contains(chunkPos)){
+                  //  WorldManager.chunkSpawningQueue.Enqueue(chunkPos,-50);     
+                  //  }
+                    continue;
                 }
+         //     chunk.meshCollider.sharedMesh=chunk.chunkMesh;
+                if(chunk.isStrongLoaded==false||chunk.meshCollider.sharedMesh==null){
+                  StartCoroutine(chunk.StrongLoadChunk());
+                
+                 
+                }
+                
                
              //   chunk.isStrongLoaded=true;
-              }
+              
             }
         }
-
-        }
+     
+        
         
     }
-
  /*  async void UpdateWorld()
     {
         Vector3 curPos=transform.position;
@@ -714,15 +775,52 @@ public class PlayerMove : MonoBehaviour
      
     }*/
 
+   async void PlayerCritAttack(){
+        CritAttackAnimate();
+        Invoke("cancelCritAttackInvoke",0.75f);
+      await UniTask.Delay(TimeSpan.FromSeconds(0.75), ignoreTimeScale: false);
+       
+        Vector3 attackEffectPoint;
+        RaycastHit infoForward;
+        if(Physics.Linecast(headPos.position,headPos.position+headPos.forward*4f,out infoForward)){
+                attackEffectPoint=infoForward.point;
+        }else{
+             attackEffectPoint=headPos.position+headPos.forward*4f;
+        }
+         GameObject a=Instantiate(playerSweepParticlePrefab,attackEffectPoint,Quaternion.identity);
+         a.GetComponent<ParticleSystem>().Emit(1);
+         Destroy(a,2f);
+        AudioSource.PlayClipAtPoint(playerSweepAttackClip,headPos.position,1f);
+          Collider[] colliders = Physics.OverlapSphere(transform.position, 4f);
+          foreach(var c in colliders){
+              if(c.gameObject.tag=="Entity"){
+                if(c.GetComponent<CreeperBeh>()!=null){
+                    c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
+                }
+                if(c.GetComponent<ZombieBeh>()!=null){
+                    c.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
+                }
+                if(c.GetComponent<ItemEntityBeh>()!=null){
+                    c.GetComponent<Rigidbody>().velocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);
+                }
+            }
+          }
+    }
     void cancelAttackInvoke(){
         am.SetBool("isattacking",false);
     }
     void AttackAnimate(){
         am.SetBool("isattacking",true);
     }
+     void cancelCritAttackInvoke(){
+        am.SetBool("isattackingcrit",false);
+    }
+    void CritAttackAnimate(){
+        am.SetBool("isattackingcrit",true);
+    }
     void AttackEnemy(GameObject go){
          AttackAnimate();
-     Invoke("cancelAttackInvoke",0.13f);
+     Invoke("cancelAttackInvoke",0.16f);
         if(go.GetComponent<ZombieBeh>()!=null){
             if(inventoryDic[currentSelectedHotbar-1]==152){
              go.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(7f,(transform.position-go.transform.position).normalized*-20f);   
@@ -751,6 +849,7 @@ public class PlayerMove : MonoBehaviour
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)){
             if(info.collider.gameObject.tag=="Entity"){
+               
                     AttackEnemy(info.collider.gameObject);
                     return;
             }
@@ -762,7 +861,7 @@ public class PlayerMove : MonoBehaviour
             if(inventoryDic[currentSelectedHotbar-1]==151){
              //   return;
                AttackAnimate();
-            Invoke("cancelAttackInvoke",0.13f);
+            Invoke("cancelAttackInvoke",0.16f);
              for(float x=-1f;x<=1f;x++){
                 for(float y=-1f;y<=1f;y++){
                     for(float z=-1f;z<=1f;z++){
@@ -805,7 +904,7 @@ public class PlayerMove : MonoBehaviour
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
         chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
      AttackAnimate();
-     Invoke("cancelAttackInvoke",0.13f);
+     Invoke("cancelAttackInvoke",0.16f);
         }
     }
 
@@ -815,6 +914,14 @@ public class PlayerMove : MonoBehaviour
         }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
+        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
+            
+             if(inventoryDic[currentSelectedHotbar-1]==152){
+                PlayerCritAttack();
+                critAttackCD=1f;
+                return;
+            }
+        }
         if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
             Vector3 blockPoint=info.point-headPos.forward*0.01f;
             if(inventoryDic[currentSelectedHotbar-1]>150&&inventoryDic[currentSelectedHotbar-1]<=200){
@@ -831,7 +938,7 @@ public class PlayerMove : MonoBehaviour
              AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
              AttackAnimate();
-     Invoke("cancelAttackInvoke",0.13f);
+     Invoke("cancelAttackInvoke",0.16f);
         }
     }
     

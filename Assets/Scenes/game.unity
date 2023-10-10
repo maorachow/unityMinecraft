@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: c88360d58cc61654fb96cd901fe67f49, type: 2}
   m_HaloStrength: 0.238
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -3628,7 +3628,7 @@ Light:
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
-  m_RenderMode: 0
+  m_RenderMode: 2
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -11031,6 +11031,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemMesh: {fileID: 0}
+  t: {fileID: 0}
   isHandItemBuildCompleted: 0
   mf: {fileID: 0}
   blockID: 0
@@ -11182,6 +11183,7 @@ MonoBehaviour:
   mainCam: {fileID: 0}
   cc: {fileID: 0}
   cameraX: 0
+  critAttackCD: 1
   breakBlockCD: 0.2
   moveSpeed: 5
   gravity: -9.8
@@ -11199,6 +11201,7 @@ MonoBehaviour:
   lerpItemSlotAxis: 0
   lerpPlayerVec: {x: 0, y: 0, z: 0}
   playerChunkLoadingPos: {x: 0, y: 0}
+  chunksToStrongLoad: []
 --- !u!4 &6095466469615324927
 Transform:
   m_ObjectHideFlags: 0

@@ -310,6 +310,7 @@ public class Chunk : MonoBehaviour
 
 
    public void ReInitData(){
+    
       //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
 
        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
@@ -338,10 +339,13 @@ public class Chunk : MonoBehaviour
       //  StartLoadChunk();
    //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
          WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPosVec.x)+(int)Mathf.Abs(transform.position.z-playerPosVec.z));
+          
     }
     
     //strongload: simulate chunk mesh collider
-    public void StrongLoadChunk(){
+    public IEnumerator StrongLoadChunk(){
+        yield return new WaitUntil(()=>isMeshBuildCompleted==true);
+        meshCollider.sharedMesh=chunkMesh;
         isStrongLoaded=true;
     }
    public void StopChunkFromStrongSim(){
@@ -349,6 +353,10 @@ public class Chunk : MonoBehaviour
     }
    
     async void OnDisable(){
+            meshRenderer.enabled=false;
+        meshRendererNS.enabled=false;
+        meshCollider.sharedMesh=null;
+         isStrongLoaded=false;
     if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
     }
@@ -366,9 +374,9 @@ public class Chunk : MonoBehaviour
         isSavedInDisk=false;
         isMapGenCompleted=false;
         isMeshBuildCompleted=false;
-        isStrongLoaded=false;
+       
         isChunkMapUpdated=false;
-	 
+     
 //	    meshFilter.mesh=null;
       
 	 //   meshColliderNS.sharedMesh=null;
@@ -376,6 +384,7 @@ public class Chunk : MonoBehaviour
       //  chunkMesh=null;
      //   chunkNonSolidMesh=null;
         isModifiedInGame=false;});
+     
      //   isChunkPosInited=false;
     }
 
@@ -415,11 +424,12 @@ public class Chunk : MonoBehaviour
 
     public void StartLoadChunk(bool isStrongLoading){
         
-     
+      
     
            BuildChunk(isStrongLoading);
             
-     
+          meshRenderer.enabled=true;
+        meshRendererNS.enabled=true;
       //  Vector3 pos=transform.position;
 
    //     ThreadStart childref = new ThreadStart(() => InitMap(chunkPos));
@@ -1422,11 +1432,6 @@ public class Chunk : MonoBehaviour
 
         if(isChunkPosInited){
         await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS));      
-        }else{
-        //   ReInitData();
-          // return;
-          WorldManager.chunkUnloadingQueue.Enqueue(this,0);
-         // await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS));      
         }
 
       //  await UniTask.WaitUntil(() => isMeshBuildCompleted == true);
@@ -1543,12 +1548,10 @@ public class Chunk : MonoBehaviour
             return;
         }
         bjHandle.Complete();
-    if(isStrongLoading==true){
-         meshCollider.sharedMesh = chunkMesh;  
-    }
+      isStrongLoaded=false;
     
       //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
-      //  isChunkMapUpdated=false;
+        isChunkMapUpdated=false;
      //   sw.Stop();
    //     Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
@@ -1865,7 +1868,7 @@ public class Chunk : MonoBehaviour
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         WorldManager.chunkLoadingQueue.Enqueue(chunkNeededUpdate,-100);
-        WorldManager.chunkStrongLoadingQueue.Add(chunkNeededUpdate.chunkPos);
+      
         chunkNeededUpdate.isChunkMapUpdated=true;
 
         
@@ -1948,7 +1951,7 @@ public class Chunk : MonoBehaviour
             if(c.Value.isMeshBuildCompleted==true){
                  WorldManager.chunkLoadingQueue.Enqueue(c.Value,-50);
               
-                 WorldManager.chunkStrongLoadingQueue.Add(c.Key); 
+             
 
                  
                 

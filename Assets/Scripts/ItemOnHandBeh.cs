@@ -6,6 +6,7 @@ using System.Threading;
 public class ItemOnHandBeh : MonoBehaviour
 {
     public Mesh itemMesh;
+    public Transform t;
     public bool isHandItemBuildCompleted=false;
     public static int textureXSize{get{return ItemEntityBeh.textureXSize;}}
     public static int textureYSize{get{return ItemEntityBeh.textureYSize;}}
@@ -22,6 +23,7 @@ public class ItemOnHandBeh : MonoBehaviour
     {
         mf=GetComponent<MeshFilter>();
         InvokeRepeating("InvokeBuildItem",0f,0.5f);
+        t=transform;
     }
     void InvokeBuildItem(){
         if(blockID!=prevBlockID){
@@ -42,7 +44,9 @@ public class ItemOnHandBeh : MonoBehaviour
         BuildItemModel(blockID);
     }
     public void BuildItemModel(int itemID){
-        transform.localPosition=new Vector3(0f,0f,0f);
+       
+        t.localPosition=new Vector3(0f,0f,0.1f);
+        t.localEulerAngles=new Vector3(45f,45f,45f);
     itemMesh=new Mesh();
     float x=-0.5f;
     float y=-0.5f;
@@ -119,7 +123,8 @@ public class ItemOnHandBeh : MonoBehaviour
 
  public void BuildFlatItemModel(int itemID)
     {
-        transform.localPosition=new Vector3(0.05f,-0.2f,-0.3f);
+        t.localPosition=new Vector3(-0.01f,-0.2f,-0.25f);
+        t.localEulerAngles=new Vector3(-70f,0f,-90f);
     float x=0f;
     float y=0f;
     float z=0f;

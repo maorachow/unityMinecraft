@@ -55,7 +55,12 @@ public class CreeperBeh : MonoBehaviour
         creeperHealth=20f;
             isPosInited=false;
     }
-
+    public void OnEnable(){
+        if(cc!=null){
+         cc.enabled=true;   
+        }
+        
+    }
     public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
         AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
         transform.GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
@@ -96,12 +101,13 @@ public class CreeperBeh : MonoBehaviour
         }
         GameObject a=Instantiate(explosionPrefab,new Vector3(transform.position.x,transform.position.y+0.5f,transform.position.z),transform.rotation);
         Destroy(a,2f);
+        cc.enabled=false;
            ObjectPools.creeperEntityPool.Release(gameObject);
     }
     void CreeperDie(Vector3 knockback){
          AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
         isCreeperDied=true;
-        cc.enabled=false;
+      //  cc.enabled=false;
           Transform diedCreeperTrans=Instantiate(diedCreeperPrefab,transform.position,transform.rotation).GetComponent<Transform>();
               diedCreeperTrans.GetChild(0).position=transform.GetChild(0).position;
          diedCreeperTrans.GetChild(1).GetChild(0).position=transform.GetChild(1).GetChild(0).position;
@@ -123,7 +129,7 @@ public class CreeperBeh : MonoBehaviour
            diedCreeperTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-           cc.enabled=true;
+      //     cc.enabled=true;
            Destroy(diedCreeperTrans.gameObject,30f);
            ObjectPools.creeperEntityPool.Release(gameObject);
     }
@@ -159,6 +165,9 @@ public class CreeperBeh : MonoBehaviour
 	}
 
     public void Update () {
+        if(cc.enabled==false){
+            return;
+        }
         Transform trans=transform;
         Vector3 position=trans.position;
         entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,Time.deltaTime*3f);
@@ -223,8 +232,8 @@ public class CreeperBeh : MonoBehaviour
         }
         }
        
-          
-             if(cc.enabled==true){
+            
+        if(cc.enabled==true){
                 if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
                     return;
                 }
