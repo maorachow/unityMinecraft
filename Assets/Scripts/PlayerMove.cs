@@ -512,7 +512,7 @@ public class PlayerMove : MonoBehaviour
             cameraPos.localEulerAngles=new Vector3(0f,0f,0f);
             break;
         }
-      
+
         if(cc.isGrounded!=true){
             playerY+=gravity*Time.deltaTime;
         }else{
@@ -724,7 +724,12 @@ public class PlayerMove : MonoBehaviour
                 }
          //     chunk.meshCollider.sharedMesh=chunk.chunkMesh;
                 if(chunk.isStrongLoaded==false||chunk.meshCollider.sharedMesh==null){
-                  StartCoroutine(chunk.StrongLoadChunk());
+                    if(chunk.isMeshBuildCompleted==false){
+                        continue;
+                    }else{
+                    chunk.StrongLoadChunk();
+                    }
+                  
                 
                  
                 }

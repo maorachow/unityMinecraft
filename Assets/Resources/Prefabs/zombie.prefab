@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7851657571342355074}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leftItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9071709113527308616}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leftLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -74,7 +74,7 @@ GameObject:
   - component: {fileID: 419496666785969748}
   - component: {fileID: 4009461007541480849}
   - component: {fileID: 6401855017363416020}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leftLeg_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -157,7 +157,7 @@ GameObject:
   - component: {fileID: 6184926675960110545}
   - component: {fileID: 2644070903663786830}
   - component: {fileID: 5358656524455909441}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: rightLeg_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -240,7 +240,7 @@ GameObject:
   - component: {fileID: 669229124967248973}
   - component: {fileID: 5064470947607682385}
   - component: {fileID: 4458007096247016660}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: head_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -321,7 +321,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6608544531237198404}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: rightLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -355,7 +355,7 @@ GameObject:
   - component: {fileID: 7293217528623793132}
   - component: {fileID: 4565518346418730515}
   - component: {fileID: 1679646119017640805}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: body_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -438,7 +438,7 @@ GameObject:
   - component: {fileID: 4882371412824386986}
   - component: {fileID: 3864252743462095454}
   - component: {fileID: 7050358656381694205}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leftArm_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 9002228204750208331}
   - component: {fileID: 2814887044140612219}
   - component: {fileID: 574120882632229893}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: zombie
   m_TagString: Entity
   m_Icon: {fileID: 0}
@@ -581,6 +581,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentChunk: {fileID: 0}
+  cc: {fileID: 0}
   entityTypeID: 0
   guid: 
   isInUnloadedChunks: 0
@@ -624,6 +625,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AS: {fileID: 0}
   targetPosition: {fileID: 0}
+  currentTrans: {fileID: 0}
   isZombieDied: 0
   am: {fileID: 0}
   headTransform: {fileID: 0}
@@ -744,7 +746,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8321054735030312130}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -781,7 +783,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 485140127484658101}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leftArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -814,7 +816,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2267852846025669556}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: rightArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -847,7 +849,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3238539765124763203}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: rightItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -878,7 +880,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1900079333736472147}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -912,7 +914,7 @@ GameObject:
   - component: {fileID: 1640954893715589429}
   - component: {fileID: 1588489604350014638}
   - component: {fileID: 6916036245808554175}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: rightArm_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

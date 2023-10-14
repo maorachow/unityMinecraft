@@ -23,7 +23,7 @@ QualitySettings:
     textureMipmapLimitSettings:
     - serializedVersion: 0
       limitBiasMode: 0
-      limitBias: 0
+      limitBias: -3
     anisotropicTextures: 0
     antiAliasing: 0
     softParticles: 0
@@ -36,7 +36,7 @@ QualitySettings:
     lodBias: 1
     maximumLODLevel: 0
     enableLODCrossFade: 1
-    streamingMipmapsActive: 0
+    streamingMipmapsActive: 1
     streamingMipmapsAddAllCameras: 1
     streamingMipmapsMemoryBudget: 512
     streamingMipmapsRenderersPerFrame: 512

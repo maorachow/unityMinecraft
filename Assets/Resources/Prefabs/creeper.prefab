@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 128286001233108306}
   - component: {fileID: 9065520440945446901}
   - component: {fileID: 1779033395367242925}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg1_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 6909347049624590059}
   - component: {fileID: 3149839076057990438}
   - component: {fileID: 3804119479123806718}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg3_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -178,7 +178,7 @@ GameObject:
   - component: {fileID: 6174363782869979347}
   - component: {fileID: 5213933479051104815}
   - component: {fileID: 5278068641113265000}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg2_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -262,7 +262,7 @@ GameObject:
   - component: {fileID: 7581795299144416476}
   - component: {fileID: 4003199032937457040}
   - component: {fileID: 6167923302596364195}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg1_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -343,7 +343,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3626535348115011596}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -377,7 +377,7 @@ GameObject:
   - component: {fileID: 6594499181952992788}
   - component: {fileID: 171434078847580854}
   - component: {fileID: 1555577996840564850}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg0_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -458,7 +458,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7545124074380613220}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -490,7 +490,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8377132911083646550}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 4655470888573818271}
   - component: {fileID: 2017141002525156260}
   - component: {fileID: 8188743956558135119}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: head_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -608,7 +608,7 @@ GameObject:
   - component: {fileID: 3537126916056523346}
   - component: {fileID: 6923207289544374201}
   - component: {fileID: 1187002735955731236}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: body_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -692,7 +692,7 @@ GameObject:
   - component: {fileID: 1788952203114770561}
   - component: {fileID: 3445903045252258143}
   - component: {fileID: 249399806079996941}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg0_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -774,7 +774,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2658937929347862498}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -808,7 +808,7 @@ GameObject:
   - component: {fileID: 5417910575602071140}
   - component: {fileID: 1168891260978449435}
   - component: {fileID: 7931779989422975120}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: head_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -889,7 +889,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5749835856379985215}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -923,7 +923,7 @@ GameObject:
   - component: {fileID: 195172891059900005}
   - component: {fileID: 229567873845279619}
   - component: {fileID: 9032810689899761374}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: body_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1006,7 +1006,7 @@ GameObject:
   - component: {fileID: 6312792310521206771}
   - component: {fileID: 4043364216839855671}
   - component: {fileID: 2993437572409821649}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg2_1exploarmor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1092,7 +1092,7 @@ GameObject:
   - component: {fileID: -1764324764803843779}
   - component: {fileID: 7200608411719612595}
   - component: {fileID: 1522110575865953887}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: creeper
   m_TagString: Entity
   m_Icon: {fileID: 0}
@@ -1154,6 +1154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentChunk: {fileID: 0}
+  cc: {fileID: 0}
   entityTypeID: 0
   guid: 
   isInUnloadedChunks: 0
@@ -1320,7 +1321,7 @@ GameObject:
   - component: {fileID: 2312079593449028265}
   - component: {fileID: 2379186727433313108}
   - component: {fileID: 2225831346547712403}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: leg3_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

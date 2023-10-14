@@ -47,7 +47,7 @@ public class ItemEntityBeh : MonoBehaviour
     public Rigidbody rb;
     public static Transform playerPos;
 
-
+    public Vector3 lastItemPos;
 
     void ReleaseItem(){
     if(gameObject.activeInHierarchy==true){
@@ -61,6 +61,7 @@ public class ItemEntityBeh : MonoBehaviour
     tris=new List<int>();
     itemMesh=new Mesh();
     worldItemEntities.Add(this); 
+    lastItemPos=transform.position;
     }
 
     public async void BuildItemModel(){
@@ -196,8 +197,20 @@ public class ItemEntityBeh : MonoBehaviour
     public bool isInUnloadedChunks=false;
 
 
-    public void OnDisable(){
+    public async void OnDisable(){
+
+        lastItemPos=transform.position;
+        RemoveItemEntityFromSave();
+        await Task.Run(()=>{
+
         lifeTime=0f;
+        isPosInited=false;
+
+        itemID=0;
+        
+
+        });
+    /*    lifeTime=0f;
         isPosInited=false;
         itemMesh=null;
         verts.Clear();
@@ -205,7 +218,7 @@ public class ItemEntityBeh : MonoBehaviour
         tris.Clear();
         itemID=0;
         RemoveItemEntityFromSave();
-        worldItemEntities.Remove(this);  
+        worldItemEntities.Remove(this); */ 
         
         
     }
@@ -242,18 +255,19 @@ public class ItemEntityBeh : MonoBehaviour
             //isEntitiesReadFromDisk=true;
     }
     public void RemoveItemEntityFromSave(){
-      ItemData tmpData=new ItemData(itemID,itemCount,transform.position.x,transform.position.y,transform.position.z,this.guid,lifeTime);
+      ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime);
         tmpData.guid=this.guid;
-        foreach(ItemData ed in itemEntityDataReadFromDisk){
+        for(int i=0;i<itemEntityDataReadFromDisk.Count;i++){
+            ItemData ed=itemEntityDataReadFromDisk[i];
             if(ed.guid==this.guid){
-                itemEntityDataReadFromDisk.Remove(ed);
+                itemEntityDataReadFromDisk.RemoveAt(i);
                 break;
             }
         }
     }
     public void SaveSingleItemEntity(){
    //     Debug.Log(this.guid);
-        ItemData tmpData=new ItemData(itemID,itemCount,transform.position.x,transform.position.y,transform.position.z,this.guid,lifeTime);
+        ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime);
        // tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){
             if(ed.guid==this.guid){
@@ -323,12 +337,13 @@ public class ItemEntityBeh : MonoBehaviour
                 tmp.itemID=ed.itemID;
                 tmp.guid=ed.guid;
                 tmp.lifeTime=ed.lifeTime;
-                yield return new WaitForSeconds(0.01f);
+           
                 tmp.SendMessage("InitPos");
           
 
             
         }
+        yield break;
     }
     public void AddForceInvoke(Vector3 f){
         if(isPosInited!=true){
@@ -337,13 +352,11 @@ public class ItemEntityBeh : MonoBehaviour
         rb.velocity=f;
     }
     public void InitPos(){
-        Invoke("InvokeInitPos",0.03f);
+            isPosInited=true;
+        BuildItemModel();
     
     }
-    public void InvokeInitPos(){
-        isPosInited=true;
-        BuildItemModel();
-    }
+
     void Awake(){
       //  worldEntities.Add(this);
        if(isFlatItemInfoAdded==false){
@@ -356,8 +369,6 @@ public class ItemEntityBeh : MonoBehaviour
     void Update(){
        
         lifeTime+=Time.deltaTime;    
-        
-        
         if(lifeTime>=60f){
             ReleaseItem();
             return;
