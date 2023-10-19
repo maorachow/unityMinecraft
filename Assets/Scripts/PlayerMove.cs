@@ -106,6 +106,7 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(11,"Sand");
         blockNameDic.Add(100,"Water");
         blockNameDic.Add(101,"Grass Crop");
+        blockNameDic.Add(102,"Torch");
         blockNameDic.Add(151,"Diamond Pickaxe");
         blockNameDic.Add(152,"Diamond Sword");
         blockNameDic.Add(153,"Diamond");
@@ -316,6 +317,14 @@ public class PlayerMove : MonoBehaviour
         AddItem(152,1);  
         }
 
+        }else if(exchangeID==2){
+        if(GetItemFromSlot(7)==-1){
+            return;
+        }else{
+            
+          inventoryItemNumberDic[GetItemFromSlot(7)]--;
+        AddItem(102,1);  
+        }
         }
         
         
@@ -932,6 +941,11 @@ public class PlayerMove : MonoBehaviour
             if(inventoryDic[currentSelectedHotbar-1]>150&&inventoryDic[currentSelectedHotbar-1]<=200){
                 return;
             }
+            if(inventoryDic[currentSelectedHotbar-1]==102){
+                if(Chunk.GetBlock(Chunk.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))==0||(Chunk.GetBlock(Chunk.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))>=100&&Chunk.GetBlock(Chunk.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))<=200)){
+                    return;
+                }
+            }
             if(inventoryDic[currentSelectedHotbar-1]==0){
                 return;
             }
@@ -940,6 +954,7 @@ public class PlayerMove : MonoBehaviour
             }
 
             Chunk.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
+          
              AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
              AttackAnimate();

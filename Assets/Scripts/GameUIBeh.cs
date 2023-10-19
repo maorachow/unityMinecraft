@@ -51,6 +51,7 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/sand"));
     blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
+    blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));
      blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
       blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
       blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));

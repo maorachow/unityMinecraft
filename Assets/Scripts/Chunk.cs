@@ -1,5 +1,4 @@
- using System.Collections;
-
+using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -138,6 +137,7 @@ public class Chunk : MonoBehaviour
   //  }
   //0None 1Stone 2Grass 3Dirt 4Side grass block 5Bedrock 6WoodX 7WoodY 8WoodZ 9Leaves 10Diamond Ore 11Sand
   //100Water 101Grass
+  //102torch
   //200Leaves
   //0-99solid blocks
   //100-199no hitbox blocks
@@ -210,8 +210,8 @@ public class Chunk : MonoBehaviour
     public Vector3[] NSVerts;
     public Vector2[] NSUVs;
     public int[] NSTris;
-    
-
+    public List<Vector3> lightPoints;
+    public List<GameObject> pointLightGameObjects=new List<GameObject>();
     public NativeArray<Vector3> opqVertsNA;
     public NativeArray<Vector2> opqUVsNA;
     public NativeArray<int> opqTrisNA;
@@ -235,6 +235,7 @@ public class Chunk : MonoBehaviour
         blockAudioDic.TryAdd(11,Resources.Load<AudioClip>("Audios/Sand_dig1"));
         blockAudioDic.TryAdd(100,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(101,Resources.Load<AudioClip>("Audios/Grass_dig1"));
+        blockAudioDic.TryAdd(102,Resources.Load<AudioClip>("Audios/Wood_dig1"));
         blockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         blockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
         blockInfo.TryAdd(3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)});
@@ -252,7 +253,7 @@ public class Chunk : MonoBehaviour
         itemBlockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
         itemBlockInfo.TryAdd(3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)});
         itemBlockInfo.TryAdd(4,new List<Vector2>{new Vector2(0.1875f,0f),new Vector2(0.1875f,0f),new Vector2(0.125f,0f),new Vector2(0.0625f,0f),new Vector2(0.1875f,0f),new Vector2(0.1875f,0f)});
-        itemBlockInfo.TryAdd(100,new List<Vector2>{new Vector2(0.0625f,0.0625f),new Vector2(0.0625f,0.0625f),new Vector2(0.0625f,0.0625f),new Vector2(0.0625f,0.0625f),new Vector2(0.0625f,0.0625f),new Vector2(0.0625f,0.0625f)});
+        itemBlockInfo.TryAdd(100,new List<Vector2>{new Vector2(0.125f,0.0625f),new Vector2(0.125f,0.0625f),new Vector2(0.125f,0.0625f),new Vector2(0.125f,0.0625f),new Vector2(0.125f,0.0625f),new Vector2(0.125f,0.0625f)});
         itemBlockInfo.TryAdd(101,new List<Vector2>{new Vector2(0f,0.0625f)});
         itemBlockInfo.TryAdd(5,new List<Vector2>{new Vector2(0.375f,0f),new Vector2(0.375f,0f),new Vector2(0.375f,0f),new Vector2(0.375f,0f),new Vector2(0.375f,0f),new Vector2(0.375f,0f)});
         itemBlockInfo.TryAdd(6,new List<Vector2>{new Vector2(0.25f,0f),new Vector2(0.25f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f)});
@@ -351,9 +352,10 @@ public class Chunk : MonoBehaviour
         isStrongLoaded=true;
     }
     async void OnDisable(){
-            meshRenderer.enabled=false;
+        meshRenderer.enabled=false;
         meshRendererNS.enabled=false;
-        meshCollider.sharedMesh=null;
+        meshRendererWT.enabled=false;
+    
          isStrongLoaded=false;
         if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
@@ -626,6 +628,7 @@ public class Chunk : MonoBehaviour
     //    frontHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
    //     backHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
         thisHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y));
+        lightPoints=new List<Vector3>();
        // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
        List<Vector3> opqVertsNL=new List<Vector3>();
        List<Vector3> opqNormsNL=new List<Vector3>();
@@ -1273,12 +1276,40 @@ public class Chunk : MonoBehaviour
     }
             
         if(typeid>=101&&typeid<150){
-            Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
+
+            if(typeid==102){
+            //torch
+
+               
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, vertsNS, uvsNS, trisNS,normsNS);
+            //Right
+     
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0.125f,0f,0f),  new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, vertsNS, uvsNS, trisNS,normsNS);
+
+            //Bottom
+     
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f),new Vector3(0f,0f,0.125f),new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, vertsNS, uvsNS, trisNS,normsNS);
+                //Top
+       
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0.625f,0.4375f), new Vector3(0f,0f,0.125f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0.03125f), true, vertsNS, uvsNS, trisNS,normsNS);
+
+            //Back
+    
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, vertsNS, uvsNS, trisNS,normsNS);
+            //Front
+    
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0f,0f,0.125f),  new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f),false, vertsNS, uvsNS, trisNS,normsNS); 
+            
+
+            lightPoints.Add(new Vector3(x,y,z)+new Vector3(0.5f,0.635f,0.5f));
+  
+            }else{
+                    Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
             BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0,normsNS);
             
 
 
-            BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0,normsNS);
+       
 
 
 
@@ -1286,8 +1317,10 @@ public class Chunk : MonoBehaviour
 
 
 
-         BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, vertsNS, uvsNS, trisNS,0,normsNS);
-
+     
+  
+            }
+      
 
         }
 
@@ -1304,9 +1337,9 @@ public class Chunk : MonoBehaviour
      //   NSTrisNA=trisNS.AsArray();
 
         
-            NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+        NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
+        new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
     //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
     //    mdaNS[0].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);
      //   mda[1].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);   
@@ -1322,13 +1355,13 @@ public class Chunk : MonoBehaviour
             pos[i]=new Vertex(verts[i],norms[i],uvs[i]);
            
         }
-       data.SetIndexBufferParams((int)(pos.Length/2)*3, IndexFormat.UInt32);
+       data.SetIndexBufferParams((int)(pos.Length), IndexFormat.UInt32);
         var ib = data.GetIndexData<int>();
         for (int i = 0; i < ib.Length; ++i)
             ib[i] = tris[i];
 
         data.subMeshCount = 1;
-        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));
+        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length,MeshTopology.Quads));
 
            pos.Dispose();
            ib.Dispose();
@@ -1347,7 +1380,7 @@ public class Chunk : MonoBehaviour
             posNS[i]=new Vertex(vertsNS[i],normsNS[i],uvsNS[i]);
            
         }
-       dataNS.SetIndexBufferParams((int)(posNS.Length/2)*3, IndexFormat.UInt32);
+       dataNS.SetIndexBufferParams((int)(posNS.Length), IndexFormat.UInt32);
         var ibNS = dataNS.GetIndexData<int>();
         for (int i = 0; i <ibNS.Length;++i){
            ibNS[i] = trisNS[i];  
@@ -1355,7 +1388,7 @@ public class Chunk : MonoBehaviour
            
 
             dataNS.subMeshCount = 1;
-            dataNS.SetSubMesh(0, new SubMeshDescriptor(0, ibNS.Length));
+            dataNS.SetSubMesh(0, new SubMeshDescriptor(0, ibNS.Length,MeshTopology.Quads));
            posNS.Dispose();
            ibNS.Dispose();
 
@@ -1376,7 +1409,7 @@ public class Chunk : MonoBehaviour
             posWT[i]=new Vertex(vertsWT[i],normsWT[i],uvsWT[i]);
            
         }
-       dataWT.SetIndexBufferParams((int)(posWT.Length/2)*3, IndexFormat.UInt32);
+       dataWT.SetIndexBufferParams((int)(posWT.Length), IndexFormat.UInt32);
         var ibWT = dataWT.GetIndexData<int>();
         for (int i = 0; i <ibWT.Length;++i){
            ibWT[i] = trisWT[i];  
@@ -1384,10 +1417,10 @@ public class Chunk : MonoBehaviour
            
 
             dataWT.subMeshCount = 1;
-            dataWT.SetSubMesh(0, new SubMeshDescriptor(0, ibWT.Length));
+            dataWT.SetSubMesh(0, new SubMeshDescriptor(0, ibWT.Length,MeshTopology.Quads));
            posWT.Dispose();
            ibWT.Dispose();
-      vertexAttributesDes.Dispose();
+        vertexAttributesDes.Dispose();
       /*  var data=mda[0];
            // Tetrahedron vertices with positions and normals.
         // 4 faces with 3 unique vertices in each -- the faces
@@ -1476,7 +1509,7 @@ public class Chunk : MonoBehaviour
          //   }
             
         chunkWaterMesh=new Mesh();
-       
+      
 
      
      //     frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
@@ -1516,13 +1549,10 @@ public class Chunk : MonoBehaviour
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS,chunkNonSolidMesh);
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataWT,chunkWaterMesh);
          chunkMesh.RecalculateBounds();
-       
-      
-         chunkMesh.RecalculateNormals();
-
+     //    chunkMesh.RecalculateNormals();
         chunkNonSolidMesh.RecalculateBounds();
         chunkWaterMesh.RecalculateBounds();
-        chunkWaterMesh.RecalculateNormals();
+   //     chunkWaterMesh.RecalculateNormals();
     //    chunkNonSolidMesh.RecalculateNormals();
       
 
@@ -1584,8 +1614,26 @@ public class Chunk : MonoBehaviour
    //     Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
         isStrongLoaded=false;
-           meshRenderer.enabled=true;
+        meshRenderer.enabled=true;
         meshRendererNS.enabled=true;
+        meshRendererWT.enabled=true;
+        while(pointLightGameObjects.Count>0){
+
+             await UniTask.Yield();
+
+            Destroy(pointLightGameObjects[0]);
+            pointLightGameObjects.RemoveAt(0);
+
+        }
+      
+        Vector3 worldSpacePos=new Vector3(chunkPos.x,0f,chunkPos.y);
+       for(int i=0;i<Mathf.Min(lightPoints.Count,64);i++){
+      
+      //  await UniTask.NextFrame();
+        GameObject a=Instantiate(ObjectPools.pointLightPrefab,worldSpacePos+lightPoints[i],Quaternion.identity);
+        pointLightGameObjects.Add(a);
+       }
+
     }
 
     
@@ -1754,7 +1802,7 @@ public class Chunk : MonoBehaviour
 
 
 
-     void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side,List<Vector3> norms){
+    static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side,List<Vector3> norms){
         int index = verts.Count;
         Vector3 vert0=corner;
         Vector3 vert1=corner+up;
@@ -1781,10 +1829,10 @@ public class Chunk : MonoBehaviour
             tris.Add(index + 1);
             tris.Add(index + 2);
         
-            tris.Add(index + 2);
+        //    tris.Add(index + 2);
             tris.Add(index + 3);
-            tris.Add(index + 0);
-            Vector3 v1 = Vector3.Cross(vert0 - vert1, vert0 - vert3);
+         //   tris.Add(index + 0);
+            Vector3 v1 = Vector3.Cross(up, right);
             norms.Add(v1);
             norms.Add(v1);
             norms.Add(v1);
@@ -1792,14 +1840,17 @@ public class Chunk : MonoBehaviour
             }
             else
             {
-            tris.Add(index + 1);
-            tris.Add(index + 0);
-            tris.Add(index + 2);
-        
-            tris.Add(index + 3);
-            tris.Add(index + 2);
-            tris.Add(index + 0);
-            Vector3 v1 = Vector3.Cross(vert0 - vert1, vert0 - vert3);
+       //     tris.Add(index + 1);
+       //     tris.Add(index + 0);
+       //     tris.Add(index + 2);
+            tris.Add(index+3);
+            tris.Add(index+2);
+            tris.Add(index+1);
+            tris.Add(index+0);
+       //     tris.Add(index + 3);
+         //   tris.Add(index + 2);
+         //   tris.Add(index + 0);
+            Vector3 v1 = -Vector3.Cross(up, right);
             norms.Add(v1);
             norms.Add(v1);
             norms.Add(v1);
@@ -1807,6 +1858,61 @@ public class Chunk : MonoBehaviour
         }
     
     }
+
+
+
+    static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right,Vector2 uvWidth,Vector2 uvCorner, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris,List<Vector3> norms){
+        int index = verts.Count;
+        Vector3 vert0=corner;
+        Vector3 vert1=corner+up;
+        Vector3 vert2=corner+up+right;
+        Vector3 vert3=corner+right;
+        verts.Add (vert0);
+        verts.Add (vert1);
+        verts.Add (vert2);
+        verts.Add (vert3);
+
+      //  Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+      //  Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+
+        //uvCorner.x = (float)(typeid - 1) / 16;
+    //    uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+    
+        if (reversed)
+            {
+            tris.Add(index + 0);
+            tris.Add(index + 1);
+            tris.Add(index + 2);
+            tris.Add(index + 3);
+            
+             Vector3 v1 = Vector3.Cross(up, right);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+            }
+            else
+            {
+           
+       
+        
+            tris.Add(index + 3);
+            tris.Add(index + 2);
+            tris.Add(index + 1);
+            tris.Add(index + 0);
+            Vector3 v1 = -Vector3.Cross(up, right);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+            norms.Add(v1);
+        }
+    
+    }
+
     public static Chunk GetUnloadedChunk(Vector2Int chunkPos){
         if(Chunks.ContainsKey(chunkPos)&&Chunks[chunkPos].isMapGenCompleted==false){
             Chunk tmp=Chunks[chunkPos];
@@ -2106,6 +2212,9 @@ public static int GetBlockInSingleChunk(Vector3 chunkSpacePos,Chunk chunkNeededU
             }
         mapIsSearched[x,y,z]=true;
         if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+            BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
+        }
+        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
             BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
         if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){

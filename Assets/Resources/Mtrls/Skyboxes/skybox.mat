@@ -89,7 +89,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _AtmosphereThickness: 0.6
+    - _AtmosphereThickness: 0.5
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -122,8 +122,8 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _SunDisk: 2
-    - _SunSize: 0.06
-    - _SunSizeConvergence: 8
+    - _SunSize: 0.08
+    - _SunSizeConvergence: 5.81
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1

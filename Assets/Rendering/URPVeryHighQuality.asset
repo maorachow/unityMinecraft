@@ -37,12 +37,12 @@ MonoBehaviour:
   m_MainLightShadowsSupported: 1
   m_MainLightShadowmapResolution: 4096
   m_AdditionalLightsRenderingMode: 1
-  m_AdditionalLightsPerObjectLimit: 4
-  m_AdditionalLightShadowsSupported: 0
+  m_AdditionalLightsPerObjectLimit: 8
+  m_AdditionalLightShadowsSupported: 1
   m_AdditionalLightsShadowmapResolution: 2048
   m_AdditionalLightsShadowResolutionTierLow: 256
   m_AdditionalLightsShadowResolutionTierMedium: 512
-  m_AdditionalLightsShadowResolutionTierHigh: 1024
+  m_AdditionalLightsShadowResolutionTierHigh: 2048
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
   m_ShadowDistance: 200
@@ -62,7 +62,7 @@ MonoBehaviour:
   m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
-  m_MixedLightingSupported: 1
+  m_MixedLightingSupported: 0
   m_SupportsLightCookies: 1
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
@@ -84,7 +84,7 @@ MonoBehaviour:
     bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}
   m_PrefilteringModeMainLightShadows: 3
   m_PrefilteringModeAdditionalLight: 3
-  m_PrefilteringModeAdditionalLightShadows: 0
+  m_PrefilteringModeAdditionalLightShadows: 2
   m_PrefilterXRKeywords: 1
   m_PrefilteringModeForwardPlus: 0
   m_PrefilteringModeDeferredRendering: 0

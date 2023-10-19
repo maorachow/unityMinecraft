@@ -123,11 +123,34 @@ public class ItemEntityBeh : MonoBehaviour
     }else{
     
         if(itemID>=101&&itemID<150){
-            Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
+            if(itemID==102){
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, verts, uvs, tris);
+            //Right
+     
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0.125f,0f,0f),  new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, verts, uvs, tris);
+
+            //Bottom
+     
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f),new Vector3(0f,0f,0.125f),new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, verts, uvs, tris);
+                //Top
+       
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0.625f,0.4375f), new Vector3(0f,0f,0.125f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0.03125f), true, verts, uvs, tris);
+
+            //Back
+    
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, verts, uvs, tris);
+            //Front
+    
+            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0f,0f,0.125f),  new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f),false, verts, uvs, tris); 
+            
+            }else{
+                Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
             BuildFace(itemID, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, verts, uvs, tris,0);
             BuildFace(itemID, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, verts, uvs, tris,0);
             BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, verts, uvs, tris,0);
             BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, verts, uvs, tris,0);
+            }
+            
         }
        
     }
@@ -141,7 +164,52 @@ public class ItemEntityBeh : MonoBehaviour
         mf.mesh=itemMesh;
 
 }
- void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
+static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right,Vector2 uvWidth,Vector2 uvCorner, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
+        int index = verts.Count;
+        Vector3 vert0=corner;
+        Vector3 vert1=corner+up;
+        Vector3 vert2=corner+up+right;
+        Vector3 vert3=corner+right;
+        verts.Add (vert0);
+        verts.Add (vert1);
+        verts.Add (vert2);
+        verts.Add (vert3);
+
+      //  Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
+      //  Vector2 uvCorner = new Vector2(0.00f, 0.00f);
+
+        //uvCorner.x = (float)(typeid - 1) / 16;
+    //    uvCorner=blockInfo[typeid][side];
+        uvs.Add(uvCorner);
+        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
+        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
+    
+        if (reversed)
+            {
+            tris.Add(index + 0);
+            tris.Add(index + 1);
+            tris.Add(index + 2);
+        
+            tris.Add(index + 2);
+            tris.Add(index + 3);
+            tris.Add(index + 0);
+        
+            }
+            else
+            {
+            tris.Add(index + 1);
+            tris.Add(index + 0);
+            tris.Add(index + 2);
+        
+            tris.Add(index + 3);
+            tris.Add(index + 2);
+            tris.Add(index + 0);
+            
+        }
+    
+    }
+static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
 
         int index = verts.Count;
     
@@ -385,7 +453,7 @@ public class ItemEntityBeh : MonoBehaviour
         }
         AudioSource.PlayClipAtPoint(PlayerMove.playerDropItemClip,transform.position,1f);
         playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
-       playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
+       //playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
         ReleaseItem();
     }
     }

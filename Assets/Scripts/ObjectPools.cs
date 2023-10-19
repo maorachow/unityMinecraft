@@ -141,6 +141,7 @@ public class ObjectPools : MonoBehaviour
         public static GameObject chunkPrefab;
         public static GameObject particlePrefab;
         public static GameObject itemPrefab;
+        public static GameObject pointLightPrefab;
         public static ObjectPool<GameObject> particleEffectPool;
         public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
         public static ObjectPool<GameObject> creeperEntityPool;
@@ -148,6 +149,7 @@ public class ObjectPools : MonoBehaviour
        // public static ObjectPool<GameObject> itemEntityPool;
         public static MyItemObjectPool itemEntityPool=new MyItemObjectPool();
         public void Start(){
+            pointLightPrefab=Resources.Load<GameObject>("Prefabs/chunkpointlightprefab");
         particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
         itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
