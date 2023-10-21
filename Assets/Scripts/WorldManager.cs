@@ -10,7 +10,10 @@ using System.Collections.Concurrent;
 using Unity.Collections;
 using Unity.Burst;
 using Unity.Jobs;
+using System;
 using Cysharp.Threading.Tasks;
+using Object=UnityEngine.Object;
+using Random=UnityEngine.Random;
 public class WorldManager : MonoBehaviour
 {
 
@@ -158,22 +161,26 @@ public class WorldManager : MonoBehaviour
      void SpawnChunks(){
     //  (var c in chunkSpawningQueue){
  //     await Task.Delay(20);
-      if(chunkSpawningQueue.Count>0){
+  for(int i=0;i<2;i++){
+  if(chunkSpawningQueue.Count>0){
         
         Vector2Int cPos=chunkSpawningQueue.First;
         if(Chunk.GetChunk(cPos)!=null){
            chunkSpawningQueue.Dequeue();
-          return;
+         continue;
         }
         if(chunkUnloadingQueue.Contains(Chunk.GetChunk(cPos))){
            chunkSpawningQueue.Dequeue();
-          return;
+         continue;
         }
         Chunk c=ObjectPools.chunkPool.Get(cPos).GetComponent<Chunk>();
         c.ReInitData();
         chunkSpawningQueue.Dequeue();
-           return;
+         continue;
       }
+
+  }
+     
         
    //   }
 
@@ -183,7 +190,7 @@ public class WorldManager : MonoBehaviour
       public void BuildAllChunks(){
      
          if(isChunkFastLoadingEnabled==true){
-          for(int i=0;i<2;i++){
+          for(int i=0;i<5;i++){
               if(chunkLoadingQueue.Count>0){
                 if(chunkLoadingQueue.First==null){
                     chunkLoadingQueue.Dequeue(); 
@@ -208,24 +215,29 @@ public class WorldManager : MonoBehaviour
           return;
           
         }else{
-          if(chunkLoadingQueue.Count>0){
-      //  lock(chunkLoadingQueue){
-         if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
-                  
+          for(int i=0;i<2;i++){
+              if(chunkLoadingQueue.Count>0){
+                if(chunkLoadingQueue.First==null){
+                    chunkLoadingQueue.Dequeue(); 
+                    return;
+                }
+           
+                if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
+                
                       chunkLoadingQueue.First.StartLoadChunk(false); 
                   
                   
                   chunkLoadingQueue.Dequeue(); 
                 }else{
-                
+                 
+                 //  chunkLoadingQueue.First.StartLoadChunk();
                   chunkLoadingQueue.Dequeue(); 
                 }
-     //   Debug.Log("loading speed:"+1/Time.deltaTime);
-        
-        return;
-        
-   
-      }
+                 
+              }
+          
+          }
+          return;
         }
       
 
@@ -233,9 +245,13 @@ public class WorldManager : MonoBehaviour
 public void FastChunkLoadingButtonOnValueChanged(bool b){
   isChunkFastLoadingEnabled=b;
 }
+ 
 void OnApplicationQuit(){
+  
   isGoingToQuitGame=true;
 }
+
+ 
     void Update(){
       Chunk.playerPosVec=playerPos.position;
       lightSource.transform.Rotate(new Vector3(Time.deltaTime,0f,0f));
@@ -243,17 +259,12 @@ void OnApplicationQuit(){
     //  BuildAllChunksAsync();  
    //   }
        
-      //  if(Input.GetKeyDown(KeyCode.H)){
-     //   EntityBeh.SpawnNewEntity(0,100,0,0);
-       // EntityBeh.SpawnNewEntity(0,100,0,1);
-      // StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,151,Vector3.up));
-   //   playerPos.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1.1f,new Vector3(1f,1f,1f));
-      //  }
-           //     if(Input.GetKeyDown(KeyCode.L)){
+  
+             /*  if(Input.GetKeyDown(KeyCode.H)){
 
-               //         StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,151,Vector3.up));
-///
-               // }
+                       ItemEntityBeh.SpawnNewItem(0,100,0,153,Vector3.up);
+
+                }*/
      //   EntityBeh.SpawnNewEntity(0,100,0,0);
        // EntityBeh.SpawnNewEntity(0,100,0,1);
      //  StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));

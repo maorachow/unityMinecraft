@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: watersplashaltas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings: []
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 1542388518, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+    - {fileID: 1079534735, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+    - {fileID: -1745229372, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+    - {fileID: 1230550253, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 727ac1f878f4256489e34c986b877b4c: 1542388518
+    - 727ac1f878f4256489e34c986b877b4c: 1079534735
+    - 727ac1f878f4256489e34c986b877b4c: -1745229372
+    - 727ac1f878f4256489e34c986b877b4c: 1230550253
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 1542388518, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+  - {fileID: 1079534735, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+  - {fileID: -1745229372, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+  - {fileID: 1230550253, guid: 727ac1f878f4256489e34c986b877b4c, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - watersplash_0
+  - watersplash_1
+  - watersplash_2
+  - watersplash_3
+  m_RenderDataMap: {}
+  m_Tag: watersplashaltas
+  m_IsVariant: 0

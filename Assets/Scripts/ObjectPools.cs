@@ -159,7 +159,7 @@ public class ObjectPools : MonoBehaviour
         chunkPrefab=Resources.Load<GameObject>("Prefabs/chunk");
           TerrainTextureMipmapAdjusting.SetTerrainTexMipmap();
         chunkPool.Object=chunkPrefab;
-        chunkPool.maxCount=100;
+        chunkPool.maxCount=3000;
         chunkPool.Init();
         itemEntityPool.Object=itemPrefab;
         itemEntityPool.maxCount=300;

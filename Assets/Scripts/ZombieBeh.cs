@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ZombieBeh : MonoBehaviour
-{
+{   
+    public int curBlockOnFootID;
+    public int prevBlockOnFootID;
     public AudioSource AS;
     public static AudioClip zombieIdleClip;
     public static Transform targetPosition;
@@ -25,6 +27,7 @@ public class ZombieBeh : MonoBehaviour
     public float attackCD=1.2f;
     public bool isJumping=false;
     public float entitySpeed;
+    public EntityBeh entity;
     public static bool isZombiePrefabLoaded=false;
 
      public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
@@ -49,7 +52,7 @@ public class ZombieBeh : MonoBehaviour
     }
 
     public void Start () {
-       
+       entity=GetComponent<EntityBeh>();
         AS=GetComponent<AudioSource>();
         if(isZombiePrefabLoaded==false){
             zombieIdleClip=Resources.Load<AudioClip>("Audios/Zombie_say1");
@@ -148,6 +151,18 @@ public class ZombieBeh : MonoBehaviour
 
 
     public void FixedUpdate(){
+        curBlockOnFootID=Chunk.GetBlock(currentTrans.position,entity.currentChunk);
+          if(prevBlockOnFootID!=curBlockOnFootID){
+            if(curBlockOnFootID==100){
+             gravity=-1f;
+             AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
+             WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+            }else{
+               gravity=-9.8f;
+            }
+             
+        }
+        prevBlockOnFootID=curBlockOnFootID;
         targetDir = targetPosition.position;
         if(Random.Range(0f,100f)>99f){
              AudioSource.PlayClipAtPoint(zombieIdleClip,currentTrans.position,1f);

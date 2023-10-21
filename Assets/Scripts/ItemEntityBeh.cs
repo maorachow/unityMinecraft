@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-
+using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Threading;
 using MessagePack;
@@ -34,6 +34,8 @@ public class ItemData{
 }
 public class ItemEntityBeh : MonoBehaviour
 {
+    public int prevBlockOnItemID;
+    public int curBlockOnItemID;
     public float lifeTime;
     public int itemID;
     public int itemCount;
@@ -294,6 +296,8 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
 
     public void OnDestroy(){
+        DestroyImmediate(itemMesh,true);
+        DestroyImmediate(GetComponent<MeshFilter>().mesh,true);
         RemoveItemEntityFromSave();
         worldItemEntities.Remove(this);
     }
@@ -380,7 +384,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         File.WriteAllBytes(gameWorldItemEntityDataPath+"unityMinecraftData/GameData/worlditementities.json",tmpData);
       //  isWorldItemEntityDataSaved=true;
     }
-    public static IEnumerator SpawnNewItem(float posX,float posY,float posZ,int itemID,Vector3 startingSpeed){
+    public static async void SpawnNewItem(float posX,float posY,float posZ,int itemID,Vector3 startingSpeed){
                 GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(posX,posY,posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
                 
@@ -388,16 +392,16 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
                 tmp.guid=System.Guid.NewGuid().ToString("N");
                  tmp.SendMessage("InitPos");
              //    a.transform.position=new Vector3(posX,posY,posZ);
-                 yield return new WaitForSeconds(0.1f);
+                await UniTask.WaitUntil(()=>tmp.isPosInited==true); 
                  tmp.AddForceInvoke(startingSpeed);
-                 yield break;
+                
         }
 
 
     public static IEnumerator SpawnItemEntityFromFile(){
         for(int i=0;i<itemEntityDataReadFromDisk.Count;i++){
           //  Debug.Log(ed.guid);
-          ItemData ed=itemEntityDataReadFromDisk[i];
+            ItemData ed=itemEntityDataReadFromDisk[i];
                 GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(ed.posX,ed.posY,ed.posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
            //     a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
@@ -458,17 +462,37 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     }
     }
     void FixedUpdate(){
+        
+          currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));  
+        
+          
         PlayerEatItem();
         if(transform.position.y<-40f){
             ReleaseItem();
             return;
         }
+        
+        curBlockOnItemID=Chunk.GetBlock(transform.position,currentChunk);
+        if(curBlockOnItemID==100){
+            GetComponent<Rigidbody>().AddForce(new Vector3(0f,20f,0f));
+        }
+        if(prevBlockOnItemID!=curBlockOnItemID){
+            if(curBlockOnItemID==100){
+             GetComponent<Rigidbody>().drag=2f;   
+             AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
+             WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+            }else{
+                GetComponent<Rigidbody>().drag=0f;
+            }
+             
+        }
+        prevBlockOnItemID=curBlockOnItemID;
         if(isPosInited==false){
              GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
         }else{
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
         }
-        currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
+      
 
           if(currentChunk==null||currentChunk.isMeshBuildCompleted==false||currentChunk.isStrongLoaded==false||currentChunk.meshCollider.sharedMesh==null){
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;

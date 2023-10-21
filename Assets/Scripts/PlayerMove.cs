@@ -37,7 +37,13 @@ public class PlayerData{
     }
 }
 public class PlayerMove : MonoBehaviour
-{   
+{   public static AudioClip playerSinkClip{
+    get{return Random.Range(0f,2f)>1f?playerSinkClip1:playerSinkClip2;}
+   
+    }
+    public static AudioClip playerSinkClip1;
+    public static AudioClip playerSinkClip2;
+
     public static AudioClip playerDropItemClip;
     public static AudioClip playerSweepAttackClip;
     public AudioSource AS;
@@ -69,7 +75,7 @@ public class PlayerMove : MonoBehaviour
     public float critAttackCD=1f;
     public float breakBlockCD=0.2f;
     public float moveSpeed=5f;
-    public float gravity=-9.8f;
+    public static float gravity=-9.8f;
     public float playerY=0f;
     public float jumpHeight=2f;
     public static float mouseSens=1f;
@@ -89,7 +95,11 @@ public class PlayerMove : MonoBehaviour
     public float lerpItemSlotAxis;
     public Vector3 lerpPlayerVec;
     public Vector2 playerChunkLoadingPos;
-    public List<Chunk> chunksToStrongLoad=new List<Chunk>();
+    public int curHeadBlockID;
+    public int prevHeadBlockID;
+    public int curFootBlockID;
+    public int prevFootBlockID;
+    public float playerMoveDrag=0f;
     void Awake(){
        
         if(isBlockNameDicAdded==false){
@@ -148,6 +158,8 @@ public class PlayerMove : MonoBehaviour
         AS=GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
         currentSelectedHotbar=1;
+        playerSinkClip1=Resources.Load<AudioClip>("Audios/Entering_water");
+        playerSinkClip2=Resources.Load<AudioClip>("Audios/Exiting_water");
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         playerSweepAttackClip=Resources.Load<AudioClip>("Audios/Sweep_attack1");
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
@@ -236,7 +248,7 @@ public class PlayerMove : MonoBehaviour
 
         }
         for(int i=0;i<itemCount;i++){
-         StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,itemTypeID,(headPos.forward*3)));
+        ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,itemTypeID,(headPos.forward*3));
         }
      //   playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
     }
@@ -523,13 +535,28 @@ public class PlayerMove : MonoBehaviour
         }
 
         if(cc.isGrounded!=true){
+            if(curFootBlockID==100){
             playerY+=gravity*Time.deltaTime;
+            playerY=Mathf.Clamp(playerY,-3f,1f);
+           }else{
+            playerY+=gravity*Time.deltaTime;
+           }
+           
+           
         }else{
-            playerY=0f;
+          
+           playerY=0f; 
+           
+            
            // playerMotionVec.y=0f;
         }
-        if(cc.isGrounded==true&&pi.Player.Jump.ReadValue<float>()>=1f){
-            playerY=jumpHeight;
+        if((cc.isGrounded==true||curFootBlockID==100)&&pi.Player.Jump.ReadValue<float>()>=1f){
+            if(curFootBlockID==100){
+                playerY=jumpHeight/3f;
+            }else{
+            playerY=jumpHeight;    
+            }
+            
         }
 
 
@@ -576,7 +603,7 @@ public class PlayerMove : MonoBehaviour
         headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,playerCameraZShakeValue);
         playerMoveRef.eulerAngles=new Vector3(0f,headPos.eulerAngles.y,headPos.eulerAngles.z);
         playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
-        cc.Move((playerMoveRef.forward*lerpPlayerVec.x+playerMoveRef.right*lerpPlayerVec.z)*moveSpeed*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
+        cc.Move((playerMoveRef.forward*lerpPlayerVec.x+playerMoveRef.right*lerpPlayerVec.z)*moveSpeed*(1f-playerMoveDrag)*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
         }
@@ -624,6 +651,26 @@ public class PlayerMove : MonoBehaviour
     // if(cc.velocity.magnitude>0.1f){
     //       UpdateWorld();
    //  }
+   curFootBlockID=Chunk.GetBlock(transform.position+new Vector3(0f,-0.3f,0f));
+   curHeadBlockID=Chunk.GetBlock(cameraPos.position);
+   if(curHeadBlockID!=prevHeadBlockID){
+        GlobalVolumeWaterEffectBeh.instance.SwitchEffects(curHeadBlockID==100);
+    //    WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+   }
+   prevHeadBlockID=curHeadBlockID;
+    if(curFootBlockID!=prevFootBlockID){
+       
+        if(curFootBlockID==100){
+            gravity=-1f;
+            playerMoveDrag=0.3f;
+         AudioSource.PlayClipAtPoint(playerSinkClip,transform.position,1f);
+         WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+        }else{
+            gravity=-9.8f;
+            playerMoveDrag=0f;
+        }
+    }
+   prevFootBlockID=curFootBlockID;
   TryStrongLoadChunkThread();
      playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
@@ -639,7 +686,7 @@ public class PlayerMove : MonoBehaviour
         }
         if(inventoryItemNumberDic[slotID]>0){
             AudioSource.PlayClipAtPoint(playerDropItemClip,gameObject.transform.position,1f);
-            StartCoroutine(ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12)));
+            ItemEntityBeh.SpawnNewItem(headPos.position.x,headPos.position.y,headPos.position.z,inventoryDic[slotID],(headPos.forward*12));
             inventoryItemNumberDic[slotID]--;
             if(inventoryItemNumberDic[slotID]-1<=0){
        
@@ -855,7 +902,7 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
-    void BreakBlock(){
+   async void BreakBlock(){
         if(cameraPosMode==1){
             return;
         }
@@ -881,24 +928,29 @@ public class PlayerMove : MonoBehaviour
                     for(float z=-1f;z<=1f;z++){
                         Vector3 blockPointArea=blockPoint+new Vector3(x,y,z);
                     int tmpID2=Chunk.GetBlock(blockPointArea);
-                    Chunk.SetBlockByHand(blockPointArea,0);
-
-                   if(tmpID2==0){
+                    if(tmpID2==0){
                     continue;
                     }
-                       GameObject a=ObjectPools.particleEffectPool.Get();
-                    a.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f);
-                    a.GetComponent<particleAndEffectBeh>().blockID=tmpID2;
-                    a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
-                    if(tmpID2==10){
-                        StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
+                     GameObject c=ObjectPools.particleEffectPool.Get();
+                        c.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f);
+                        c.GetComponent<particleAndEffectBeh>().blockID=tmpID;
+                        c.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+                  
+                    Chunk.SetBlockByHand(blockPointArea,0);
+                   
+                       if(tmpID2==10){
+                    ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));
                     }else{
-                        StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,tmpID2,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));   
+                    ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPointArea).x+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).y+0.5f,Chunk.Vec3ToBlockPos(blockPointArea).z+0.5f,tmpID2,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));   
                     }
+                 
+               
 
                     }
                 }
              }
+             
+        
              return;
             }
 
@@ -907,18 +959,24 @@ public class PlayerMove : MonoBehaviour
             b.transform.position=new Vector3(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f);
             b.GetComponent<particleAndEffectBeh>().blockID=tmpID;
             b.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
-            if(tmpID==10){
-                 StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));
-            }else{
-             StartCoroutine(ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,tmpID,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f))));   
-            }
+         
             
            Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-        chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z,7,0);
-     AttackAnimate();
-     Invoke("cancelAttackInvoke",0.16f);
+       chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
+        AttackAnimate();
+        Invoke("cancelAttackInvoke",0.16f);
+        
+       
+        
+            if(tmpID==10){
+              ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,153,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));
+            }else{
+            ItemEntityBeh.SpawnNewItem(Chunk.Vec3ToBlockPos(blockPoint).x+0.5f,Chunk.Vec3ToBlockPos(blockPoint).y+0.5f,Chunk.Vec3ToBlockPos(blockPoint).z+0.5f,tmpID,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));   
+            }
+
+
         }
     }
 
@@ -954,11 +1012,17 @@ public class PlayerMove : MonoBehaviour
             }
 
             Chunk.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
-          
+
              AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
+                   
+           Vector3Int intPos=new Vector3Int(Chunk.FloatToInt(blockPoint.x),Chunk.FloatToInt(blockPoint.y),Chunk.FloatToInt(blockPoint.z));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(Chunk.Vec3ToChunkPos(blockPoint));
+        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+       chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
              AttackAnimate();
      Invoke("cancelAttackInvoke",0.16f);
+ 
         }
     }
     
