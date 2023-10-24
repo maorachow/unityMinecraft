@@ -223,7 +223,7 @@ public class EntityBeh : MonoBehaviour
    // }
     void FixedUpdate(){
          
-        currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));
+        currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));
         if(currentChunk==null||currentChunk.isMeshBuildCompleted==false||currentChunk.isStrongLoaded==false){
           cc.enabled=false;
             isInUnloadedChunks=true;

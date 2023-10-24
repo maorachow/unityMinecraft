@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CreeperBeh : MonoBehaviour
+public class CreeperBeh : MonoBehaviour,ILivingEntity
 {
  
     public int curFootBlockID;
@@ -17,10 +17,10 @@ public class CreeperBeh : MonoBehaviour
     private CharacterController cc;
     public Animator am;
     public Transform headTransform;
-    public float creeperHealth=20f;
+    public float entityHealth{get;set;}
     public float creeperExplodeFuse=0f;
     public Vector3 entityVec;
-    public float moveSpeed=5f;
+    public float moveSpeed{get{return 5f;}set{moveSpeed=5f;}}
     public static float gravity=-9.8f;
     public float entityY=0f;
     public float jumpHeight=2f;
@@ -37,7 +37,7 @@ public class CreeperBeh : MonoBehaviour
     public void Start () {
         entity=GetComponent<EntityBeh>();
         AS=GetComponent<AudioSource>();
-        creeperHealth=20f;
+        entityHealth=20f;
         isCreeperDied=false;
         if(isCreeperPrefabLoaded==false){
             creeperHurtClip=Resources.Load<AudioClip>("Audios/Creeper_say2");
@@ -58,7 +58,7 @@ public class CreeperBeh : MonoBehaviour
         creeperExplodeFuse=0f;
         entityMotionVec=Vector3.zero;
         isCreeperDied=false;
-        creeperHealth=20f;
+        entityHealth=20f;
             isPosInited=false;
     }
     public void OnEnable(){
@@ -75,7 +75,7 @@ public class CreeperBeh : MonoBehaviour
            transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
            transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
            transform.GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
-        creeperHealth-=damageAmount;
+        entityHealth-=damageAmount;
         entityMotionVec=knockback;
         Invoke("InvokeRevertColor",0.2f);
     }
@@ -110,7 +110,7 @@ public class CreeperBeh : MonoBehaviour
         cc.enabled=false;
            ObjectPools.creeperEntityPool.Release(gameObject);
     }
-    void CreeperDie(Vector3 knockback){
+    public void DieWithKnockback(Vector3 knockback){
          AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
         isCreeperDied=true;
       //  cc.enabled=false;
@@ -170,11 +170,13 @@ public class CreeperBeh : MonoBehaviour
 		
 	}
     void FixedUpdate(){
-    curFootBlockID=Chunk.GetBlock(transform.position,entity.currentChunk);
- //  curHeadBlockID=Chunk.GetBlock(cameraPos.position);
-    if(curFootBlockID!=100){
+        targetPos = targetPosition.position;
+    curFootBlockID=WorldHelper.instance.GetBlock(transform.position,entity.currentChunk);
+ //  curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
+    if(curFootBlockID==0||(101<=curFootBlockID&&curFootBlockID<=200)){
         gravity=-9.8f;
     }
+    EntityGroundSinkPrevent(cc,curFootBlockID,Time.deltaTime);
     if(curFootBlockID!=prevFootBlockID){
        
         if(curFootBlockID==100){
@@ -190,73 +192,11 @@ public class CreeperBeh : MonoBehaviour
     }
     prevFootBlockID=curFootBlockID;
     }
-    public void Update () {
-        if(cc.enabled==false){
-            return;
-        }
-        Transform trans=transform;
-        Vector3 position=trans.position;
-        entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,Time.deltaTime*3f);
-        if(creeperHealth<=0f&&isCreeperDied==false){
-            CreeperDie(entityMotionVec);
-        }
-        if(!isPosInited){
-            return;
-        }
-     
-      
-   //      seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
-        if(position.y<-40f){
-           ObjectPools.creeperEntityPool.Release(gameObject);
-        }
-            
-      
-         Vector3 targetDir;
-    
-         targetDir = targetPosition.position;
-        
-        
-       
-        if(cc.isGrounded!=true){
-           
-           
-             entityY+=gravity*Time.deltaTime;   
-          if(curFootBlockID==100){
-                
-                entityY=Mathf.Clamp(entityY,-3f,1f);
-             }
-            
-            
-        }else{
-             
-              entityY=0f;   
-             
-           
-        }
-        if((cc.isGrounded==true||curFootBlockID==100)&&isJumping==true){
-            if(curFootBlockID==100){
-            entityY=jumpHeight/3f;
-            isJumping=false;
-            }else{
-                 entityY=jumpHeight;
-                 isJumping=false;
-            }
+    public void MoveToTarget(CharacterController cc,Vector3 pos,float dt){
+         transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
+        ChangeHeadPos(pos);
          
-        }
-        entityVec.y=entityY;
-       // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
-       // entityFacingPos=targetRotation.eulerAngles;
-        
-        trans.rotation=Quaternion.Slerp(trans.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
-        ChangeHeadPos(targetDir);
-         trans.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            trans.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            trans.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           trans.GetChild(3).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           trans.GetChild(4).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-           trans.GetChild(5).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-    
-        if((trans.position-targetDir).magnitude>=3f){ 
+        if((transform.position-pos).magnitude>=3f){ 
               if(entitySpeed<0.1f){
             Jump();
             }
@@ -271,21 +211,103 @@ public class CreeperBeh : MonoBehaviour
             CreeperExplode();
         }
         }
-       
-            
-        if(cc.enabled==true){
-                if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
-                    return;
-                }
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime*(1f-entityMoveDrag)); 
             }else{
-                 cc.Move((trans.forward*entityVec.x+trans.right*entityVec.z)*(1f-entityMoveDrag)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*(1f-entityMoveDrag)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
             }
             entitySpeed=Speed();
             am.SetFloat("speed",entitySpeed);
-            cc.Move(new Vector3(0f,entityVec.y,0f)*5f*Time.deltaTime);    
+    }
+    public void ApplyGravity(CharacterController cc,float gravity,float dt){
+        
+            if(cc.isGrounded!=true){
+           
+           
+             entityY+=gravity*dt;   
+          if(curFootBlockID==100){
+                
+                entityY=Mathf.Clamp(entityY,-3f,1f);
+             }
+            
+            
+        }else{
+             
+              entityY=0f;   
+
+           
         }
+          if((cc.isGrounded==true||curFootBlockID==100)&&isJumping==true){
+            if(curFootBlockID==100){
+            entityY=jumpHeight/3f;
+            isJumping=false;
+            }else{
+                 entityY=jumpHeight;
+                 isJumping=false;
+            }
+         
+        }
+        entityVec.y=entityY;
+        cc.Move(new Vector3(0f,entityVec.y,0f)*5f*dt);        
+      
+    }
+
+
+    Vector3 targetPos;
+
+    public void EntityGroundSinkPrevent(CharacterController cc,int blockID,float dt){
+         if(blockID>0f&&blockID<100f){
+            cc.Move(new Vector3(0f,dt*5f,0f));
+            gravity=0f;
+         }  else{
+            gravity=-9.8f;
+         }
+    }
+    public void Update () {
+        if(cc.enabled==false){
+            return;
+        }
+        float dt=Time.deltaTime;
+        
+        Vector3 position=transform.position;
+        entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,Time.deltaTime*3f);
+        if(entityHealth<=0f&&isCreeperDied==false){
+            DieWithKnockback(entityMotionVec);
+        }
+        if(!isPosInited){
+            return;
+        }
+     
+      
+   //      seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
+        if(position.y<-40f){
+           ObjectPools.creeperEntityPool.Release(gameObject);
+        }
+            
+      
+       
+         
+         if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
+                    return;
+                }
+        if(cc.enabled==true){
+            MoveToTarget(cc,targetPos,dt);
+            ApplyGravity(cc,gravity,dt);
+        }
+       
+            transform.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(3).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(4).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(5).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+    
+       // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+       // entityFacingPos=targetRotation.eulerAngles;
+        
+       
+            
+        
        // Vector3 velocity = dir * speed * 6;
       //  controller.SimpleMove(velocity);
 

@@ -463,7 +463,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     }
     void FixedUpdate(){
         
-          currentChunk=Chunk.GetChunk(Chunk.Vec3ToChunkPos(transform.position));  
+        currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));  
         
           
         PlayerEatItem();
@@ -472,35 +472,38 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
             return;
         }
         
-        curBlockOnItemID=Chunk.GetBlock(transform.position,currentChunk);
+        curBlockOnItemID=WorldHelper.instance.GetBlock(transform.position,currentChunk);
         if(curBlockOnItemID==100){
-            GetComponent<Rigidbody>().AddForce(new Vector3(0f,20f,0f));
+            rb.AddForce(new Vector3(0f,20f,0f));
+        }
+        if(curBlockOnItemID>0&&curBlockOnItemID<100){
+            rb.AddForce(new Vector3(0f,20f,0f));
         }
         if(prevBlockOnItemID!=curBlockOnItemID){
             if(curBlockOnItemID==100){
-             GetComponent<Rigidbody>().drag=2f;   
+            rb.drag=2f;   
              AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
              WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
             }else{
-                GetComponent<Rigidbody>().drag=0f;
+                rb.drag=0f;
             }
              
         }
         prevBlockOnItemID=curBlockOnItemID;
         if(isPosInited==false){
-             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+             rb.constraints = RigidbodyConstraints.FreezeAll;
         }else{
-            GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
+           rb.constraints = RigidbodyConstraints.None;
         }
       
 
-          if(currentChunk==null||currentChunk.isMeshBuildCompleted==false||currentChunk.isStrongLoaded==false||currentChunk.meshCollider.sharedMesh==null){
-            GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+          if(currentChunk==null||currentChunk.isStrongLoaded==false||currentChunk.meshCollider.sharedMesh==null){
+          rb.constraints = RigidbodyConstraints.FreezeAll;
             isInUnloadedChunks=true;
         }else{
 
             
-             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
+             rb.constraints = RigidbodyConstraints.None;
              isInUnloadedChunks=false;
             if(currentChunk!=null&&currentChunk.meshCollider.sharedMesh.GetInstanceID()!=currentChunk.chunkMesh.GetInstanceID()){
       

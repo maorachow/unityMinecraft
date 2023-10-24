@@ -99,7 +99,7 @@ public class WorldManager : MonoBehaviour
   //   }
         if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
-          EntityBeh.SpawnNewEntity(randomSpawnPos.x,Chunk.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
+          EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
         }
     }
     void DisableChunks(){
@@ -199,7 +199,12 @@ public class WorldManager : MonoBehaviour
            
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                 
-                      chunkLoadingQueue.First.StartLoadChunk(false); 
+                      if(chunkLoadingQueue.First.isChunkColliderUpdated==true){
+                        chunkLoadingQueue.First.StartLoadChunk(true); 
+                      }else{
+                       chunkLoadingQueue.First.StartLoadChunk(false);  
+                      }
+                      
                   
                   
                   chunkLoadingQueue.Dequeue(); 
@@ -224,7 +229,11 @@ public class WorldManager : MonoBehaviour
            
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                 
-                      chunkLoadingQueue.First.StartLoadChunk(false); 
+                     if(chunkLoadingQueue.First.isChunkColliderUpdated==true){
+                        chunkLoadingQueue.First.StartLoadChunk(true); 
+                      }else{
+                       chunkLoadingQueue.First.StartLoadChunk(false);  
+                      }
                   
                   
                   chunkLoadingQueue.Dequeue(); 
@@ -260,11 +269,11 @@ void OnApplicationQuit(){
    //   }
        
   
-             /*  if(Input.GetKeyDown(KeyCode.H)){
+               if(Input.GetKeyDown(KeyCode.H)){
 
                        ItemEntityBeh.SpawnNewItem(0,100,0,153,Vector3.up);
 
-                }*/
+                }
      //   EntityBeh.SpawnNewEntity(0,100,0,0);
        // EntityBeh.SpawnNewEntity(0,100,0,1);
      //  StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));

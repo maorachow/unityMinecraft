@@ -218,7 +218,7 @@ public class Chunk : MonoBehaviour
     public NativeArray<Vector3> NSVertsNA;
     public NativeArray<Vector2> NSUVsNA;
     public NativeArray<int> NSTrisNA;
- 
+    public bool isChunkColliderUpdated=false;
     public JobHandle bakeJobHandle;
     public static void AddBlockInfo(){
         //left right bottom top back front
@@ -1167,24 +1167,24 @@ public class Chunk : MonoBehaviour
         if(0<typeid&&typeid<100){
             if(typeid==9){
             //Left
-        if (CheckNeedBuildFace(x - 1, y, z)&&GetBlockType(x-1,y,z)!=9)
+        if (CheckNeedBuildFace(x - 1, y, z)&&GetChunkBlockType(x-1,y,z)!=9)
           BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0,norms);
         //Right
-        if (CheckNeedBuildFace(x + 1, y, z)&&GetBlockType(x+1,y,z)!=9)
+        if (CheckNeedBuildFace(x + 1, y, z)&&GetChunkBlockType(x+1,y,z)!=9)
          BuildFace(typeid, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1,norms);
 
         //Bottom
-        if (CheckNeedBuildFace(x, y - 1, z)&&GetBlockType(x,y-1,z)!=9)
+        if (CheckNeedBuildFace(x, y - 1, z)&&GetChunkBlockType(x,y-1,z)!=9)
          BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2,norms);
         //Top
-        if (CheckNeedBuildFace(x, y + 1, z)&&GetBlockType(x,y+1,z)!=9)
+        if (CheckNeedBuildFace(x, y + 1, z)&&GetChunkBlockType(x,y+1,z)!=9)
         BuildFace(typeid, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3,norms);
 
         //Back
-        if (CheckNeedBuildFace(x, y, z - 1)&&GetBlockType(x,y,z-1)!=9)
+        if (CheckNeedBuildFace(x, y, z - 1)&&GetChunkBlockType(x,y,z-1)!=9)
         BuildFace(typeid, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4,norms);
         //Front
-        if (CheckNeedBuildFace(x, y, z + 1)&&GetBlockType(x,y,z+1)!=9)
+        if (CheckNeedBuildFace(x, y, z + 1)&&GetChunkBlockType(x,y,z+1)!=9)
         BuildFace(typeid, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5,norms); 
     
             }else{
@@ -1221,8 +1221,8 @@ public class Chunk : MonoBehaviour
 
         //water
         //left
-        if (CheckNeedBuildFace(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x-1,y,z)&&GetChunkBlockType(x-1,y,z)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
             BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsWT, uvsWT, trisWT,0,normsWT); 
 
 
@@ -1241,8 +1241,8 @@ public class Chunk : MonoBehaviour
         }
             
         //Right
-        if (CheckNeedBuildFace(x+1,y,z)&&GetBlockType(x+1,y,z)!=100){
-                if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x+1,y,z)&&GetChunkBlockType(x+1,y,z)!=100){
+                if(GetChunkBlockType(x,y+1,z)!=100){
      BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsWT, uvsWT, trisWT,1,normsWT);
 
 
@@ -1259,7 +1259,7 @@ public class Chunk : MonoBehaviour
             
 
         //Bottom
-        if (CheckNeedBuildFace(x,y-1,z)&&GetBlockType(x,y-1,z)!=100){
+        if (CheckNeedBuildFace(x,y-1,z)&&GetChunkBlockType(x,y-1,z)!=100){
        BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsWT, uvsWT, trisWT,2,normsWT);
 
 
@@ -1268,7 +1268,7 @@ public class Chunk : MonoBehaviour
         }
             
         //Top
-        if (CheckNeedBuildFace(x,y+1,z)&&GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x,y+1,z)&&GetChunkBlockType(x,y+1,z)!=100){
         BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsWT, uvsWT, trisWT,3,normsWT);
 
 
@@ -1280,8 +1280,8 @@ public class Chunk : MonoBehaviour
 
 
         //Back
-        if (CheckNeedBuildFace(x,y,z-1)&&GetBlockType(x,y,z-1)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x,y,z-1)&&GetChunkBlockType(x,y,z-1)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
             BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsWT, uvsWT, trisWT,4,normsWT);
 
 
@@ -1302,8 +1302,8 @@ public class Chunk : MonoBehaviour
 
             
         //Front
-        if (CheckNeedBuildFace(x,y,z+1)&&GetBlockType(x,y,z+1)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x,y,z+1)&&GetChunkBlockType(x,y,z+1)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
             BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsWT, uvsWT, trisWT,5,normsWT) ;
 
 
@@ -1644,7 +1644,11 @@ public class Chunk : MonoBehaviour
         opqUVsNL.Dispose();
         opqTrisNL.Dispose();*/
    //     a.Dispose();
-  
+
+        if(isStrongLoading==true){
+            meshCollider.sharedMesh=chunkMesh;
+            isChunkColliderUpdated=false;
+        }
         if(WorldManager.chunkUnloadingQueue.Contains(this)){
             return;
         }
@@ -1674,8 +1678,8 @@ public class Chunk : MonoBehaviour
         GameObject a=Instantiate(ObjectPools.pointLightPrefab,worldSpacePos+lightPoints[i],Quaternion.identity);
         pointLightGameObjects.Add(a);
        }
-    isStrongLoaded=false;
-    isChunkMapUpdated=false;
+      //  isStrongLoaded=false;
+        isChunkMapUpdated=false;
  
     }
 
@@ -1715,8 +1719,8 @@ public class Chunk : MonoBehaviour
 
 
         //left
-        if (CheckNeedBuildFace(x-1,y,z)&&GetBlockType(x-1,y,z)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x-1,y,z)&&GetChunkBlockType(x-1,y,z)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
                     BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
             }else{
                 BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.forward, false, vertsNS, uvsNS, trisNS,0); 
@@ -1725,8 +1729,8 @@ public class Chunk : MonoBehaviour
         }
             
         //Right
-        if (CheckNeedBuildFace(x + 1, y, z)&&GetBlockType(x+1,y,z)!=100){
-                if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x + 1, y, z)&&GetChunkBlockType(x+1,y,z)!=100){
+                if(GetChunkBlockType(x,y+1,z)!=100){
                     BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,0.8f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
                 }else{
                         BuildFace(typeid, new Vector3(x + 1, y, z), new Vector3(0f,1f,0f), Vector3.forward, true, vertsNS, uvsNS, trisNS,1);
@@ -1737,17 +1741,17 @@ public class Chunk : MonoBehaviour
             
 
         //Bottom
-        if (CheckNeedBuildFace(x, y - 1, z)&&GetBlockType(x,y-1,z)!=100)
+        if (CheckNeedBuildFace(x, y - 1, z)&&GetChunkBlockType(x,y-1,z)!=100)
             BuildFace(typeid, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, vertsNS, uvsNS, trisNS,2);
         //Top
-        if (CheckNeedBuildFace(x, y + 1, z)&&GetBlockType(x,y+1,z)!=100)
+        if (CheckNeedBuildFace(x, y + 1, z)&&GetChunkBlockType(x,y+1,z)!=100)
             BuildFace(typeid, new Vector3(x, y + 0.8f, z), Vector3.forward, Vector3.right, true, vertsNS, uvsNS, trisNS,3);
 
 
 
         //Back
-        if (CheckNeedBuildFace(x, y, z - 1)&&GetBlockType(x,y,z-1)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x, y, z - 1)&&GetChunkBlockType(x,y,z-1)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
                 BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,0.8f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
             }else{
                 BuildFace(typeid, new Vector3(x, y, z), new Vector3(0f,1f,0f), Vector3.right, true, vertsNS, uvsNS, trisNS,4);
@@ -1757,8 +1761,8 @@ public class Chunk : MonoBehaviour
 
             
         //Front
-        if (CheckNeedBuildFace(x, y, z + 1)&&GetBlockType(x,y,z+1)!=100){
-            if(GetBlockType(x,y+1,z)!=100){
+        if (CheckNeedBuildFace(x, y, z + 1)&&GetChunkBlockType(x,y,z+1)!=100){
+            if(GetChunkBlockType(x,y+1,z)!=100){
                 BuildFace(typeid, new Vector3(x, y, z + 1), new Vector3(0f,0.8f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,5); 
             }else{
                 BuildFace(typeid, new Vector3(x, y, z+1), new Vector3(0f,1f,0f), Vector3.right, false, vertsNS, uvsNS, trisNS,4);
@@ -1782,7 +1786,7 @@ public class Chunk : MonoBehaviour
 
     bool CheckNeedBuildFace(int x, int y, int z){
         if (y < 0) return false;
-        var type = GetBlockType(x, y, z);
+        var type = GetChunkBlockType(x, y, z);
         bool isNonSolid=false;
         if(type<200&&type>=100){
             isNonSolid=true;
@@ -1814,7 +1818,7 @@ public class Chunk : MonoBehaviour
         }
        // return 0;
     }
-    public int GetBlockType(int x, int y, int z){
+    public int GetChunkBlockType(int x, int y, int z){
         if (y < 0 || y > chunkHeight - 1)
         {
             return 0;
@@ -1977,174 +1981,7 @@ public class Chunk : MonoBehaviour
         
     }
       
-    public static Vector2Int Vec3ToChunkPos(Vector3 pos){
-        Vector3 tmp=pos;
-        tmp.x = Mathf.Floor(tmp.x / (float)chunkWidth) * chunkWidth;
-        tmp.z = Mathf.Floor(tmp.z / (float)chunkWidth) * chunkWidth;
-        Vector2Int value=new Vector2Int((int)tmp.x,(int)tmp.z);
-        return value;
-    }
-       
-    public static int FloatToInt(float f){
-        if(f>=0){
-            return (int)f;
-        }else{
-            return (int)f-1;
-        }
-    }
-    
-    public static Vector3Int Vec3ToBlockPos(Vector3 pos){
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
-        return intPos;
-    }
-     
-    public static void SetBlock(Vector3 pos,int blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
-        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
-
-        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
-         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
-            return;
-        }
-        chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-        chunkNeededUpdate.isChunkMapUpdated=true;
-        if(chunkNeededUpdate.frontChunk!=null){
-           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
-        }
-        if(chunkNeededUpdate.backChunk!=null){
-            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
-        }
-        if(chunkNeededUpdate.leftChunk!=null){
-            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
-        }
-        if(chunkNeededUpdate.rightChunk!=null){
-            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
-        }
-    }
-
-     
-    public static void SetBlockWithoutUpdate(Vector3 pos,int blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
-        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
-
-        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
-         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
-            return;
-        }
-        chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-   
-    }
-      
-    public static void SetBlockByHand(Vector3 pos,int blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
-        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
-
-        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
-            return;
-        }
-        chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-       
-      
-      
-        chunkNeededUpdate.isChunkMapUpdated=true;
-
-        if(chunkSpacePos.z>=chunkWidth-1){
-         if(chunkNeededUpdate.frontChunk!=null){
-         
-           chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
-           
-        }    
-        }
-        if(chunkSpacePos.z<=0){
-         if(chunkNeededUpdate.backChunk!=null){
-          
-            chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
-         
-        }    
-        }
-        if(chunkSpacePos.x<=0){
-          if(chunkNeededUpdate.leftChunk!=null){
-       
-            chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
-        
-        }   
-        }
-       
-        if(chunkSpacePos.x>=chunkWidth-1){
-            if(chunkNeededUpdate.rightChunk!=null){
-      
-            chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
-         
-        } 
-        }
-       
-    }
-     
-    public static int GetChunkLandingPoint(float x, float z){
-       Vector2Int intPos=new Vector2Int((int)x,(int)z); 
-
-        Chunk locChunk=Chunk.GetChunk(Vec3ToChunkPos(new Vector3(x,0f,z)));
-        if(locChunk==null){
-            return 100;
-        }
-        Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
-        for(int i=chunkHeight-1;i>0;i--){
-            if(locChunk.map[chunkSpacePos.x,i-1,chunkSpacePos.y]!=0){
-                return i;
-            }
-        }
-        return 100;
-    }
-  
-    public static int GetBlock(Vector3 pos){
-        Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
-        if(chunkNeededUpdate==null){
-            return 0;
-        }
-        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-       if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
-            return 0;
-        }
-        return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
-    }
-    public static int GetBlock(Vector3 pos,Chunk chunkNeededUpdate){
-
-        Vector3Int intPos=Vector3Int.FloorToInt(pos);
-      
-        if(chunkNeededUpdate==null){
-            return 0;
-        }
-        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-       if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
-            return 0;
-        }
-        return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
-    }
-
-    public static int GetBlockInSingleChunk(Vector3 chunkSpacePos,Chunk chunkNeededUpdate){
-        Vector3Int intPos=Vector3Int.FloorToInt(chunkSpacePos);
-       if(intPos.y<0||intPos.y>=chunkHeight){
-            return 0;
-        }
-        return chunkNeededUpdate.map[intPos.x,intPos.y,intPos.z];
-    }
- //   void Update(){
-  //      Graphics.DrawMesh(chunkMesh, transform.position, Quaternion.identity, meshRenderer.material, 0);
-   //     Graphics.DrawMesh(chunkNonSolidMesh, transform.position, Quaternion.identity, meshRendererNS.material, 0);
-        
-     
-      
-  //  }
-
-   //  void FixedUpdate(){
-
-  //   TryReleaseChunk();
- //   }
+ 
     public static void TryUpdateChunkThread(){
    //     delegate void mainBuildChunk();
      //   mainBuildChunk callback;
@@ -2238,29 +2075,29 @@ public class Chunk : MonoBehaviour
         BFSMapUpdate(x,y,z);
     }
     public void UpdateBlock(int x,int y,int z){
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
         
             BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            
             BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
         }
         
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1),100);
         }
     }
     public async void BFSMapUpdate(int x,int y,int z){
@@ -2268,28 +2105,28 @@ public class Chunk : MonoBehaviour
         //left x-1 right x+1 top y+1 bottom y-1 back z-1 front z+1
       
        
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
             BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            
             BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
         }
         
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x-1,y,chunkPos.y+z),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x+1,y,chunkPos.y+z),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z-1),100);
         }
-        if(GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1))==0){
-           SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1),100);
+        if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1))==0){
+           WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y,chunkPos.y+z+1),100);
         }
         UpdateBlock(x-1,y,z);
         UpdateBlock(x+1,y,z);
@@ -2303,10 +2140,10 @@ public class Chunk : MonoBehaviour
         
             GameObject a=ObjectPools.particleEffectPool.Get();
             a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
-            a.GetComponent<particleAndEffectBeh>().blockID=GetBlock(blockPoint);
+            a.GetComponent<particleAndEffectBeh>().blockID=WorldHelper.instance.GetBlock(blockPoint);
             a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
-            ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,GetBlock(blockPoint),new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f)));
-            Chunk.SetBlock(blockPoint,0);
+            ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,WorldHelper.instance.GetBlock(blockPoint),new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f)));
+            WorldHelper.instance.SetBlock(blockPoint,0);
           //  UpdateChunkMeshCollider(blockPoint);
     }
  //   void UpdatePlayerDistance(){
