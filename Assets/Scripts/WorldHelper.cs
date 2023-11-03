@@ -12,7 +12,7 @@ public class WorldHelper:IWorldHelper{
         return intPos;
     }
    
-    public void SetBlock(Vector3 pos,int blockID){
+    public void SetBlock(Vector3 pos,short blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
@@ -56,7 +56,7 @@ public class WorldHelper:IWorldHelper{
     }
 
      
-    public void SetBlockWithoutUpdate(Vector3 pos,int blockID){
+    public void SetBlockWithoutUpdate(Vector3 pos,short blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
@@ -69,7 +69,7 @@ public class WorldHelper:IWorldHelper{
    
     }
       
-    public void SetBlockByHand(Vector3 pos,int blockID){
+    public void SetBlockByHand(Vector3 pos,short blockID){
 
         Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
@@ -120,7 +120,10 @@ public class WorldHelper:IWorldHelper{
             return 100;
         }
         Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
-        for(int i=chunkHeight-1;i>0;i--){
+        chunkSpacePos.x=Mathf.Clamp(chunkSpacePos.x,0,chunkWidth-1);
+        chunkSpacePos.y=Mathf.Clamp(chunkSpacePos.y,0,chunkWidth-1);
+  
+        for(int i=chunkHeight-2;i>1;i--){
             if(locChunk.map[chunkSpacePos.x,i-1,chunkSpacePos.y]!=0){
                 return i;
             }
@@ -128,33 +131,33 @@ public class WorldHelper:IWorldHelper{
         return 100;
     }
   
-    public int GetBlock(Vector3 pos){
+    public short GetBlock(Vector3 pos){
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
         if(chunkNeededUpdate==null){
             return 0;
         }
-        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return 0;
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
     }
-    public int GetBlock(Vector3 pos,Chunk chunkNeededUpdate){
+    public short GetBlock(Vector3 pos,Chunk chunkNeededUpdate){
 
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
       
         if(chunkNeededUpdate==null){
             return 0;
         }
-        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return 0;
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
     }
 
-    public int GetBlockInSingleChunk(Vector3 chunkSpacePos,Chunk chunkNeededUpdate){
+    public short GetBlockInSingleChunk(Vector3 chunkSpacePos,Chunk chunkNeededUpdate){
         Vector3Int intPos=Vector3Int.FloorToInt(chunkSpacePos);
        if(intPos.y<0||intPos.y>=chunkHeight){
             return 0;

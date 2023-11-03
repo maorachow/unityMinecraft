@@ -12,7 +12,7 @@ using System.IO;
 
 using MessagePack;
 [MessagePackObject]
-public class EntityData{
+public struct EntityData{
   [Key(0)]
     public float posX;
     [Key(1)]
@@ -31,9 +31,7 @@ public class EntityData{
     public string guid;
     public bool Equals(EntityData other)
     {   
-        if(other==null){
-            return false;
-        }
+       
         if (this.guid.Equals(other.guid)) {
             return true;
         }
@@ -78,6 +76,7 @@ public class EntityBeh : MonoBehaviour
     public void OnDestroy(){
         RemoveEntityFromSave();
         worldEntities.Remove(this);
+          currentChunk=null;
     }
     public static void ReadEntityJson(){
    gameWorldEntityDataPath=WorldManager.gameWorldDataPath;
@@ -232,4 +231,5 @@ public class EntityBeh : MonoBehaviour
              isInUnloadedChunks=false;
         }
     }
+    
 }

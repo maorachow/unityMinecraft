@@ -193,6 +193,9 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     prevFootBlockID=curFootBlockID;
     }
     public void MoveToTarget(CharacterController cc,Vector3 pos,float dt){
+        if(cc.enabled==false){
+            return;
+        }
          transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
         ChangeHeadPos(pos);
          
@@ -214,7 +217,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime*(1f-entityMoveDrag)); 
             }else{
-                 cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*(1f-entityMoveDrag)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
+                cc.Move((transform.forward*entityVec.x+transform.right*entityVec.z)*(1f-entityMoveDrag)*moveSpeed*Time.deltaTime+entityMotionVec*Time.deltaTime);
             }
             entitySpeed=Speed();
             am.SetFloat("speed",entitySpeed);

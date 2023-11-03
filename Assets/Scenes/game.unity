@@ -10062,7 +10062,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 0.7
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -12142,20 +12142,20 @@ ParticleSystem:
     y:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 1
       minScalar: 0
       maxCurve:
         serializedVersion: 2
         m_Curve:
         - serializedVersion: 3
           time: 0
-          value: 0
-          inSlope: 0
-          outSlope: 0
+          value: 1
+          inSlope: -17.83161
+          outSlope: -17.83161
           tangentMode: 0
           weightedMode: 0
           inWeight: 0.33333334
-          outWeight: 0.33333334
+          outWeight: 0.04441847
         - serializedVersion: 3
           time: 1
           value: 0
@@ -12245,7 +12245,7 @@ ParticleSystem:
         m_PreInfinity: 2
         m_PostInfinity: 2
         m_RotationOrder: 4
-    inWorldSpace: 0
+    inWorldSpace: 1
     randomizePerFrame: 0
   ExternalForcesModule:
     serializedVersion: 2
@@ -16433,7 +16433,6 @@ MonoBehaviour:
   playerVec: {x: 0, y: 0, z: 0}
   playerMotionVec: {x: 0, y: 0, z: 0}
   isPlayerKilled: 0
-  chunkPrefab: {fileID: 0}
   playerHandItem: {fileID: 0}
   currentSelectedHotbar: 0
   inventoryDic: 000000000000000000000000000000000000000000000000000000000000000000000000
@@ -16446,6 +16445,9 @@ MonoBehaviour:
   curFootBlockID: 0
   prevFootBlockID: 0
   playerMoveDrag: 0
+  isPlayerInGround: 0
+  isPlayerGrounded: 0
+  isUsingCC: 1
 --- !u!4 &6095466469615324927
 Transform:
   m_ObjectHideFlags: 0

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using MessagePack;
 [MessagePackObject]
-public class ItemData{
+public struct ItemData{
     [Key(0)]
     public int itemID;
     [Key(1)]
@@ -300,6 +300,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         DestroyImmediate(GetComponent<MeshFilter>().mesh,true);
         RemoveItemEntityFromSave();
         worldItemEntities.Remove(this);
+          currentChunk=null;
     }
     public static void ReadItemEntityJson(){
    gameWorldItemEntityDataPath=WorldManager.gameWorldDataPath;
@@ -393,6 +394,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
                  tmp.SendMessage("InitPos");
              //    a.transform.position=new Vector3(posX,posY,posZ);
                 await UniTask.WaitUntil(()=>tmp.isPosInited==true); 
+                await UniTask.Delay(10);
                  tmp.AddForceInvoke(startingSpeed);
                 
         }
@@ -552,7 +554,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y+1f, z)/16, Vector3.forward*textureXSize/4/16, Vector3.right*textureYSize/4/16, true, verts, uvs, tris);
         for(int i=0;i<textureXSize;i++){
             for(int j=0;j<textureYSize;j++){
-                if(i+1<textureXSize&&i-1>=0&&j+1<textureYSize&&j-1>=0){
+                if(i+1<textureXSize&&i-1>0&&j+1<textureYSize&&j-1>0){
                     if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i+1,itemTexturePosInfo[itemID].y+j).a==0f){
                         //right
                         BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i + 1, y, z+j)/4/16, Vector3.up/16, Vector3.forward/4/16, true, verts, uvs, tris);

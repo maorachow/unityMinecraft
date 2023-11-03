@@ -73,6 +73,7 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
+        WorldManager.DestroyAllChunks();
          ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
         ZombieBeh.isZombiePrefabLoaded=false;
         WorldManager.isGoingToQuitGame=true;

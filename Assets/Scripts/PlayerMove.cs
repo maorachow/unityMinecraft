@@ -84,7 +84,6 @@ public class PlayerMove : MonoBehaviour
     public Vector3 playerVec;
     public Vector3 playerMotionVec;
     public bool isPlayerKilled=false;
-    public Chunk chunkPrefab;
     public ItemOnHandBeh playerHandItem;
     public int currentSelectedHotbar=5;
     public int[] inventoryDic=new int[9];
@@ -101,6 +100,83 @@ public class PlayerMove : MonoBehaviour
     public int prevFootBlockID;
     public float playerMoveDrag=0f;
     public bool isPlayerInGround=false;
+    public bool isPlayerGrounded=false;
+    public bool isUsingCC=true;
+    public SimpleAxisAlignedBB playerBound;
+    public Dictionary<Vector3Int,SimpleAxisAlignedBB> blocksAround;
+    public Dictionary<Vector3Int,SimpleAxisAlignedBB> GetBlocksAround(SimpleAxisAlignedBB aabb){
+      
+            int minX = floorFloat(aabb.getMinX()-0.1f);
+            int minY =floorFloat(aabb.getMinY()-0.1f);
+            int minZ =floorFloat(aabb.getMinZ()-0.1f);
+            int maxX =ceilFloat(aabb.getMaxX()+0.1f);
+            int maxY =ceilFloat(aabb.getMaxY()+0.1f);
+            int maxZ =ceilFloat(aabb.getMaxZ()+0.1f);
+
+            this.blocksAround = new Dictionary<Vector3Int,SimpleAxisAlignedBB>();
+
+            for (int z = minZ-1; z <= maxZ+1;z++) {
+                for (int x = minX-1; x <= maxX+1; x++) {
+                    for (int y = minY-1; y <=maxY+1; y++) {
+                        int blockID=WorldHelper.instance.GetBlock(new Vector3(x,y,z));
+                        if(blockID>0&&blockID<100){
+                         this.blocksAround.Add(new Vector3Int(x,y,z),new SimpleAxisAlignedBB(x,y,z,x+1,y+1,z+1));   
+                        }
+                    }
+                }
+            }
+        
+
+        return this.blocksAround;
+
+
+    }
+     public static int floorFloat(float n) {
+        int i = (int) n;
+
+        return n >= i ? i : i - 1;
+    }
+
+    public static int ceilFloat(float n) {
+        int i = (int) (n + 1);
+        return n >= i ? i : i- 1 ;
+    }
+    void Move(float dx,float dy,float dz){
+       //  this.ySize *= 0.4;
+        
+            float movX = dx;
+            float movY = dy;
+            float movZ = dz;
+        if(blocksAround.Count==0){
+        playerBound= playerBound.offset(0, dy, 0);
+        playerBound= playerBound.offset(dx, 0, 0);
+        playerBound= playerBound.offset(0, 0, dz);
+        }
+
+         
+
+           
+
+            foreach (var bb in blocksAround) {
+                dy = bb.Value.calculateYOffset(playerBound, dy);
+            }
+
+          playerBound=  playerBound.offset(0, dy, 0);
+
+      //      bool fallingFlag = (this.onGround || (dy != movY && movY < 0));
+
+            foreach (var bb in blocksAround) {
+                dx = bb.Value.calculateXOffset(playerBound, dx);
+            }
+
+            playerBound= playerBound.offset(dx, 0, 0);
+
+            foreach (var bb in blocksAround) {
+                dz = bb.Value.calculateZOffset(playerBound, dz);
+            }
+
+            playerBound= playerBound.offset(0, 0, dz);
+    }
     void Awake(){
        
         if(isBlockNameDicAdded==false){
@@ -124,6 +200,9 @@ public class PlayerMove : MonoBehaviour
         isBlockNameDicAdded=true;
         }
       
+    }
+    void OnDestroy(){
+        curChunk=null;
     }
     public void SetHotbarNum(int num){
         
@@ -178,7 +257,7 @@ public class PlayerMove : MonoBehaviour
         playerBodyPos=transform.GetChild(0).GetChild(1);
         mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
         mainCam.fieldOfView=cameraFOV;
-        chunkPrefab=Resources.Load<Chunk>("Prefabs/chunk");
+     
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
       GameUIBeh.instance.CloseCraftingUI();
          GameUIBeh.instance.Resume();
@@ -186,6 +265,7 @@ public class PlayerMove : MonoBehaviour
                 transform.GetChild(0).localRotation=Quaternion.Euler(0f,0f,0f);
         transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
+        playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
     }
 
 
@@ -357,6 +437,7 @@ public class PlayerMove : MonoBehaviour
         cc.enabled = false;
          transform.rotation=Quaternion.identity;
         transform.position = new Vector3(0f,150f,0f);
+         playerBound=new SimpleAxisAlignedBB(new Vector3(0f,150f,0f)-new Vector3(0.3f,0.5f,0.3f),new Vector3(0f,150f,0f)+new Vector3(0.3f,0.9f,0.3f));
         headPos.rotation=Quaternion.identity;
         playerBodyPos.rotation=Quaternion.identity;
         transform.GetChild(0).rotation=Quaternion.Euler(0f,0f,0f);
@@ -534,8 +615,8 @@ public class PlayerMove : MonoBehaviour
             cameraPos.localEulerAngles=new Vector3(0f,0f,0f);
             break;
         }
-
-        if(cc.isGrounded!=true){
+     
+            if((cc.isGrounded!=true)){
             if(curFootBlockID==100){
             playerY+=gravity*Time.deltaTime;
             playerY=Mathf.Clamp(playerY,-3f,1f);
@@ -550,11 +631,13 @@ public class PlayerMove : MonoBehaviour
            
             
            // playerMotionVec.y=0f;
-        }
+        } 
+        
       
-        if((cc.isGrounded==true||curFootBlockID==100)&&pi.Player.Jump.ReadValue<float>()>=1f){
+      
+        if((cc.isGrounded==true||curFootBlockID==100||isPlayerGrounded==true)&&pi.Player.Jump.ReadValue<float>()>=1f){
             if(curFootBlockID==100){
-                playerY=jumpHeight/3f;
+                playerY=jumpHeight/2f;
             }else{
             playerY=jumpHeight;    
             }
@@ -607,13 +690,16 @@ public class PlayerMove : MonoBehaviour
         headPos.localEulerAngles=new Vector3(cameraX,headPos.localEulerAngles.y,playerCameraZShakeValue);
         playerMoveRef.eulerAngles=new Vector3(0f,headPos.eulerAngles.y,headPos.eulerAngles.z);
         playerBodyPos.rotation=Quaternion.Slerp(playerBodyPos.rotation,playerMoveRef.rotation,5f*Time.deltaTime);
-        if(isPlayerInGround==true){
+        
+            if(isPlayerInGround==true){
             cc.enabled=false;
             transform.position=transform.position+Time.deltaTime*new Vector3(0f,5f,0f);
             cc.enabled=true;
         }else{
              cc.Move((playerMoveRef.forward*lerpPlayerVec.x+playerMoveRef.right*lerpPlayerVec.z)*moveSpeed*(1f-playerMoveDrag)*Time.deltaTime+new Vector3(0f,playerVec.y,0f)*5f*Time.deltaTime+playerMotionVec*Time.deltaTime);  
-        }
+        }  
+        
+      
        
         if(breakBlockCD>0f){
             breakBlockCD-=Time.deltaTime;
@@ -668,14 +754,38 @@ public class PlayerMove : MonoBehaviour
          }  else{
             gravity=-9.8f;
             isPlayerInGround=false;
-         }}
+         }
+        }
+
+
+
     void FixedUpdate(){
     // if(cc.velocity.magnitude>0.1f){
     //       UpdateWorld();
    //  }
+         
+   //playerBound.setMinX(transform.position.x-0.3f);
+   //playerBound.setMinY(transform.position.y-0.9f);
+   //playerBound.setMinZ(transform.position.z-0.3f);
+   //playerBound.setMaxX(transform.position.x+0.3f);
+   ///playerBound.setMaxY(transform.position.y+0.9f);
+   //playerBound.setMaxZ(transform.position.z+0.3f);
+ //  playerBound.Visualize();
+  // GetBlocksAround(playerBound);
+ /*  foreach(var aabb in blocksAround){
+    aabb.Value.Visualize();
+    if(aabb.Key==Vector3Int.RoundToInt(transform.position-new Vector3(0f,0.3f,0f))){
+          isPlayerGrounded=true; 
+          Debug.Log("true");
+    }
+   }*/
+  
+    
+   // Debug.Log(finalMoveVec);
    curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f));
    curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
    if(curHeadBlockID!=prevHeadBlockID){
+
         GlobalVolumeWaterEffectBeh.instance.SwitchEffects(curHeadBlockID==100);
     //    WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
    }
@@ -803,11 +913,11 @@ public class PlayerMove : MonoBehaviour
                 }
          //     chunk.meshCollider.sharedMesh=chunk.chunkMesh;
                 if(chunk.isStrongLoaded==false||chunk.meshCollider.sharedMesh==null){
-                    if(chunk.isMeshBuildCompleted==false){
-                        continue;
-                    }else{
-                    chunk.StrongLoadChunk();
+                    if(chunk.isMeshBuildCompleted==true){
+                    chunk.StrongLoadChunk();    
                     }
+                    
+                    
                   
                 
                  
@@ -1009,7 +1119,7 @@ public class PlayerMove : MonoBehaviour
         }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
-        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
+        if(Physics.Raycast(ray,out info,5f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
             
              if(inventoryDic[currentSelectedHotbar-1]==152){
                 PlayerCritAttack();
@@ -1017,24 +1127,29 @@ public class PlayerMove : MonoBehaviour
                 return;
             }
         }
-        if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
-            Vector3 blockPoint=info.point-headPos.forward*0.01f;
+        if(Physics.Raycast(ray,out info,5f)&&info.collider.gameObject.tag!="Entity"&&info.collider.gameObject.tag!="Player"){
+            Vector3 blockPoint=info.point-mainCam.transform.forward*0.01f;
+
             if(inventoryDic[currentSelectedHotbar-1]>150&&inventoryDic[currentSelectedHotbar-1]<=200){
+                Debug.Log("1");
                 return;
             }
             if(inventoryDic[currentSelectedHotbar-1]==102){
                 if(WorldHelper.instance.GetBlock(WorldHelper.instance.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))==0||(WorldHelper.instance.GetBlock(WorldHelper.instance.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))>=100&&WorldHelper.instance.GetBlock(WorldHelper.instance.Vec3ToBlockPos(blockPoint)+new Vector3Int(0,-1,0))<=200)){
+                     Debug.Log("2");
                     return;
                 }
             }
             if(inventoryDic[currentSelectedHotbar-1]==0){
+                 Debug.Log("3");
                 return;
             }
             if(collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer==true||collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithEntity==true){
+                 Debug.Log("4");
                return;
             }
-
-            WorldHelper.instance.SetBlockByHand(blockPoint,inventoryDic[currentSelectedHotbar-1]);
+           
+            WorldHelper.instance.SetBlockByHand(blockPoint,(short)inventoryDic[currentSelectedHotbar-1]);
 
              AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
@@ -1043,6 +1158,7 @@ public class PlayerMove : MonoBehaviour
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(blockPoint));
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
        chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
+       chunkNeededUpdate=null;
              AttackAnimate();
      Invoke("cancelAttackInvoke",0.16f);
  

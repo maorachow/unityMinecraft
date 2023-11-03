@@ -254,7 +254,20 @@ public class WorldManager : MonoBehaviour
 public void FastChunkLoadingButtonOnValueChanged(bool b){
   isChunkFastLoadingEnabled=b;
 }
- 
+ public static void DestroyAllChunks(){
+  foreach(var cKvp in Chunk.Chunks){
+    var c=cKvp.Value;
+    c.leftChunk=null;
+    c.rightChunk=null;
+    c.frontChunk=null;
+    c.backChunk=null;
+    c.backLeftChunk=null;
+    c.backRightChunk=null;
+    c.frontLeftChunk=null;
+    c.frontRightChunk=null;
+    c=null;
+  }
+ }
 void OnApplicationQuit(){
   
   isGoingToQuitGame=true;
