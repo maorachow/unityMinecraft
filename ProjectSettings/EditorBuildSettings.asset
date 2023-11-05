@@ -15,3 +15,4 @@ EditorBuildSettings:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: f05060430d6b73340afa48850bdd5406, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 26e5e373f96d3f4489706ebf5d8d470e, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: faef5423c98f09f4d93f572227daed5b, type: 2}
+    com.unity.addressableassets: {fileID: 11400000, guid: 4567de0b7116d434f964e44d52b2e837, type: 2}

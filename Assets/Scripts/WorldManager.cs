@@ -54,8 +54,8 @@ public class WorldManager : MonoBehaviour
         
           Chunk.AddBlockInfo();  
         
-        Task t=Task.Run(()=>Chunk.ReadJson());
-        t.Wait();
+          Task t=Task.Run(()=>Chunk.ReadJson());
+          t.Wait();
         //    Chunk.ReadJson();
             lightSource=GameObject.Find("Directional Light");
             playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
@@ -267,6 +267,7 @@ public void FastChunkLoadingButtonOnValueChanged(bool b){
     c.frontRightChunk=null;
     c=null;
   }
+  Chunk.Chunks.Clear();
  }
 void OnApplicationQuit(){
   

@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 public class pauseMenuUI : MonoBehaviour
 {
+    public static pauseMenuUI instance;
     public Texture terrainNormal;
     public Button rebuildAllChunksButton;
     public Button SaveWorldButton;
@@ -15,8 +16,13 @@ public class pauseMenuUI : MonoBehaviour
     public Text graphicsQualityText;
     public PlayerMove player;
     public Button returnToMainMenuButton;
+    public InputField resourcesDirectoryField;
+    public Button loadResourceButton;
     void Start()
     {
+        instance=this;
+        resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
+        loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
         terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
         player=GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
@@ -31,7 +37,7 @@ public class pauseMenuUI : MonoBehaviour
         returnToMainMenuButton=GameObject.Find("pausemainmenubutton").GetComponent<Button>();
         returnToMainMenuButton.onClick.AddListener(ReturnToMainMenuButtonOnClick);
         graphicsQualitySlider.onValueChanged.AddListener(GraphicsQualitySliderOnValueChanged);
-        
+        loadResourceButton.onClick.AddListener(LoadResourceButtonOnClick);
     }
     void GraphicsQualitySliderOnValueChanged(float f){
         switch((int)graphicsQualitySlider.value){
@@ -73,12 +79,16 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
-        WorldManager.DestroyAllChunks();
-         ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+        FileAssetLoaderBeh.instance.UnloadAndResetResouces();
+       
+        terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
+        ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
         ZombieBeh.isZombiePrefabLoaded=false;
         WorldManager.isGoingToQuitGame=true;
         SaveWorldButtonOnClick();
+         WorldManager.DestroyAllChunks();
          SceneManager.LoadScene(0);
+
 
     }
      void SaveWorldButtonOnClick(){
@@ -92,8 +102,17 @@ public class pauseMenuUI : MonoBehaviour
             kvp.Value.isChunkMapUpdated=true;
         }
     }
-    
+    void LoadResourceButtonOnClick(){
+        string resourcePackRootPath=resourcesDirectoryField.text;
+        FileAssetLoaderBeh.instance.LoadBlockNameDic(resourcePackRootPath+"/blockname.dat");
+        FileAssetLoaderBeh.instance.LoadChunkBlockInfo(resourcePackRootPath+"/blockterraininfo.dat");
+        FileAssetLoaderBeh.instance.LoadItemBlockInfo(resourcePackRootPath+"/itemblockinfo.dat");
+        FileAssetLoaderBeh.instance.LoadBlockAudio(resourcePackRootPath+"/audioab.dat");
+        FileAssetLoaderBeh.instance.LoadBlockTexture(resourcePackRootPath+"/textureab.dat");
+    }
     void OnApplicationQuit(){
-        player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+          terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
+            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+                FileAssetLoaderBeh.instance.UnloadAndResetResouces();
     }
 }

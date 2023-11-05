@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 344472827
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: audioab.dat
+      Dependencies: {}

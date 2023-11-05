@@ -1,0 +1,34 @@
+ManifestFileVersion: 0
+CRC: 968526531
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: ed82cdcccf93e608f0e14883b007ddd6
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 9a2ca7bdbd1871f7131daf57de908e0c
+HashAppended: 0
+ClassTypes:
+- Class: 83
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Resources/Audios/Exiting_water.ogg
+- Assets/Resources/Audios/Gravel_dig1.ogg
+- Assets/Resources/Audios/Pop.ogg
+- Assets/Resources/Audios/Explosion4.ogg
+- Assets/Resources/Audios/Zombie_say1.ogg
+- Assets/Resources/Audios/Sweep_attack1.ogg
+- Assets/Resources/Audios/Entering_water.ogg
+- Assets/Resources/Audios/Wood_dig1.ogg
+- Assets/Resources/Audios/Wood_dig3.ogg
+- Assets/Resources/Audios/Sand_dig1.ogg
+- Assets/Resources/Audios/Water_heavy_splash.ogg
+- Assets/Resources/Audios/Stone_dig2.ogg
+- Assets/Resources/Audios/Zombie_hurt1.ogg
+- Assets/Resources/Audios/Player_hurt2.ogg
+- Assets/Resources/Audios/Grass_dig1.ogg
+- Assets/Resources/Audios/Grass_dig3.ogg
+- Assets/Resources/Audios/Stone_dig3.ogg
+- Assets/Resources/Audios/Creeper_say2.ogg
+Dependencies: []

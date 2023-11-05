@@ -35,7 +35,12 @@ void OnEnable(){
     psr=GetComponent<ParticleSystemRenderer>();
 }
 public void EmitParticle(){
-     AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockID],transform.position,1f);
+    if(Chunk.blockAudioDic.ContainsKey(blockID)){
+    AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockID],transform.position,1f);    
+    }else{
+        Debug.Log("missing file");
+    }
+    
     particleMesh=new Mesh();
     int x=0;
     int y=0;

@@ -33,11 +33,12 @@ public class GameUIBeh : MonoBehaviour
    void Start(){
     instance=this;
     craftUI=transform.Find("inventoryconvertUI").gameObject;
-        if(pauseMenu==null){
+    if(pauseMenu==null){
              pauseMenu=transform.Find("pausemenuUI").gameObject;
              pauseMenu.SetActive(true);
         }
     blockImageDic.Clear();
+    blockImageDic.TryAdd(-1,Sprite.Create(new Texture2D(16,16),new Rect(0,0,16,16),new Vector2(0.5f,0.5f)));
     blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/emptyslot"));
     blockImageDic.TryAdd(1,Resources.Load<Sprite>("Textures/stone"));
     blockImageDic.TryAdd(2,Resources.Load<Sprite>("Textures/grass_side_carried"));
@@ -52,11 +53,11 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
     blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));
-     blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
-      blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
-      blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
-      hotbarImageDic.Clear();
-        hotbarTextDic.Clear();
+    blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
+    blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
+    blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
+    hotbarImageDic.Clear();
+    hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
         
         hotbarImageDic.TryAdd(i-1,GameObject.Find("hotbarItem"+i.ToString()).GetComponent<Image>());
@@ -135,7 +136,12 @@ public class GameUIBeh : MonoBehaviour
                 i.Value.sprite=blockImageDic[0];
                 continue;
             }
-            i.Value.sprite=blockImageDic[player.inventoryDic[i.Key]];
+            if(blockImageDic.ContainsKey(player.inventoryDic[i.Key])){
+             i.Value.sprite=blockImageDic[player.inventoryDic[i.Key]];   
+            }else{
+                i.Value.sprite=blockImageDic[-1];
+            }
+            
         }
         foreach(KeyValuePair<int,TMP_Text> i in hotbarTextDic){
             i.Value.text=player.inventoryItemNumberDic[i.Key].ToString();

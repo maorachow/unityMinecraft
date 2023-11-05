@@ -177,9 +177,13 @@ public class PlayerMove : MonoBehaviour
 
             playerBound= playerBound.offset(0, 0, dz);
     }
-    void Awake(){
-       
-        if(isBlockNameDicAdded==false){
+
+
+
+    public static void AddBlockNameInfo(){
+
+ //       if(isBlockNameDicAdded==false){
+    blockNameDic.Clear();
         blockNameDic.Add(0,"None");
         blockNameDic.Add(1,"Stone");
         blockNameDic.Add(2,"Grass");
@@ -197,8 +201,12 @@ public class PlayerMove : MonoBehaviour
         blockNameDic.Add(151,"Diamond Pickaxe");
         blockNameDic.Add(152,"Diamond Sword");
         blockNameDic.Add(153,"Diamond");
-        isBlockNameDicAdded=true;
-        }
+   //     isBlockNameDicAdded=true;
+   //     }
+    }
+    void Awake(){
+       
+        AddBlockNameInfo();
       
     }
     void OnDestroy(){
@@ -570,7 +578,12 @@ public class PlayerMove : MonoBehaviour
                 if(blockOnHandText==null){
                 blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
                 }
-                    blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
+                if(blockNameDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
+                blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];    
+                }else{
+                blockOnHandText.text=  "Unknown Block Name,ID:"+inventoryDic[currentSelectedHotbar-1];  
+                }
+                
         
           } };
            
@@ -1150,8 +1163,12 @@ public class PlayerMove : MonoBehaviour
             }
            
             WorldHelper.instance.SetBlockByHand(blockPoint,(short)inventoryDic[currentSelectedHotbar-1]);
-
-             AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
+            if(Chunk.blockAudioDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
+            AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar-1]],blockPoint,1f);
+            }else{
+                    Debug.Log("missing file");
+            }
+             
             inventoryItemNumberDic[currentSelectedHotbar-1]--;
                    
            Vector3Int intPos=new Vector3Int(WorldHelper.instance.FloatToInt(blockPoint.x),WorldHelper.instance.FloatToInt(blockPoint.y),WorldHelper.instance.FloatToInt(blockPoint.z));

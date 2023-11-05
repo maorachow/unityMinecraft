@@ -222,6 +222,7 @@ public class Chunk : MonoBehaviour
  
     public static void AddBlockInfo(){
         //left right bottom top back front
+        blockAudioDic.Clear();
         blockAudioDic.TryAdd(1,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(2,Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockAudioDic.TryAdd(3,Resources.Load<AudioClip>("Audios/Gravel_dig1"));
@@ -236,6 +237,7 @@ public class Chunk : MonoBehaviour
         blockAudioDic.TryAdd(100,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(101,Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockAudioDic.TryAdd(102,Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockInfo.Clear();
         blockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         blockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
         blockInfo.TryAdd(3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)});
@@ -249,6 +251,7 @@ public class Chunk : MonoBehaviour
         blockInfo.TryAdd(9,new List<Vector2>{new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f)});
         blockInfo.TryAdd(10,new List<Vector2>{new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f)});
         blockInfo.TryAdd(11,new List<Vector2>{new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f)});
+        itemBlockInfo.Clear();
         itemBlockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         itemBlockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
         itemBlockInfo.TryAdd(3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)});
@@ -265,7 +268,7 @@ public class Chunk : MonoBehaviour
 
     }
     public static void ReadJson(){
-        chunkDataReadFromDisk.Clear();
+    chunkDataReadFromDisk.Clear();
      gameWorldDataPath=WorldManager.gameWorldDataPath;
          
          if (!Directory.Exists(gameWorldDataPath+"unityMinecraftData")){
@@ -373,10 +376,11 @@ public class Chunk : MonoBehaviour
         if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
         }
+         SaveSingleChunk();
        await Task.Run(()=>{
      //   chunkMesh=new Mesh();
       //  chunkNonSolidMesh=new Mesh();
-        SaveSingleChunk();
+       
           Chunk c;
         Chunks.Remove(chunkPos,out c);
         additiveMap=new short[chunkWidth,chunkHeight,chunkWidth];
@@ -1916,7 +1920,10 @@ public class Chunk : MonoBehaviour
         Vector2 uvCorner = new Vector2(0.00f, 0.00f);
 
         //uvCorner.x = (float)(typeid - 1) / 16;
-        uvCorner=blockInfo[typeid][side];
+        if(blockInfo.ContainsKey(typeid)){
+        uvCorner=blockInfo[typeid][side];    
+        }
+        
         uvs.Add(uvCorner);
         uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
         uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));

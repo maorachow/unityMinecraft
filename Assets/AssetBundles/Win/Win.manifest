@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 2935556431
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: audioab.dat
+      Dependencies: {}
+    Info_1:
+      Name: textureab.dat
+      Dependencies: {}
