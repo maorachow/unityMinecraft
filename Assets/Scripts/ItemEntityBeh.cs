@@ -419,10 +419,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
         yield break;
     }
-    public void AddForceInvoke(Vector3 f){
+    public async void AddForceInvoke(Vector3 f){
         if(isPosInited!=true){
             Debug.Log("pos not inited");
         }
+        await UniTask.WaitUntil(()=>rb.constraints== RigidbodyConstraints.None);
         rb.velocity=f;
     }
     public void InitPos(){
@@ -433,9 +434,9 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
     void Awake(){
       //  worldEntities.Add(this);
-       if(isFlatItemInfoAdded==false){
+    /*   if(isFlatItemInfoAdded==false){
             AddFlatItemInfo();
-        }
+        }*/
       rb=GetComponent<Rigidbody>();
       mc=GetComponent<MeshCollider>();
       mf=GetComponent<MeshFilter>();
@@ -530,13 +531,13 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     public static int textureXSize=64;
     public static int textureYSize=64;
  //   public Mesh itemMesh;
-    void AddFlatItemInfo(){
-        itemMaterialInfo.Add(153,new Vector2(0.125f,0.125f));
-        itemMaterialInfo.Add(151,new Vector2(0.0625f,0.125f));
-        itemMaterialInfo.Add(152,new Vector2(0.0f,0.125f));
-        itemTexturePosInfo.Add(153,new Vector2Int(128,128));
-        itemTexturePosInfo.Add(152,new Vector2Int(0,128));
-        itemTexturePosInfo.Add(151,new Vector2Int(64,128));
+    public static void AddFlatItemInfo(){
+        itemMaterialInfo.TryAdd(153,new Vector2(0.125f,0.125f));
+        itemMaterialInfo.TryAdd(151,new Vector2(0.0625f,0.125f));
+        itemMaterialInfo.TryAdd(152,new Vector2(0.0f,0.125f));
+        itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
+        itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
+        itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));
         itemTextureInfo=Resources.Load<Texture2D>("Textures/itemterrain");
    //     itemTextureInfo.Add(0,Resources.Load<Texture2D>("Textures/diamond_pickaxe"));
       //  itemTextureInfo.Add(1,Resources.Load<Texture2D>("Textures/diamond_sword"));
@@ -610,7 +611,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
      
     }
 
-void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
+static void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
         Vector2 uvCorner=new Vector2(uvX,uvY);
      
         int index = verts.Count;

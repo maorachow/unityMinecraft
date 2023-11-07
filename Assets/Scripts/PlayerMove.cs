@@ -927,7 +927,10 @@ public class PlayerMove : MonoBehaviour
          //     chunk.meshCollider.sharedMesh=chunk.chunkMesh;
                 if(chunk.isStrongLoaded==false||chunk.meshCollider.sharedMesh==null){
                     if(chunk.isMeshBuildCompleted==true){
-                    chunk.StrongLoadChunk();    
+                    StartCoroutine(chunk.StrongLoadChunk());  
+                    chunk.isStrongLoaded=true; 
+                    }else{
+                        continue;
                     }
                     
                     

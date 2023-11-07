@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 170464348
+CRC: 2730765458
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5a554576bfcfe291653bedf1d1724065
+    Hash: 1df44710281b14e45563a8e64a89fa34
   TypeTreeHash:
     serializedVersion: 2
     Hash: 2612ac43db082a73502ee80f2eceb73f
@@ -13,7 +13,9 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
-- Assets/CustomReesourcePackTextures/nonsolid.png
-- Assets/CustomReesourcePackTextures/terrainnormal.png
-- Assets/CustomReesourcePackTextures/terrain.png
+- Assets/CustomResourcePackTextures/nonsolid.png
+- Assets/CustomResourcePackTextures/terrainnormal.png
+- Assets/CustomResourcePackTextures/itemterrainnormal.png
+- Assets/CustomResourcePackTextures/terrain.png
+- Assets/CustomResourcePackTextures/itemterrain.png
 Dependencies: []

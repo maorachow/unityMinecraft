@@ -130,7 +130,7 @@ public class GameUIBeh : MonoBehaviour
 
       
         selectedHotbar=player.currentSelectedHotbar;
-        selectedHotbarTransform.anchoredPosition=new Vector2(-160f+(selectedHotbar-1)*40f,0f);
+        selectedHotbarTransform.anchoredPosition=new Vector2(-400f+(selectedHotbar-1)*100f,0f);
         foreach(KeyValuePair<int,Image> i in hotbarImageDic){
             if(player.inventoryItemNumberDic[i.Key]==0){
                 i.Value.sprite=blockImageDic[0];

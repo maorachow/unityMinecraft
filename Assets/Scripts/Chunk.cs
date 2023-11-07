@@ -349,12 +349,14 @@ public class Chunk : MonoBehaviour
     }
     
     //strongload: simulate chunk mesh collider
-    public void StrongLoadChunk(){
-        
+    public IEnumerator StrongLoadChunk(){
+        yield return new WaitUntil(()=>isMeshBuildCompleted==true);
         meshCollider.sharedMesh=chunkMesh;
         isStrongLoaded=true;
+    //    Debug.Log("strongLoad");
     }
     void OnDestroy(){
+        
         additiveMap=null;
         map=null;
         thisHeightMap=null;
@@ -373,6 +375,8 @@ public class Chunk : MonoBehaviour
     isMapGenCompleted=false;
         isMeshBuildCompleted=false;
         isStrongLoaded=false;
+      //  meshCollider.sharedMesh=null;
+         isChunkMapUpdated=false;
         if(WorldManager.chunkLoadingQueue.Contains(this)){
          WorldManager.chunkLoadingQueue.Remove(this);   
         }

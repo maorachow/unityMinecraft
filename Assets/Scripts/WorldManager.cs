@@ -53,7 +53,7 @@ public class WorldManager : MonoBehaviour
     async void Start(){
         
           Chunk.AddBlockInfo();  
-        
+          ItemEntityBeh.AddFlatItemInfo();
           Task t=Task.Run(()=>Chunk.ReadJson());
           t.Wait();
         //    Chunk.ReadJson();

@@ -23,7 +23,7 @@ public class pauseMenuUI : MonoBehaviour
         instance=this;
         resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
         loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
-        terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
+        terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
         player=GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
         graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
@@ -80,9 +80,10 @@ public class pauseMenuUI : MonoBehaviour
     }
     void ReturnToMainMenuButtonOnClick(){
         FileAssetLoaderBeh.instance.UnloadAndResetResouces();
-       
-        terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
+          ItemEntityBeh.AddFlatItemInfo();
+        terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
         ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+        ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
         ZombieBeh.isZombiePrefabLoaded=false;
         WorldManager.isGoingToQuitGame=true;
         SaveWorldButtonOnClick();
@@ -111,7 +112,9 @@ public class pauseMenuUI : MonoBehaviour
         FileAssetLoaderBeh.instance.LoadBlockTexture(resourcePackRootPath+"/textureab.dat");
     }
     void OnApplicationQuit(){
-          terrainNormal=Resources.Load<Texture>("Textures/terrainnormal");
+           ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
+             ItemEntityBeh.AddFlatItemInfo();
+          terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
             player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
                 FileAssetLoaderBeh.instance.UnloadAndResetResouces();
     }
