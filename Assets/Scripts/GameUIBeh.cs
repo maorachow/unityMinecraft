@@ -56,6 +56,7 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
     blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
     blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
+    blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/rotten_flesh"));
     hotbarImageDic.Clear();
     hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){

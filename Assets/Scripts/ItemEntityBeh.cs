@@ -386,6 +386,9 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
       //  isWorldItemEntityDataSaved=true;
     }
     public static async void SpawnNewItem(float posX,float posY,float posZ,int itemID,Vector3 startingSpeed){
+                if(itemID==-1){
+                    return;
+                }
                 GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(posX,posY,posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
                 
@@ -521,7 +524,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
      public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
     public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
-    //151diamond pickaxe 152diamond sword 153diamond
+    //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh
     public static Texture2D itemTextureInfo;
 //    public List<Vector3> verts=new List<Vector3>();
   //  public List<Vector2> uvs=new List<Vector2>();
@@ -532,9 +535,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     public static int textureYSize=64;
  //   public Mesh itemMesh;
     public static void AddFlatItemInfo(){
+        itemMaterialInfo.TryAdd(154,new Vector2(0.1875f,0.125f));
         itemMaterialInfo.TryAdd(153,new Vector2(0.125f,0.125f));
         itemMaterialInfo.TryAdd(151,new Vector2(0.0625f,0.125f));
         itemMaterialInfo.TryAdd(152,new Vector2(0.0f,0.125f));
+        itemTexturePosInfo.TryAdd(154,new Vector2Int(192,128));
         itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
         itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
         itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));
@@ -549,8 +554,6 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     float x=0f;
     float y=0f;
     float z=0f;
-     
-
         BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y, z)/16, Vector3.forward*textureXSize/4/16, Vector3.right*textureYSize/4/16, false, verts, uvs, tris);
         BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y+1f, z)/16, Vector3.forward*textureXSize/4/16, Vector3.right*textureYSize/4/16, true, verts, uvs, tris);
         for(int i=0;i<textureXSize;i++){

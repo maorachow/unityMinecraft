@@ -349,9 +349,10 @@ public class Chunk : MonoBehaviour
     }
     
     //strongload: simulate chunk mesh collider
-    public IEnumerator StrongLoadChunk(){
-        yield return new WaitUntil(()=>isMeshBuildCompleted==true);
-        meshCollider.sharedMesh=chunkMesh;
+    public async void StrongLoadChunk(){
+        await Task.Run(()=>{while(true){if(isMeshBuildCompleted==true){return;}else{Thread.Sleep(50);}}});
+     
+       meshCollider.sharedMesh=chunkMesh;
         isStrongLoaded=true;
     //    Debug.Log("strongLoad");
     }
@@ -2133,17 +2134,16 @@ public class Chunk : MonoBehaviour
     
   
     public void BFSInit(int x,int y,int z){
-       
         BFSMapUpdate(x,y,z);
     }
     public void UpdateBlock(int x,int y,int z){
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
         
-            BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
+            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            
-            BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
+            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
@@ -2168,11 +2168,11 @@ public class Chunk : MonoBehaviour
       
        
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==101&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
-            BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
+            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==102&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            
-            BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
+            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x+x,y,chunkPos.y+z));
         }
         if(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y,chunkPos.y+z))==100&&WorldHelper.instance.GetBlock(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z))==0){
            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x+x,y-1,chunkPos.y+z),100);
@@ -2197,17 +2197,8 @@ public class Chunk : MonoBehaviour
         UpdateBlock(x,y,z-1);
         UpdateBlock(x,y,z+1);
     }
-    public static void BreakBlockAtPoint(Vector3 blockPoint){
-
-        
-            GameObject a=ObjectPools.particleEffectPool.Get();
-            a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
-            a.GetComponent<particleAndEffectBeh>().blockID=WorldHelper.instance.GetBlock(blockPoint);
-            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
-            ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,WorldHelper.instance.GetBlock(blockPoint),new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f)));
-            WorldHelper.instance.SetBlock(blockPoint,0);
-          //  UpdateChunkMeshCollider(blockPoint);
-    }
+   
+    
  //   void UpdatePlayerDistance(){
 //        playerDistance = (chunkPos - new Vector2(playerPos.position.x,playerPos.position.z)).sqrMagnitude;
 //

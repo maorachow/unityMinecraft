@@ -8,16 +8,18 @@ public class WorldHelper:IWorldHelper{
     public int chunkHeight=256;
     public static WorldHelper instance=new WorldHelper();
      public Vector3Int Vec3ToBlockPos(Vector3 pos){
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        Vector3Int intPos=Vector3Int.FloorToInt(pos);
         return intPos;
     }
    
     public void SetBlock(Vector3 pos,short blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+            if(blockID==-1){
+            return;
+        }
+        Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
 
-        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.chunkPos.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.chunkPos.y));
          if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return;
         }
@@ -57,11 +59,13 @@ public class WorldHelper:IWorldHelper{
 
      
     public void SetBlockWithoutUpdate(Vector3 pos,short blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+            if(blockID==-1){
+            return;
+        }
+        Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
 
-        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.transform.position.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.transform.position.z));
+        Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
          if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return;
         }
@@ -70,8 +74,10 @@ public class WorldHelper:IWorldHelper{
     }
       
     public void SetBlockByHand(Vector3 pos,short blockID){
-
-        Vector3Int intPos=new Vector3Int(FloatToInt(pos.x),FloatToInt(pos.y),FloatToInt(pos.z));
+        if(blockID==-1){
+            return;
+        }
+        Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
@@ -165,14 +171,45 @@ public class WorldHelper:IWorldHelper{
         return chunkNeededUpdate.map[intPos.x,intPos.y,intPos.z];
     }
 
-        public Vector2Int Vec3ToChunkPos(Vector3 pos){
+    public Vector2Int Vec3ToChunkPos(Vector3 pos){
         Vector3 tmp=pos;
         tmp.x = Mathf.Floor(tmp.x / (float)chunkWidth) * chunkWidth;
         tmp.z = Mathf.Floor(tmp.z / (float)chunkWidth) * chunkWidth;
         Vector2Int value=new Vector2Int((int)tmp.x,(int)tmp.z);
         return value;
     }
-       
+    public void StartUpdateAtPoint(Vector3 blockPoint){
+           Vector3Int intPos=new Vector3Int(WorldHelper.instance.FloatToInt(blockPoint.x),WorldHelper.instance.FloatToInt(blockPoint.y),WorldHelper.instance.FloatToInt(blockPoint.z));
+            Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(blockPoint));
+            Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+            chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
+    }
+    public void BreakBlockAtPoint(Vector3 blockPoint){
+            GameObject a=ObjectPools.particleEffectPool.Get();
+            a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
+            a.GetComponent<particleAndEffectBeh>().blockID=WorldHelper.instance.GetBlock(blockPoint);
+            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+            ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,ItemIDToBlockID.blockIDToItemIDDic[WorldHelper.instance.GetBlock(blockPoint)],new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f)));
+            WorldHelper.instance.SetBlockByHand(blockPoint,0);
+          //  UpdateChunkMeshCollider(blockPoint);
+    }
+    public void BreakBlockInArea(Vector3 centerPoint,Vector3 minPoint,Vector3 maxPoint){
+          for(float x=minPoint.x;x<=maxPoint.x;x++){
+                for(float y=minPoint.y;y<=maxPoint.y;y++){
+                    for(float z=minPoint.z;z<=maxPoint.z;z++){
+                        Vector3 blockPointArea=centerPoint+new Vector3(x,y,z);
+                    int tmpID2=WorldHelper.instance.GetBlock(blockPointArea);
+                    if(tmpID2==0){
+                    continue;
+                    }
+                    
+                    BreakBlockAtPoint(blockPointArea);
+               
+
+                    }
+                }
+             }
+    }
     public int FloatToInt(float f){
         if(f>=0){
             return (int)f;

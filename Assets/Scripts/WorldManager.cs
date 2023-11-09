@@ -48,10 +48,11 @@ public class WorldManager : MonoBehaviour
             Application.targetFrameRate = 60;
         }else{
          Application.targetFrameRate = 1024;   
-        }        
+        }    
+
     }
     async void Start(){
-        
+          ItemIDToBlockID.InitDic();
           Chunk.AddBlockInfo();  
           ItemEntityBeh.AddFlatItemInfo();
           Task t=Task.Run(()=>Chunk.ReadJson());

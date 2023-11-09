@@ -15,36 +15,45 @@ public class FileAssetLoaderBeh : MonoBehaviour
         instance=this;
     }
 
-    public void LoadBlockNameDic(string path){
+    public bool LoadBlockNameDic(string path){
         PlayerMove.blockNameDic.Clear();
         try{
         PlayerMove.blockNameDic=MessagePackSerializer.Deserialize<Dictionary<int,string>>(File.ReadAllBytes(path));
+            return true;
         }catch(Exception e){
             Debug.Log("Loading block name failed: "+e.ToString());
             PlayerMove.AddBlockNameInfo();
+             return false;
         }
        
     }
-    public void LoadChunkBlockInfo(string path){
+    public bool LoadChunkBlockInfo(string path){
         Chunk.blockInfo.Clear();
         try{
         Chunk.blockInfo=MessagePackSerializer.Deserialize<Dictionary<int,List<Vector2>>>(File.ReadAllBytes(path));
+        return true;
         }catch(Exception e){
             Debug.Log("Loading block info failed: "+e.ToString());
            Chunk.AddBlockInfo();
+           return false;
         }
     }
-    public void LoadItemBlockInfo(string path){
+    public bool LoadItemBlockInfo(string path){
         Chunk.itemBlockInfo.Clear();
         try{
         Chunk.itemBlockInfo=MessagePackSerializer.Deserialize<Dictionary<int,List<Vector2>>>(File.ReadAllBytes(path));
+        return true;
         }catch(Exception e){
             Debug.Log("Loading block info failed: "+e.ToString());
            Chunk.AddBlockInfo();
+           return false;
         }
     }
-    public void LoadBlockAudio(string path){
+    public bool  LoadBlockAudio(string path){
         try{
+            if(audioAB!=null){
+                audioAB.Unload(true);
+            }
       audioAB=AssetBundle.LoadFromFile(path);
         Chunk.blockAudioDic.Clear();
         Chunk.blockAudioDic.TryAdd(1,audioAB.LoadAsset<AudioClip>("Stone_dig2"));
@@ -61,24 +70,33 @@ public class FileAssetLoaderBeh : MonoBehaviour
          Chunk.blockAudioDic.TryAdd(100,audioAB.LoadAsset<AudioClip>("Stone_dig2"));
          Chunk.blockAudioDic.TryAdd(101,audioAB.LoadAsset<AudioClip>("Grass_dig1"));
          Chunk.blockAudioDic.TryAdd(102,audioAB.LoadAsset<AudioClip>("Wood_dig1"));
+         return true;
         }catch(Exception e){
               Debug.Log("Loading block audio failed: "+e.ToString());
            Chunk.AddBlockInfo();
+           return false;
         }
        
     }
-    public void LoadBlockTexture(string path){
+    public bool LoadBlockTexture(string path){
          try{
+            if(textureAB!=null){
+            textureAB.Unload(true);    
+            }
+            
            textureAB=AssetBundle.LoadFromFile(path);
             TerrainTextureMipmapAdjusting.SetTerrainTexMipmap(textureAB.LoadAsset<Texture2D>("terrain"),textureAB.LoadAsset<Texture2D>("terrainnormal"),textureAB.LoadAsset<Texture2D>("nonsolid"),textureAB.LoadAsset<Texture2D>("nonsolid"));
             ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",textureAB.LoadAsset<Texture2D>("itemterrain"));
             ItemEntityBeh.itemTextureInfo=textureAB.LoadAsset<Texture2D>("itemterrain");
+            return true;
          }catch(Exception e){
               Debug.Log("Loading block texture failed: "+e.ToString());
                 Chunk.AddBlockInfo();
                  TerrainTextureMipmapAdjusting.SetTerrainTexMipmap(Resources.Load<Texture2D>("Textures/terrain"),Resources.Load<Texture2D>("Textures/terrainnormal"),Resources.Load<Texture2D>("Textures/nonsolid"),Resources.Load<Texture2D>("Textures/nonsolid"));
                  ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
                 ItemEntityBeh.AddFlatItemInfo();
+                return false;
+
          }
        
     }

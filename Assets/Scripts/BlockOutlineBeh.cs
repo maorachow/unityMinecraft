@@ -6,13 +6,17 @@ public class BlockOutlineBeh : MonoBehaviour
 {
     public bool isCollidingWithPlayer;
     public bool isCollidingWithEntity;
-    void OnTriggerEnter(Collider other){
+    void OnTriggerStay(Collider other){
         if(other.gameObject.tag=="Player"){
             isCollidingWithPlayer=true;
 
+        }else{
+            isCollidingWithPlayer=false;
         }
         if(other.gameObject.tag=="Entity"){
             isCollidingWithEntity=true;
+        }else{
+            isCollidingWithEntity=false;
         }
     }
     void OnDisable(){

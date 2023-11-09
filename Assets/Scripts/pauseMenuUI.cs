@@ -18,9 +18,11 @@ public class pauseMenuUI : MonoBehaviour
     public Button returnToMainMenuButton;
     public InputField resourcesDirectoryField;
     public Button loadResourceButton;
+    public Text resourcePackLoadingStatsText;
     void Start()
     {
         instance=this;
+        resourcePackLoadingStatsText=GameObject.Find("resourcepackloadingstatstext").GetComponent<Text>();
         resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
         loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
         terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
@@ -105,11 +107,16 @@ public class pauseMenuUI : MonoBehaviour
     }
     void LoadResourceButtonOnClick(){
         string resourcePackRootPath=resourcesDirectoryField.text;
-        FileAssetLoaderBeh.instance.LoadBlockNameDic(resourcePackRootPath+"/blockname.dat");
-        FileAssetLoaderBeh.instance.LoadChunkBlockInfo(resourcePackRootPath+"/blockterraininfo.dat");
-        FileAssetLoaderBeh.instance.LoadItemBlockInfo(resourcePackRootPath+"/itemblockinfo.dat");
-        FileAssetLoaderBeh.instance.LoadBlockAudio(resourcePackRootPath+"/audioab.dat");
-        FileAssetLoaderBeh.instance.LoadBlockTexture(resourcePackRootPath+"/textureab.dat");
+        bool isLoadingSuccessful=FileAssetLoaderBeh.instance.LoadBlockNameDic(resourcePackRootPath+"/blockname.dat");
+        isLoadingSuccessful=FileAssetLoaderBeh.instance.LoadChunkBlockInfo(resourcePackRootPath+"/blockterraininfo.dat");
+        isLoadingSuccessful=FileAssetLoaderBeh.instance.LoadItemBlockInfo(resourcePackRootPath+"/itemblockinfo.dat");
+        isLoadingSuccessful=FileAssetLoaderBeh.instance.LoadBlockAudio(resourcePackRootPath+"/audioab.dat");
+        isLoadingSuccessful=FileAssetLoaderBeh.instance.LoadBlockTexture(resourcePackRootPath+"/textureab.dat");
+        if(isLoadingSuccessful==true){
+            resourcePackLoadingStatsText.text="Successfully loaded a resources pack";
+        }else{
+            resourcePackLoadingStatsText.text="Resources pack loading failed";
+        }
     }
     void OnApplicationQuit(){
            ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
