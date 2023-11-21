@@ -11,7 +11,18 @@ public class WorldHelper:IWorldHelper{
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         return intPos;
     }
-   
+    public bool CheckIsPosInChunk(Vector3 pos,Chunk c){
+        if(c==null){
+            return false;
+        }
+          Vector3Int intPos=Vector3Int.FloorToInt(pos);
+        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(new Vector3(c.chunkPos.x,0,c.chunkPos.y));
+        if(chunkSpacePos.x>=0&&chunkSpacePos.x<chunkWidth&&chunkSpacePos.z>=0&&chunkSpacePos.z<chunkWidth){
+            return true;
+        }else{
+            return false;
+        }
+    }
     public void SetBlock(Vector3 pos,short blockID){
             if(blockID==-1){
             return;
@@ -19,32 +30,31 @@ public class WorldHelper:IWorldHelper{
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
 
-        Vector3Int chunkSpacePos=intPos-new Vector3Int(FloatToInt(chunkNeededUpdate.chunkPos.x),FloatToInt(chunkNeededUpdate.transform.position.y),FloatToInt(chunkNeededUpdate.chunkPos.y));
+        Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
          if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
-        chunkNeededUpdate.isChunkColliderUpdated=true;
+       
           chunkNeededUpdate.isChunkMapUpdated=true;
  
         if(chunkSpacePos.z>=chunkWidth-1){
          if(chunkNeededUpdate.frontChunk!=null){
            chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
-              chunkNeededUpdate.frontChunk.isChunkColliderUpdated=true;
+         
         }    
         }
         if(chunkSpacePos.z<=0){
          if(chunkNeededUpdate.backChunk!=null){
           
             chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
-            chunkNeededUpdate.backChunk.isChunkColliderUpdated=true;
-        }    
+         }    
         }
         if(chunkSpacePos.x<=0){
           if(chunkNeededUpdate.leftChunk!=null){
        
             chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
-           chunkNeededUpdate.leftChunk.isChunkColliderUpdated=true;
+        
         }   
         }
        
@@ -52,7 +62,7 @@ public class WorldHelper:IWorldHelper{
             if(chunkNeededUpdate.rightChunk!=null){
       
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
-            chunkNeededUpdate.rightChunk.isChunkColliderUpdated=true;
+      
         } 
         }
     }
@@ -86,25 +96,25 @@ public class WorldHelper:IWorldHelper{
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         chunkNeededUpdate.isChunkMapUpdated=true;
-        chunkNeededUpdate.isChunkColliderUpdated=true;
+     
         if(chunkSpacePos.z>=chunkWidth-1){
          if(chunkNeededUpdate.frontChunk!=null){
            chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
-              chunkNeededUpdate.frontChunk.isChunkColliderUpdated=true;
+          
         }    
         }
         if(chunkSpacePos.z<=0){
          if(chunkNeededUpdate.backChunk!=null){
           
             chunkNeededUpdate.backChunk.isChunkMapUpdated=true;
-            chunkNeededUpdate.backChunk.isChunkColliderUpdated=true;
+        
         }    
         }
         if(chunkSpacePos.x<=0){
           if(chunkNeededUpdate.leftChunk!=null){
        
             chunkNeededUpdate.leftChunk.isChunkMapUpdated=true;
-           chunkNeededUpdate.leftChunk.isChunkColliderUpdated=true;
+       
         }   
         }
        
@@ -112,7 +122,7 @@ public class WorldHelper:IWorldHelper{
             if(chunkNeededUpdate.rightChunk!=null){
       
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
-            chunkNeededUpdate.rightChunk.isChunkColliderUpdated=true;
+        
         } 
         }
        
@@ -159,6 +169,9 @@ public class WorldHelper:IWorldHelper{
         Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return 0;
+        }
+        if(chunkSpacePos.x<0||chunkSpacePos.x>=chunkWidth||chunkSpacePos.z<0||chunkSpacePos.z>=chunkWidth){
+            return GetBlock(pos);
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
     }

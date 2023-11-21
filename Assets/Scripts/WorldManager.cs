@@ -52,6 +52,7 @@ public class WorldManager : MonoBehaviour
 
     }
     async void Start(){
+          ChunkLoaderBase.InitChunkLoader();
           ItemIDToBlockID.InitDic();
           Chunk.AddBlockInfo();  
           ItemEntityBeh.AddFlatItemInfo();
@@ -75,14 +76,14 @@ public class WorldManager : MonoBehaviour
             chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
             chunkUnloadingQueue=new  SimplePriorityQueue<Chunk>();
             isGoingToQuitGame=false;
-            UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
+        //    UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
            
   
        //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
          // SceneManager.activeSceneChanged-=sceneChangedEvent;  
         //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
           Chunk.Chunks.Clear();
-          t2=Task.Run(()=>t2ThreadFunc());
+          t2=Task.Run(()=>ChunkLoaderBase.TryUpdateAllChunkLoadersThread());
        //   t2.Start();
          t3=Task.Run(()=>Chunk.TryReleaseChunkThread());
        //   t3.Start();
@@ -200,11 +201,9 @@ public class WorldManager : MonoBehaviour
            
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                 
-                      if(chunkLoadingQueue.First.isChunkColliderUpdated==true){
-                        chunkLoadingQueue.First.StartLoadChunk(true); 
-                      }else{
-                       chunkLoadingQueue.First.StartLoadChunk(false);  
-                      }
+                    
+                       chunkLoadingQueue.First.StartLoadChunk();  
+                    
                       
                   
                   
@@ -230,11 +229,9 @@ public class WorldManager : MonoBehaviour
            
                 if(!chunkUnloadingQueue.Contains(chunkLoadingQueue.First)){
                 
-                     if(chunkLoadingQueue.First.isChunkColliderUpdated==true){
-                        chunkLoadingQueue.First.StartLoadChunk(true); 
-                      }else{
-                       chunkLoadingQueue.First.StartLoadChunk(false);  
-                      }
+                     
+                       chunkLoadingQueue.First.StartLoadChunk();  
+                      
                   
                   
                   chunkLoadingQueue.Dequeue(); 

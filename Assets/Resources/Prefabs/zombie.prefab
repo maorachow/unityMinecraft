@@ -540,7 +540,7 @@ Transform:
   m_GameObject: {fileID: 5842063204011984044}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.75, z: 0}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -610,7 +610,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.3, z: 0}
+  m_Center: {x: 0, y: 1.05, z: 0}
 --- !u!114 &2814887044140612219
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -623,16 +623,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ad4ba793197b474aad1c3fd81d5da68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  curBlockOnFootID: 0
+  prevBlockOnFootID: 0
   AS: {fileID: 0}
-  targetPosition: {fileID: 0}
   currentTrans: {fileID: 0}
   isZombieDied: 0
   am: {fileID: 0}
   headTransform: {fileID: 0}
-  zombieHealth: 20
   entityVec: {x: 0, y: 0, z: 0}
   entityMotionVec: {x: 0, y: 0, z: 0}
-  moveSpeed: 5
   gravity: -9.8
   entityY: 0
   jumpHeight: 2
@@ -641,6 +640,7 @@ MonoBehaviour:
   attackCD: 1.2
   isJumping: 0
   entitySpeed: 0
+  entity: {fileID: 0}
 --- !u!82 &574120882632229893
 AudioSource:
   m_ObjectHideFlags: 0
@@ -762,7 +762,7 @@ Transform:
   m_GameObject: {fileID: 6975206918673650239}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0.75, z: 0}
+  m_LocalPosition: {x: -0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

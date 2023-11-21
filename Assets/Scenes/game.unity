@@ -2159,10 +2159,10 @@ RectTransform:
   - {fileID: 1702504232}
   - {fileID: 889524395}
   - {fileID: 504386596}
-  - {fileID: 13957639}
   - {fileID: 1411071642}
   - {fileID: 1682058285}
   - {fileID: 1995073000}
+  - {fileID: 13957639}
   - {fileID: 955655642}
   - {fileID: 1349845251}
   - {fileID: 1932606563}
@@ -3834,7 +3834,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1720877777}
   m_HandleRect: {fileID: 1720877776}
   m_Direction: 0
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -7379,8 +7379,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 115116083}
   m_HandleRect: {fileID: 115116082}
   m_Direction: 2
-  m_Value: 1.0000001
-  m_Size: 0.48300004
+  m_Value: 0.9999999
+  m_Size: 0.48299998
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -9570,7 +9570,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -9649,7 +9649,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -16974,6 +16974,7 @@ GameObject:
   - component: {fileID: 6020590144067672305}
   - component: {fileID: 8571283222048031525}
   - component: {fileID: 8571283222048031526}
+  - component: {fileID: 8571283222048031527}
   m_Layer: 2
   m_Name: player
   m_TagString: Player
@@ -17077,7 +17078,8 @@ MonoBehaviour:
   isPlayerInGround: 0
   isPlayerGrounded: 0
   isUsingCC: 1
-  isPlayerEating: 0
+  curChunkLoader: {fileID: 0}
+  isPlayerWieldingItem: 0
 --- !u!4 &6095466469615324927
 Transform:
   m_ObjectHideFlags: 0
@@ -17547,6 +17549,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &8571283222048031527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5334127029556897523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cbf4e14c6fed5945a976384a240bbf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chunkLoadingCenter: {x: 0, y: 0}
+  chunkLoadingRange: 0
+  isChunksNeedLoading: 0
 --- !u!20 &8631367289506924961
 Camera:
   m_ObjectHideFlags: 0

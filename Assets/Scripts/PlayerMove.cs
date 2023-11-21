@@ -102,6 +102,7 @@ public class PlayerMove : MonoBehaviour
     public bool isPlayerInGround=false;
     public bool isPlayerGrounded=false;
     public bool isUsingCC=true;
+    public ChunkLoaderBase curChunkLoader;
     public SimpleAxisAlignedBB playerBound;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> blocksAround;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> GetBlocksAround(SimpleAxisAlignedBB aabb){
@@ -240,8 +241,12 @@ public class PlayerMove : MonoBehaviour
 
     void Start()
     {   
-          ReadPlayerJson();
-         pi=new PlayerInput();
+      //    ReadPlayerJson();
+    
+        curChunkLoader=GetComponent<ChunkLoaderBase>();
+        curChunkLoader.AddChunkLoaderToList();
+
+        pi=new PlayerInput();
         pi.Enable();
          Input.multiTouchEnabled = true;
         AS=GetComponent<AudioSource>();
@@ -275,7 +280,8 @@ public class PlayerMove : MonoBehaviour
                 transform.GetChild(0).localRotation=Quaternion.Euler(0f,0f,0f);
         transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
-        playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
+   //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
+          ReadPlayerJson();
     }
 
 
@@ -447,7 +453,7 @@ public class PlayerMove : MonoBehaviour
         cc.enabled = false;
          transform.rotation=Quaternion.identity;
         transform.position = new Vector3(0f,150f,0f);
-         playerBound=new SimpleAxisAlignedBB(new Vector3(0f,150f,0f)-new Vector3(0.3f,0.5f,0.3f),new Vector3(0f,150f,0f)+new Vector3(0.3f,0.9f,0.3f));
+    //     playerBound=new SimpleAxisAlignedBB(new Vector3(0f,150f,0f)-new Vector3(0.3f,0.5f,0.3f),new Vector3(0f,150f,0f)+new Vector3(0.3f,0.9f,0.3f));
         headPos.rotation=Quaternion.identity;
         playerBodyPos.rotation=Quaternion.identity;
         transform.GetChild(0).rotation=Quaternion.Euler(0f,0f,0f);
@@ -513,13 +519,12 @@ public class PlayerMove : MonoBehaviour
             return;
         }
         playerMotionVec=Vector3.Lerp(playerMotionVec,Vector3.zero, 3f * Time.deltaTime);
-        curChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));
-         if(curChunk==null||curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false){
-            return;
-        }
-          if(curChunk!=null&&(curChunk.isMeshBuildCompleted==false||curChunk.isStrongLoaded==false)){
-            return;
-        }
+      
+        
+       if(curChunk==null){
+        return;
+       }
+      
         currentSpeed=Speed();
         am.SetFloat("speed",currentSpeed);
      /*   if(Input.GetKeyDown(KeyCode.K)){
@@ -616,14 +621,14 @@ public class PlayerMove : MonoBehaviour
         switch(cameraPosMode){
             case 0:cameraPos.localPosition=new Vector3(0f,0.28f,-0.1f);cameraPos.localEulerAngles=new Vector3(0f,0f,0f);break;
             case 1: if(isForwardPointHit==true){
-                cameraPos.position=Vector3.Lerp(headPos.position,infoForward.point,0.95f);
+                cameraPos.position=Vector3.Lerp(headPos.position,infoForward.point,0.92f);
             }else{
                 cameraPos.localPosition=new Vector3(0f,0f,5f)+new Vector3(0f,0.28f,-0.1f);
             }
             cameraPos.localEulerAngles=new Vector3(0f,-180f,0f);
             break;
             case 2:if(isBackPointHit==true){
-                cameraPos.position=Vector3.Lerp(headPos.position,infoBack.point,0.95f);
+                cameraPos.position=Vector3.Lerp(headPos.position,infoBack.point,0.92f);
             }else{
                 cameraPos.localPosition=new Vector3(0f,0f,-5f)+new Vector3(0f,0.28f,-0.1f);
             }
@@ -794,11 +799,20 @@ public class PlayerMove : MonoBehaviour
           Debug.Log("true");
     }
    }*/
-  
-    
+        curChunkLoader.chunkLoadingCenter=playerChunkLoadingPos;
+        curChunkLoader.chunkLoadingRange=viewRange;
+
+      if(curChunk==null){
+            curChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));  
+            curChunkLoader.isChunksNeedLoading=true;
+        }
+        if(WorldHelper.instance.CheckIsPosInChunk(transform.position,curChunk)==false){
+        curChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));    
+        curChunkLoader.isChunksNeedLoading=true;
+        }
    // Debug.Log(finalMoveVec);
-   curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f));
-   curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
+   curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f),curChunk);
+   curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position,curChunk);
    if(curHeadBlockID!=prevHeadBlockID){
 
         GlobalVolumeWaterEffectBeh.instance.SwitchEffects(curHeadBlockID==100);
@@ -819,7 +833,7 @@ public class PlayerMove : MonoBehaviour
         }
     }
    prevFootBlockID=curFootBlockID;
-        TryStrongLoadChunkThread();
+  //      TryStrongLoadChunkThread();
      playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
         
@@ -859,12 +873,12 @@ public class PlayerMove : MonoBehaviour
         
        }
     }
-   public void TryUpdateWorldThread(){
+   /*public void TryUpdateWorldThread(){
         while(true){
              if(WorldManager.isGoingToQuitGame==true){
                 return;
             }
-            Thread.Sleep(20);  
+            Thread.Sleep(50);  
             for (float x = playerChunkLoadingPos.x - viewRange; x < playerChunkLoadingPos.x + viewRange; x += Chunk.chunkWidth)
             {
             for (float z = playerChunkLoadingPos.y - viewRange; z <playerChunkLoadingPos.y + viewRange; z += Chunk.chunkWidth)
@@ -896,19 +910,13 @@ public class PlayerMove : MonoBehaviour
 
         }
         
-    }
+    }*/
 
      
 
-      [BurstCompile]
-    public struct BakeJobFor:IJobParallelFor{
-        public NativeArray<int> meshID;
-        public void Execute(int i){
-            Physics.BakeMesh(meshID[i],false);
-        }
-    }
+ 
    
-  public void TryStrongLoadChunkThread(){
+  /*public void TryStrongLoadChunkThread(){
    
         NativeList<int> meshesID=new NativeList<int>(Allocator.TempJob);
         for (float x = playerChunkLoadingPos.x - chunkStrongLoadingRange; x < playerChunkLoadingPos.x + chunkStrongLoadingRange; x += Chunk.chunkWidth)
@@ -944,7 +952,7 @@ public class PlayerMove : MonoBehaviour
             }
         }
     
-    }
+    }*/
  /*  async void UpdateWorld()
     {
         Vector3 curPos=transform.position;
@@ -983,6 +991,7 @@ public class PlayerMove : MonoBehaviour
     }*/
 
    async void PlayerCritAttack(){
+    isPlayerWieldingItem=true;
         CritAttackAnimate();
         Invoke("cancelCritAttackInvoke",0.75f);
       await UniTask.Delay(TimeSpan.FromSeconds(0.75), ignoreTimeScale: false);
@@ -1012,6 +1021,7 @@ public class PlayerMove : MonoBehaviour
                 }
             }
           }
+          isPlayerWieldingItem=false;
     }
     void cancelAttackInvoke(){
         am.SetBool("isattacking",false);
@@ -1050,6 +1060,9 @@ public class PlayerMove : MonoBehaviour
     }
    async void LeftClick(){
         if(cameraPosMode==1){
+            return;
+        }
+        if(isPlayerWieldingItem){
             return;
         }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
@@ -1099,15 +1112,16 @@ public class PlayerMove : MonoBehaviour
     void PlayerCancelEatAnimateInvoke(){
         am.SetBool("iseating",false);
     }
-    public bool isPlayerEating=false;
+    public bool isPlayerWieldingItem=false;
     async void PlayerEat(){
             
            
            
            if(playerHealth<20f){
+            isPlayerWieldingItem=true;
             PlayerEatAnimate();
              for(int i=0;i<3;i++){
-                await UniTask.Delay(150);
+                await UniTask.Delay(300);
                 AudioSource.PlayClipAtPoint(playerEatClip,transform.position+new Vector3(0f,0.5f,0f),1f);
              }
              Invoke("PlayerCancelEatAnimateInvoke",0f);
@@ -1120,6 +1134,7 @@ public class PlayerMove : MonoBehaviour
                 }else{
                 blockOnHandText.text=  "Unknown Block Name,ID:"+inventoryDic[currentSelectedHotbar-1];  
                 }
+               isPlayerWieldingItem=false;   
             }else{
                 return;
             }
@@ -1127,6 +1142,9 @@ public class PlayerMove : MonoBehaviour
     }
     void RightClick(){
         if(cameraPosMode==1){
+            return;
+        }
+        if(isPlayerWieldingItem){
             return;
         }
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
@@ -1202,12 +1220,16 @@ public class PlayerMove : MonoBehaviour
          }
          
          if(pd.posX!=0f&&pd.posY!=0f&&pd.posZ!=0f&&pd.inventoryDic!=null&&pd.inventoryItemNumberDic!=null){
+            cc.enabled=false;
            transform.position=new Vector3(pd.posX,pd.posY,pd.posZ); 
+           cc.enabled=true;
            playerHealth=pd.playerHealth;
            inventoryDic=pd.inventoryDic;
            inventoryItemNumberDic=pd.inventoryItemNumberDic;
          }else{
+             cc.enabled=false;
             transform.position=new Vector3(0f,150f,0f);
+             cc.enabled=true;
             inventoryDic=new int[9];
             inventoryItemNumberDic=new int[9];
 

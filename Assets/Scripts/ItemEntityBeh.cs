@@ -468,9 +468,13 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     }
     }
     void FixedUpdate(){
+        if(currentChunk==null){
+         currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));     
+        }
         
-        currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));  
-        
+        if(!WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)){
+             currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));    
+        }
           
         PlayerEatItem();
         if(transform.position.y<-40f){
@@ -503,7 +507,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
       
 
-          if(currentChunk==null||currentChunk.isStrongLoaded==false||currentChunk.meshCollider.sharedMesh==null){
+          if(currentChunk==null){
           rb.constraints = RigidbodyConstraints.FreezeAll;
             isInUnloadedChunks=true;
         }else{
@@ -511,10 +515,6 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
             
              rb.constraints = RigidbodyConstraints.None;
              isInUnloadedChunks=false;
-            if(currentChunk!=null&&currentChunk.meshCollider.sharedMesh.GetInstanceID()!=currentChunk.chunkMesh.GetInstanceID()){
-      
-            return;
-        }
         }
         
       

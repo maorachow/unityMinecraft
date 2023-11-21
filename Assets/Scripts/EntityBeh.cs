@@ -221,13 +221,17 @@ public class EntityBeh : MonoBehaviour
     //    worldEntities.Add(this);
    // }
     void FixedUpdate(){
-         
-        currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));
-        if(currentChunk==null||currentChunk.isMeshBuildCompleted==false||currentChunk.isStrongLoaded==false){
-          cc.enabled=false;
+         if(currentChunk==null){
+         currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
+         }
+        if(WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)==false){
+             currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
+        }
+        if(currentChunk==null){
+            cc.enabled=false;
             isInUnloadedChunks=true;
         }else{
-            cc.enabled=true;
+                cc.enabled=true;
              isInUnloadedChunks=false;
         }
     }
