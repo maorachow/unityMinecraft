@@ -8,7 +8,7 @@ public class MyChunkObjectPool{
  
     public Queue<GameObject> objectPool = new Queue<GameObject>();
    
-    public int defaultCount = 0;
+    public int defaultCount = 16;
  
     public int maxCount = 200;
  

@@ -106,7 +106,7 @@ public class WorldManager : MonoBehaviour
     }
     int blockedDisablingCount=0;
     void DisableChunks(){
-    Debug.Log(chunkUnloadingQueue.Count);
+ //   Debug.Log(chunkUnloadingQueue.Count);
      if(chunkUnloadingQueue.Count>0){
      
         Chunk c=Chunk.GetChunk(chunkUnloadingQueue.First);
@@ -115,7 +115,7 @@ public class WorldManager : MonoBehaviour
           if(c.isTaskCompleted==true){
             ObjectPools.chunkPool.Remove(c.gameObject);
             chunkUnloadingQueue.Dequeue();
-            Debug.Log("completed");
+          //  Debug.Log("completed");
             return;
           }else{
             blockedDisablingCount++;
@@ -123,7 +123,7 @@ public class WorldManager : MonoBehaviour
               blockedDisablingCount=0;
                 Destroy(c.gameObject);
             chunkUnloadingQueue.Dequeue();
-            Debug.Log("destroy");
+      //      Debug.Log("destroy");
             return;
             }
              return;
@@ -132,14 +132,14 @@ public class WorldManager : MonoBehaviour
           if(cUnloaded.isTaskCompleted==true){
             ObjectPools.chunkPool.Remove(cUnloaded.gameObject);
             chunkUnloadingQueue.Dequeue();
-             Debug.Log("completedu");
+        //     Debug.Log("completedu");
             return;
           }else{
             blockedDisablingCount++;
             if(blockedDisablingCount>15){
               blockedDisablingCount=0;
                 Destroy(cUnloaded.gameObject);
-                 Debug.Log("destroyu");
+        //         Debug.Log("destroyu");
             chunkUnloadingQueue.Dequeue();
             return;
             }
@@ -149,7 +149,7 @@ public class WorldManager : MonoBehaviour
          if(c.isTaskCompleted==true){
             ObjectPools.chunkPool.Remove(c.gameObject);
             chunkUnloadingQueue.Dequeue();
-            Debug.Log("completeda");
+       //     Debug.Log("completeda");
             return;
           }else{
             blockedDisablingCount++;
@@ -157,7 +157,7 @@ public class WorldManager : MonoBehaviour
               blockedDisablingCount=0;
                 Destroy(c.gameObject);
             chunkUnloadingQueue.Dequeue();
-            Debug.Log("destroya");
+        //    Debug.Log("destroya");
             return;
             }
              return;
@@ -165,14 +165,14 @@ public class WorldManager : MonoBehaviour
             if(cUnloaded.isTaskCompleted==true){
             ObjectPools.chunkPool.Remove(cUnloaded.gameObject);
             chunkUnloadingQueue.Dequeue();
-             Debug.Log("completeda");
+        //     Debug.Log("completeda");
             return;
           }else{
             blockedDisablingCount++;
             if(blockedDisablingCount>15){
               blockedDisablingCount=0;
                 Destroy(cUnloaded.gameObject);
-                 Debug.Log("destroya");
+        //         Debug.Log("destroya");
             chunkUnloadingQueue.Dequeue();
             return;
             }
@@ -180,7 +180,7 @@ public class WorldManager : MonoBehaviour
           }
        }else{
          chunkUnloadingQueue.Dequeue();
-         Debug.Log("none");
+       //  Debug.Log("none");
          return;
        }
        }
