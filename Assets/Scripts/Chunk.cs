@@ -194,11 +194,11 @@ public class Chunk : MonoBehaviour
     public Chunk backLeftChunk;
     public Chunk backRightChunk;
     
-    public float[,] leftHeightMap;
+  /*  public float[,] leftHeightMap;
     public float[,] rightHeightMap;
     public float[,] frontHeightMap;
-    public float[,] backHeightMap;
-    public float[,] thisHeightMap; 
+    public float[,] backHeightMap; */
+    public float[,] thisHeightMap;
     public Vector2Int chunkPos;
 //    public static Transform playerPos;
     public static Vector3 playerPosVec;
@@ -311,7 +311,7 @@ public class Chunk : MonoBehaviour
  //   void Awake(){
       
  //   }
-
+   
 
 
 
@@ -319,11 +319,12 @@ public class Chunk : MonoBehaviour
     
       //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
 
-       chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
-
-       isChunkPosInited=true;
+        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+    
+        isChunkPosInited=true;
     //   lock(chunkLock){
-         if(Chunks.ContainsKey(chunkPos)){
+        Chunks.AddOrUpdate(chunkPos,(key)=>this,(key,value)=>this);
+   /*      if(Chunks.ContainsKey(chunkPos)){
       //  if(GetChunk(chunkPos).gameObject!=null){
         //     ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
         //}
@@ -332,13 +333,12 @@ public class Chunk : MonoBehaviour
             Chunks.TryAdd(chunkPos,this);   
        }else{
        Chunks.TryAdd(chunkPos,this);    
-       }
+       }*/
     //   }
       
        
 
         if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
-
             isSavedInDisk=true;
           //  Debug.Log(chunkPos);
         }
@@ -363,11 +363,15 @@ public class Chunk : MonoBehaviour
         DestroyImmediate(chunkWaterMesh,true);
 
     }
-    async void OnDisable(){
+   
+    public async void ChunkOnDisable(){
+     //   taa=null;
+    
+      
         meshRenderer.enabled=false;
         meshRendererNS.enabled=false;
         meshRendererWT.enabled=false;
-    isMapGenCompleted=false;
+        isMapGenCompleted=false;
         isMeshBuildCompleted=false;
        
       //  meshCollider.sharedMesh=null;
@@ -376,29 +380,23 @@ public class Chunk : MonoBehaviour
          WorldManager.chunkLoadingQueue.Remove(this);   
         }
          SaveSingleChunk();
-       await Task.Run(()=>{
-     //   chunkMesh=new Mesh();
-      //  chunkNonSolidMesh=new Mesh();
-       
-          Chunk c;
-        Chunks.Remove(chunkPos,out c);
-        additiveMap=new short[chunkWidth,chunkHeight,chunkWidth];
-        //  map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
-        chunkPos=new Vector2Int(-10240,-10240);
-        isChunkPosInited=false;
+         isChunkPosInited=false;
 
         isSavedInDisk=false;
-        
-       
+        Chunk c;
+        Chunks.TryRemove(chunkPos,out c);
+        c=null;
         isChunkMapUpdated=false;
-     
-//	    meshFilter.mesh=null;
+
+        chunkPos=new Vector2Int(-10240000,-10240000);
+
+        isModifiedInGame=false;
+
+        await Task.Run(()=>{additiveMap=new short[chunkWidth,chunkHeight,chunkWidth];});
+        
+       //   map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
+        
       
-	 //   meshColliderNS.sharedMesh=null;
-	 //   meshFilterNS.mesh=null;
-      //  chunkMesh=null;
-     //   chunkNonSolidMesh=null;
-        isModifiedInGame=false;});
      
      //   isChunkPosInited=false;
     }
@@ -500,10 +498,9 @@ public class Chunk : MonoBehaviour
             return;
         }
         if(!isModifiedInGame){
-
             return;
         }
-        lock(chunkDataLock){
+      //  lock(chunkDataLock){
           if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
             
 
@@ -523,7 +520,7 @@ public class Chunk : MonoBehaviour
             chunkDataReadFromDisk.TryAdd(chunkPos,wd);
         }   
 
-        }
+    //    }
        
     }
     public static void SaveWorldData(){
@@ -651,24 +648,29 @@ public class Chunk : MonoBehaviour
 
         return heightMapInterpolated;
      }
-    unsafe void  InitMap(Vector2Int pos,Mesh.MeshDataArray mda,Mesh.MeshDataArray mdaNS,Mesh.MeshDataArray mdaWT){
-      //  Thread.Sleep(1000);
-        frontChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
-        frontLeftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y+chunkWidth));
-        frontRightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y+chunkWidth));
-        backLeftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y-chunkWidth));
-        backRightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y-chunkWidth));
-        backChunk=GetChunk(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
-           
-        leftChunk=GetChunk(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
+
+     void  InitMap(Vector2Int pos,Mesh.MeshDataArray mda,Mesh.MeshDataArray mdaNS,Mesh.MeshDataArray mdaWT){
+  
+       // Thread.Sleep(1000);
+     
+    //    Debug.Log("pos:"+pos+" "+"chunkPos:"+chunkPos);
       
-        rightChunk=GetChunk(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
+        frontChunk=GetChunk(new Vector2Int(pos.x,pos.y+chunkWidth));
+        frontLeftChunk=GetChunk(new Vector2Int(pos.x-chunkWidth,pos.y+chunkWidth));
+        frontRightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y+chunkWidth));
+        backLeftChunk=GetChunk(new Vector2Int(pos.x-chunkWidth,pos.y-chunkWidth));
+        backRightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y-chunkWidth));
+        backChunk=GetChunk(new Vector2Int(pos.x,pos.y-chunkWidth));
+           
+        leftChunk=GetChunk(new Vector2Int(pos.x-chunkWidth,pos.y));
+      
+        rightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y));
    
    //     leftHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
    //     rightHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
     //    frontHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
    //     backHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
-        thisHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y));
+        thisHeightMap=GenerateChunkHeightmap(new Vector2Int(pos.x,pos.y));
         lightPoints=new List<Vector3>();
        // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
         List<Vector3> opqVertsNL=new List<Vector3>();
@@ -684,33 +686,39 @@ public class Chunk : MonoBehaviour
         List<Vector2> WTUVsNL=new List<Vector2>();
         List<int> WTTrisNL=new List<int>();
         if(isMapGenCompleted==true){
-            isModifiedInGame=true;
+          //  isModifiedInGame=true;
             GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS,opqNormsNL,NSNormsNL,mdaWT,WTVertsNL,WTUVsNL,WTTrisNL,WTNormsNL);
             return;
         }
-        if(isSavedInDisk==true){
-            if(isChunkPosInited==false){
-             //   FreshGenMap(pos);
+         if(isChunkPosInited==false){
+      /*       //   FreshGenMap(pos);
            //   Debug.Log("ReadF");
              map=(short[,,])chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map.Clone();
                  isMapGenCompleted=true;
                 GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS,opqNormsNL,NSNormsNL,mdaWT,WTVertsNL,WTUVsNL,WTTrisNL,WTNormsNL);
+                return;*/
+           //     WorldManager.chunkUnloadingQueue.Enqueue(this,0);
                 return;
-            }else{
-             map=chunkDataReadFromDisk[new Vector2Int(pos.x,pos.y)].map;
-       //      Debug.Log("Read");
-            isMapGenCompleted=true;
-           GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS,opqNormsNL,NSNormsNL,mdaWT,WTVertsNL,WTUVsNL,WTTrisNL,WTNormsNL);
-            return;
             }
+        if(isSavedInDisk==true){
+            
+             map=(short[,,])chunkDataReadFromDisk[chunkPos].map.Clone();
+             Debug.Log("Read");
+            
+                 isMapGenCompleted=true;  
+             
+            
+            GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS,opqNormsNL,NSNormsNL,mdaWT,WTVertsNL,WTUVsNL,WTTrisNL,WTNormsNL);
+            return;
+            
             
          
         }
         FreshGenMap(pos);
         
         void FreshGenMap(Vector2Int pos){
-
-            map=additiveMap;
+        //    Debug.Log("genMappos: "+pos);
+            map=(short[,,])additiveMap.Clone();
             if(worldGenType==0){
                     bool isFrontLeftChunkUpdated=false;
                     bool isFrontRightChunkUpdated=false;
@@ -1133,7 +1141,7 @@ public class Chunk : MonoBehaviour
                 map[i,0,j]=5;
             }
         }
-                                if(isLeftChunkUpdated==true){
+                         /*       if(isLeftChunkUpdated==true){
                                    WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
                                }
                                if(isRightChunkUpdated==true){
@@ -1156,7 +1164,7 @@ public class Chunk : MonoBehaviour
                                }
                                if(isBackRightChunkUpdated==true){
                                  WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
-                               }
+                               }*/
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
@@ -1169,13 +1177,16 @@ public class Chunk : MonoBehaviour
             }
         }
         }
-                                    
-        isMapGenCompleted=true;
+      
+        isMapGenCompleted=true;    
+                             
+        
         }
         
 
         GenerateMesh(opqVertsNL,opqUVsNL,opqTrisNL,NSVertsNL,NSUVsNL,NSTrisNL,mda,mdaNS,opqNormsNL,NSNormsNL,mdaWT,WTVertsNL,WTUVsNL,WTTrisNL,WTNormsNL);
-   
+       
+        //Debug.Log(initMapThreads.Count);
     }
 
 
@@ -1544,18 +1555,28 @@ public class Chunk : MonoBehaviour
 
            
 
+ 
+            isMeshBuildCompleted=true;    
+            
         
-        isMeshBuildCompleted=true;
     }
 
 
 
    
 
+   public bool isTaskCompleted=false;
 
-    public async void BuildChunk(){
-  //     System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+       public async void BuildChunk(){
+        isTaskCompleted=false;
+        try{
+ //     System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
     //   sw.Start();
+        if(!isChunkPosInited){
+              WorldManager.chunkUnloadingQueue.Enqueue(this.chunkPos,0);  
+              isTaskCompleted=true;
+            return; 
+        }
         isMeshBuildCompleted=false;
      
      
@@ -1581,21 +1602,26 @@ public class Chunk : MonoBehaviour
             new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)},Allocator.Persistent);
          mbjMeshData[0].SetVertexBufferParams(opqVertsNA.Length,vertexAttributesDes);
         mbjMeshData[1].SetVertexBufferParams(NSVertsNA.Length,vertexAttributesDes);   */
-        if(isChunkPosInited){
-        await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS,mbjMeshDataWT));      
+        if(isChunkPosInited==true){
+          //  isTaskShouldAbort=false;
+            await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS,mbjMeshDataWT));  
+            
         }else{
-        //    ReInitData();
-          //    await Task.Run(() => InitMap(chunkPos,mbjMeshData,mbjMeshDataNS,mbjMeshDataWT));      
+            isTaskCompleted=true;
             return;
         }
-        Task.Delay(1000);
+      
       //  await UniTask.WaitUntil(() => isMeshBuildCompleted == true);
             if(chunkMesh==null){
-            chunkMesh=new Mesh();    
+             chunkMesh=new Mesh();        
             }
-            if(chunkNonSolidMesh==null){
-              chunkNonSolidMesh=new Mesh();   
-           }
+           
+            
+                if(chunkNonSolidMesh==null){
+                chunkNonSolidMesh=new Mesh();      
+                }
+               
+           
             
             chunkWaterMesh=new Mesh();
       
@@ -1668,10 +1694,7 @@ public class Chunk : MonoBehaviour
   // combine[0].mesh=chunkMesh;
   // WorldMeshManager.combine.Add(new CombineInstance{mesh=chunkMesh,transform=transform.localToWorldMatrix});
  //  WorldMeshManager.OnAllChunkMeshesChanged();
-        if(meshFilter==null){
-        return;
-   
-        }  
+       
         meshFilter.mesh = chunkMesh;
         meshFilterNS.mesh = chunkNonSolidMesh;
         meshFilterWT.mesh=chunkWaterMesh;
@@ -1725,9 +1748,7 @@ public class Chunk : MonoBehaviour
         
        }
            
-             if(WorldManager.chunkUnloadingQueue.Contains(this)){
-            return;
-        } 
+    
             jh.Complete();
             meshCollider.sharedMesh=chunkMesh;
    
@@ -1741,8 +1762,12 @@ public class Chunk : MonoBehaviour
        
   
       //  isStrongLoaded=false;
-        isChunkMapUpdated=false;
+        }catch{
+            isTaskCompleted=true;
+        }
  
+        isChunkMapUpdated=false;
+        isTaskCompleted=true;
     }
 
     
@@ -2097,15 +2122,15 @@ public class Chunk : MonoBehaviour
            Chunks[keys[i]].isChunkPosInited=false;
         } 
        }*/
-        Thread.Sleep(100);
+        Thread.Sleep(200);
             if(WorldManager.isGoingToQuitGame==true){
                 return;
             } 
         foreach(var c in Chunks){
             if(!Chunks.ContainsKey(c.Key)){
-            return;
-        }
-        if(c.Value.isChunkPosInited==false||WorldManager.chunkUnloadingQueue.Contains(c.Value)){
+            continue;
+            }
+        if(WorldManager.chunkUnloadingQueue.Contains(c.Key)){
             continue;
          }
            Vector2Int cPos=c.Key;
@@ -2117,8 +2142,8 @@ public class Chunk : MonoBehaviour
       //    c.Value.isChunkPosInited=false;
         }       
         }
-        if(isChunkNeededRemoving==true&&!WorldManager.chunkUnloadingQueue.Contains(c.Value)){
-        WorldManager.chunkUnloadingQueue.Enqueue(c.Value,0);
+        if(isChunkNeededRemoving==true&&!WorldManager.chunkUnloadingQueue.Contains(c.Key)){
+            WorldManager.chunkUnloadingQueue.Enqueue(c.Key,0);
         }
         }
         }

@@ -537,11 +537,11 @@ public class PlayerMove : MonoBehaviour
  //       if(Input.GetKeyDown(KeyCode.U)){
     //            Chunk.SaveWorldData();
    //     }
-        if(pi.Player.SpeedUp.ReadValue<float>()>=0.5f){
+       /* if(pi.Player.SpeedUp.ReadValue<float>()>=0.5f){
             moveSpeed=10f;
         }else{
             moveSpeed=5f;
-        }
+        }*/
         Ray ray=mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit info;
         if(Physics.Raycast(ray,out info,10f)&&info.collider.gameObject.tag!="Entity"){

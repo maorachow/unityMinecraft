@@ -34,14 +34,19 @@ public class MyChunkObjectPool{
             tmp = objectPool.Dequeue();
             if(tmp==null){
                return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+
             }
             tmp.transform.position=new Vector3(pos.x,0,pos.y);
             tmp.SetActive(true);
+            tmp.GetComponent<Chunk>().ReInitData();
+
         }
   
         else
         {
-            return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+            GameObject c=GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+                c.GetComponent<Chunk>().ReInitData();
+            return c;
             
         }
         return tmp;
@@ -57,12 +62,14 @@ public class MyChunkObjectPool{
             {
                 // 将对象入队
                 objectPool.Enqueue(obj);
+                obj.GetComponent<Chunk>().ChunkOnDisable();
                 obj.SetActive(false);
             }
         }
         // 超过最大容量就销毁
         else
         {
+             obj.GetComponent<Chunk>().ChunkOnDisable();
             GameObject.Destroy(obj);
         }
     }
