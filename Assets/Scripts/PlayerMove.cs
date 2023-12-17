@@ -103,6 +103,7 @@ public class PlayerMove : MonoBehaviour
     public bool isPlayerGrounded=false;
     public bool isUsingCC=true;
     public ChunkLoaderBase curChunkLoader;
+    public ChunkStrongLoaderBase curChunkStrongLoader;
     public SimpleAxisAlignedBB playerBound;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> blocksAround;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> GetBlocksAround(SimpleAxisAlignedBB aabb){
@@ -245,7 +246,7 @@ public class PlayerMove : MonoBehaviour
     
         curChunkLoader=GetComponent<ChunkLoaderBase>();
         curChunkLoader.AddChunkLoaderToList();
-
+        curChunkStrongLoader=GetComponent<ChunkStrongLoaderBase>();
         pi=new PlayerInput();
         pi.Enable();
          Input.multiTouchEnabled = true;
@@ -809,6 +810,7 @@ public class PlayerMove : MonoBehaviour
         if(WorldHelper.instance.CheckIsPosInChunk(transform.position,curChunk)==false){
         curChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));    
         curChunkLoader.isChunksNeedLoading=true;
+        curChunkStrongLoader.isChunksNeededStrongLoading=true;
         }
    // Debug.Log(finalMoveVec);
    curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f),curChunk);

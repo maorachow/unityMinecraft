@@ -29,7 +29,7 @@ public class AssetBundlePacker : Editor
         {
             Directory.CreateDirectory(dirName);
         }
-        BuildPipeline.BuildAssetBundles(dirName, BuildAssetBundleOptions.CollectDependencies, BuildTarget.iOS);
+        BuildPipeline.BuildAssetBundles(dirName, BuildAssetBundleOptions.None, BuildTarget.iOS);
         UnityEngine.Debug.Log("IOS Finish!");
 
     }

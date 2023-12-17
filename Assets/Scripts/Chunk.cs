@@ -32,9 +32,21 @@ public struct WorldData{
 }
 public struct RandomGenerator3D{
   //  public System.Random rand=new System.Random(0);
+    public static FastNoise randomNoiseGenerator=new FastNoise();
+    public static void InitNoiseGenerator(){
+      //  randomNoiseGenerator.SetSeed(0);
+        randomNoiseGenerator.SetNoiseType(FastNoise.NoiseType.Value);
+        randomNoiseGenerator.SetFrequency(100f);
+       // randomNoiseGenerator.SetFractalType(FastNoise.FractalType.None);
+    }
     public static int GenerateIntFromVec3(Vector3Int pos){
-        System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
-        return rand.Next(100);
+        float value=randomNoiseGenerator.GetSimplex(pos.x*2f,pos.y*2f,pos.z*2f);
+        value+=1f;
+        int finalValue=(int)(value*53f);
+        finalValue=Mathf.Clamp(finalValue,0,100);
+     //   Debug.Log(finalValue);
+     //   System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
+        return finalValue;
     } 
 }
 
@@ -305,6 +317,7 @@ public class Chunk : MonoBehaviour
          noiseGenerator.SetFrequency(0.001f);
          noiseGenerator.SetFractalType(FastNoise.FractalType.FBM);
           noiseGenerator. SetFractalOctaves(1);
+        RandomGenerator3D.InitNoiseGenerator();
        //    noiseGenerator.SetFractalLacunarity(100f);
        //    noiseGenerator. SetNoiseType(FastNoise.NoiseType.Value);
     }
@@ -344,12 +357,52 @@ public class Chunk : MonoBehaviour
         }
       //  StartLoadChunk();
    //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
-         WorldManager.chunkLoadingQueue.Enqueue(this,(int)Mathf.Abs(transform.position.x-playerPosVec.x)+(int)Mathf.Abs(transform.position.z-playerPosVec.z));
+         WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(this,true),(int)Mathf.Abs(transform.position.x-playerPosVec.x)+(int)Mathf.Abs(transform.position.z-playerPosVec.z));
           
     }
+
+    public void ReInitData(bool isStrongLoading){
     
+      //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
+
+        chunkPos=new Vector2Int((int)transform.position.x,(int)transform.position.z);
+    
+        isChunkPosInited=true;
+    //   lock(chunkLock){
+        Chunks.AddOrUpdate(chunkPos,(key)=>this,(key,value)=>this);
+   /*      if(Chunks.ContainsKey(chunkPos)){
+      //  if(GetChunk(chunkPos).gameObject!=null){
+        //     ObjectPools.chunkPool.Remove(GetChunk(chunkPos).gameObject);
+        //}
+            Chunk c;
+            Chunks.TryRemove(chunkPos,out c);  
+            Chunks.TryAdd(chunkPos,this);   
+       }else{
+       Chunks.TryAdd(chunkPos,this);    
+       }*/
+    //   }
+      
+       
+
+        if(chunkDataReadFromDisk.ContainsKey(chunkPos)){
+            isSavedInDisk=true;
+          //  Debug.Log(chunkPos);
+        }
+      //  StartLoadChunk();
+   //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
+         WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(this,isStrongLoading),(int)Mathf.Abs(transform.position.x-playerPosVec.x)+(int)Mathf.Abs(transform.position.z-playerPosVec.z));
+          
+    }
+    public bool isStrongLoaded=false;
     //strongload: simulate chunk mesh collider
-  
+    public async void StrongLoadChunk(){
+         JobHandle jh=new BakeJob{meshID=chunkMesh.GetInstanceID()}.Schedule();
+        await UniTask.WaitUntil(()=>isTaskCompleted==true);
+        jh.Complete();
+        meshCollider.sharedMesh=chunkMesh;
+        isStrongLoaded=true;
+   //     Debug.DrawLine(transform.position+new Vector3(chunkWidth/2f,0f,chunkWidth/2f),transform.position+new Vector3(chunkWidth/2f,100f,chunkWidth/2f),Color.green,10f);
+    }
     void OnDestroy(){
         
         additiveMap=null;
@@ -367,7 +420,10 @@ public class Chunk : MonoBehaviour
     public async void ChunkOnDisable(){
      //   taa=null;
     
-      
+        isRightChunkUnloaded=false;
+        isFrontChunkUnloaded=false;
+        isLeftChunkUnloaded=false;
+        isBackChunkUnloaded=false;
         meshRenderer.enabled=false;
         meshRendererNS.enabled=false;
         meshRendererWT.enabled=false;
@@ -376,12 +432,16 @@ public class Chunk : MonoBehaviour
        
       //  meshCollider.sharedMesh=null;
          isChunkMapUpdated=false;
-        if(WorldManager.chunkLoadingQueue.Contains(this)){
-         WorldManager.chunkLoadingQueue.Remove(this);   
+        if(WorldManager.chunkLoadingQueue.Contains(new ChunkLoadingQueueItem(this,true))){
+         WorldManager.chunkLoadingQueue.Remove(new ChunkLoadingQueueItem(this,true)); 
+         Debug.Log("remove");  
+        }
+        if(WorldManager.chunkLoadingQueue.Contains(new ChunkLoadingQueueItem(this,false))){
+         WorldManager.chunkLoadingQueue.Remove(new ChunkLoadingQueueItem(this,false));   
         }
          SaveSingleChunk();
          isChunkPosInited=false;
-
+        isStrongLoaded=false;
         isSavedInDisk=false;
         Chunk c;
         Chunks.TryRemove(chunkPos,out c);
@@ -391,7 +451,7 @@ public class Chunk : MonoBehaviour
         chunkPos=new Vector2Int(-10240000,-10240000);
 
         isModifiedInGame=false;
-
+        
         await Task.Run(()=>{additiveMap=new short[chunkWidth,chunkHeight,chunkWidth];});
         
        //   map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
@@ -439,11 +499,11 @@ public class Chunk : MonoBehaviour
     }
  
 
-    public void StartLoadChunk(){
+    public void StartLoadChunk(bool isStrongLoading){
         
       
     
-           BuildChunk();
+           BuildChunk(isStrongLoading);
             
        
       //  Vector3 pos=transform.position;
@@ -648,7 +708,10 @@ public class Chunk : MonoBehaviour
 
         return heightMapInterpolated;
      }
-
+    public bool isRightChunkUnloaded=false;
+    public bool isFrontChunkUnloaded=false;
+    public bool isLeftChunkUnloaded=false;
+    public bool isBackChunkUnloaded=false;
      void  InitMap(Vector2Int pos,Mesh.MeshDataArray mda,Mesh.MeshDataArray mdaNS,Mesh.MeshDataArray mdaWT){
   
        // Thread.Sleep(1000);
@@ -660,12 +723,17 @@ public class Chunk : MonoBehaviour
         frontRightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y+chunkWidth));
         backLeftChunk=GetChunk(new Vector2Int(pos.x-chunkWidth,pos.y-chunkWidth));
         backRightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y-chunkWidth));
-        backChunk=GetChunk(new Vector2Int(pos.x,pos.y-chunkWidth));
-           
+        backChunk=GetChunk(new Vector2Int(pos.x,pos.y-chunkWidth)); 
         leftChunk=GetChunk(new Vector2Int(pos.x-chunkWidth,pos.y));
-      
         rightChunk=GetChunk(new Vector2Int(pos.x+chunkWidth,pos.y));
-   
+        if(frontChunk==null){frontChunk=GetUnloadedChunk(new Vector2Int(pos.x,pos.y+chunkWidth));isFrontChunkUnloaded=true;}else{isFrontChunkUnloaded=false;}
+        if(frontLeftChunk==null){frontLeftChunk=GetUnloadedChunk(new Vector2Int(pos.x-chunkWidth,pos.y+chunkWidth));}
+         if(frontRightChunk==null){frontRightChunk=GetUnloadedChunk(new Vector2Int(pos.x+chunkWidth,pos.y+chunkWidth));}
+        if(backLeftChunk==null){backLeftChunk=GetUnloadedChunk(new Vector2Int(pos.x-chunkWidth,pos.y-chunkWidth));}
+        if(backRightChunk==null){backRightChunk=GetUnloadedChunk(new Vector2Int(pos.x+chunkWidth,pos.y-chunkWidth));}
+       if(backChunk==null){backChunk=GetUnloadedChunk(new Vector2Int(pos.x,pos.y-chunkWidth));isBackChunkUnloaded=true;}else{isBackChunkUnloaded=false;}
+        if(leftChunk==null){leftChunk=GetUnloadedChunk(new Vector2Int(pos.x-chunkWidth,pos.y));isLeftChunkUnloaded=true;}else{isLeftChunkUnloaded=false;}
+        if(rightChunk==null){rightChunk=GetUnloadedChunk(new Vector2Int(pos.x+chunkWidth,pos.y));isRightChunkUnloaded=true;}else{isRightChunkUnloaded=false;}
    //     leftHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x-chunkWidth,chunkPos.y));
    //     rightHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
     //    frontHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
@@ -812,13 +880,19 @@ public class Chunk : MonoBehaviour
             for(int j=0;j<chunkWidth;j++){
        
                 for(int k=chunkHeight-1;k>=0;k--){
-                
-                    if(map[i,k,j]!=0&&k>=chunkSeaLevel&&(chunkBiomeMapInterpolated[i,j]==2||chunkBiomeMapInterpolated[i,j]==1)){
+                    
+                    if(map[i,k,j]!=0&&map[i,k,j]!=9&&k>=chunkSeaLevel&&(chunkBiomeMapInterpolated[i,j]==2||chunkBiomeMapInterpolated[i,j]==1)){
                             map[i,k,j]=4;
                             break;
                     }
                  
-                    if(k>chunkSeaLevel&&map[i,k,j]==0&&map[i,k-1,j]!=0&&map[i,k-1,j]!=100&&RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x,0,pos.y)+new Vector3Int(i,k,j))>80&&(chunkBiomeMapInterpolated[i,j]==2||chunkBiomeMapInterpolated[i,j]==1)){
+                       
+                }
+                for(int k=chunkHeight-1;k>=0;k--){
+                    
+                   
+                 
+                    if(k>chunkSeaLevel&&map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100&&RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x,0,pos.y)+new Vector3Int(i,k,j))>70&&(chunkBiomeMapInterpolated[i,j]==2||chunkBiomeMapInterpolated[i,j]==1)){
                         map[i,k,j]=101;
                     }
                         if(k<chunkSeaLevel&&map[i,k,j]==0){
@@ -828,7 +902,18 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
-        
+      /*  bool leftChunkLoaded=(isLeftChunkUnloaded==false&&leftChunk!=null);
+        bool rightChunkLoaded=(isRightChunkUnloaded==false&&leftChunk!=null);
+        bool backChunkLoaded=(isFrontChunkUnloaded==false&&leftChunk!=null);
+        bool frontChunkLoaded=(isBackChunkUnloaded==false&&leftChunk!=null);
+        bool leftChunkUnLoaded=(isLeftChunkUnloaded==true&&leftChunk!=null);
+        bool rightChunkUnLoaded=(isRightChunkUnloaded==true&&rightChunk!=null);
+        bool backChunkUnLoaded=(isBackChunkUnloaded==true&&backChunk!=null);
+        bool frontChunkUnLoaded=(isFrontChunkUnloaded==true&&frontChunk!=null);*/
+        bool leftChunkNull=(leftChunk==null);
+        bool rightChunkNull=(rightChunk==null);
+        bool backChunkNull=(backChunk==null);
+        bool frontChunkNull=(frontChunk==null);
                 for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
        
@@ -838,7 +923,7 @@ public class Chunk : MonoBehaviour
                     if(treeCount>0){
                             if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>98){
                            
-                              
+                            
                                for(int x=-2;x<3;x++){
                                     for(int y=3;y<5;y++){
                                         for(int z=-2;z<3;z++){
@@ -848,9 +933,9 @@ public class Chunk : MonoBehaviour
 
                                             if(x+i<0){
                                                 if(z+j>=0&&z+j<chunkWidth){
-                                                   if(leftChunk!=null){
-                                        
-                                                    leftChunk.additiveMap[chunkWidth+(x+i),y+k,z+j]=9;
+                                                   if(leftChunkNull==false){
+                                                    if(isLeftChunkUnloaded==true){leftChunk.additiveMap[chunkWidth+(x+i),y+k,z+j]=9;}else{leftChunk.map[chunkWidth+(x+i),y+k,z+j]=9;}
+                                                  
                                                 
                                                         isLeftChunkUpdated=true;
                                                     
@@ -881,9 +966,9 @@ public class Chunk : MonoBehaviour
                                             }else
                                             if(x+i>=chunkWidth){
                                                  if(z+j>=0&&z+j<chunkWidth){
-                                                   if(rightChunk!=null){
-                                        
-                                                    rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;
+                                                   if(rightChunkNull==false){
+                                                    if(isRightChunkUnloaded==true){  rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;}else{  rightChunk.map[(x+i)-chunkWidth,y+k,z+j]=9;}
+                                                   // rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;
                                                   
                                                         isRightChunkUpdated=true;
                                                     
@@ -914,9 +999,11 @@ public class Chunk : MonoBehaviour
                                             if(z+j<0){
 
                                                  if(x+i>=0&&x+i<chunkWidth){
-                                                   if(backChunk!=null){
-                                        
-                                                    backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;
+                                                   if(backChunkNull==false){
+                                                    if(isBackChunkUnloaded==true){ backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;}else{
+                                                         backChunk.map[x+i,y+k,chunkWidth+(z+j)]=9;
+                                                    }
+                                                  //  backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;
                                                    
                                                         isBackChunkUpdated=true;
                                                     
@@ -948,9 +1035,11 @@ public class Chunk : MonoBehaviour
                                             if(z+j>=chunkWidth){
 
                                                 if(x+i>=0&&x+i<chunkWidth){
-                                                   if(frontChunk!=null){
-                                        
-                                                    frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;
+                                                   if(frontChunkNull==false){
+                                                          if(isFrontChunkUnloaded==true){ frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;}else{
+                                                             frontChunk.map[x+i,y+k,(z+j)-chunkWidth]=9;
+                                                        }
+                                              //      frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;
                                                
                                                         isFrontChunkUpdated=true;
                                                     
@@ -959,6 +1048,7 @@ public class Chunk : MonoBehaviour
                                                 } 
                                                 }else if(x+i<0){
                                                     if(frontLeftChunk!=null){
+                                                      
                                                         frontLeftChunk.additiveMap[chunkWidth+(x+i),y+k,(z+j)-chunkWidth]=9;
                                            
                                                     isBackLeftChunkUpdated=true;
@@ -999,9 +1089,10 @@ public class Chunk : MonoBehaviour
                                  map[i+1,k+6,j]=9;
                            
                                }else{
-                                if(rightChunk!=null){
-                                    rightChunk.additiveMap[0,k+5,j]=9;
-                                 rightChunk.additiveMap[0,k+6,j]=9;
+                                if(rightChunkNull==false){
+                                    if(isRightChunkUnloaded==true){rightChunk.additiveMap[0,k+5,j]=9;
+                                 rightChunk.additiveMap[0,k+6,j]=9;}else{rightChunk.map[0,k+5,j]=9;rightChunk.map[0,k+6,j]=9;}
+                                    
                                
                             //      rightChunk.isChunkMapUpdated=true;
                                 }
@@ -1012,9 +1103,11 @@ public class Chunk : MonoBehaviour
                                 map[i-1,k+6,j]=9;
                            
                                }else{
-                                if(leftChunk!=null){
-                                      leftChunk.additiveMap[chunkWidth-1,k+5,j]=9;
-                                 leftChunk.additiveMap[chunkWidth-1,k+6,j]=9;
+                                if(leftChunkNull==false){
+                                    if(isLeftChunkUnloaded==true){leftChunk.additiveMap[chunkWidth-1,k+5,j]=9;
+                                 leftChunk.additiveMap[chunkWidth-1,k+6,j]=9;}else{leftChunk.map[chunkWidth-1,k+5,j]=9;
+                                 leftChunk.map[chunkWidth-1,k+6,j]=9;}
+                                      
                             
                                 // leftChunk.isChunkMapUpdated=true;
                                 }
@@ -1024,9 +1117,16 @@ public class Chunk : MonoBehaviour
                                 map[i,k+6,j+1]=9;
                            
                                }else{
-                                if(frontChunk!=null){
-                                frontChunk.additiveMap[i,k+5,0]=9;
+                                if(frontChunkNull==false){
+                                    if(isFrontChunkUnloaded==true){
+                                        frontChunk.additiveMap[i,k+5,0]=9;
                                 frontChunk.additiveMap[i,k+6,0]=9;
+                                    }else{
+                                        frontChunk.map[i,k+5,0]=9;
+                                frontChunk.map[i,k+6,0]=9;
+                                    }
+                             //   frontChunk.additiveMap[i,k+5,0]=9;
+                             //   frontChunk.additiveMap[i,k+6,0]=9;
                          
                              //   frontChunk.isChunkMapUpdated=true;
                                 }
@@ -1037,9 +1137,15 @@ public class Chunk : MonoBehaviour
                                 map[i,k+6,j-1]=9;
                       
                                }else{
-                                if(backChunk!=null){
-                                backChunk.additiveMap[i,k+5,chunkWidth-1]=9;
+                                if(backChunkNull==false){
+                                    if(isBackChunkUnloaded==true){
+                                         backChunk.additiveMap[i,k+5,chunkWidth-1]=9;
                                 backChunk.additiveMap[i,k+6,chunkWidth-1]=9;
+                                    }else{
+                                         backChunk.map[i,k+5,chunkWidth-1]=9;
+                                backChunk.map[i,k+6,chunkWidth-1]=9;
+                                    }
+                               
                              
                               //  backChunk.isChunkMapUpdated=true;
                                 }
@@ -1111,7 +1217,7 @@ public class Chunk : MonoBehaviour
                                }*/
                                
 
-                               treeCount--;
+                      //         treeCount--;
                             }
                         }
                     }
@@ -1124,7 +1230,7 @@ public class Chunk : MonoBehaviour
                  for(int k=0;k<chunkHeight/4;k++){
                     
                         if(0<k&&k<12){
-                        if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x,0,pos.y)+new Vector3Int(i,k,j))>96){
+                        if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x,0,pos.y)+new Vector3Int(i,k,j))>93){
 
                              map[i,k,j]=10;
                         
@@ -1141,30 +1247,30 @@ public class Chunk : MonoBehaviour
                 map[i,0,j]=5;
             }
         }
-                         /*       if(isLeftChunkUpdated==true){
-                                   WorldManager.chunkLoadingQueue.Enqueue(leftChunk,0);
+                                if(isLeftChunkUpdated==true){
+                                   WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(leftChunk,false),0);
                                }
                                if(isRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(rightChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(rightChunk,false),0);
                                }
                                if(isBackChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backChunk,false),0);
                                }
                                if(isFrontChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontChunk,false),0);
                                }
                                if(isFrontLeftChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontLeftChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontLeftChunk,false),0);
                                }
                                if(isFrontRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(frontRightChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontRightChunk,false),0);
                                }
                                if(isBackLeftChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backLeftChunk,0);
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backLeftChunk,false),0);
                                }
                                if(isBackRightChunkUpdated==true){
-                                 WorldManager.chunkLoadingQueue.Enqueue(backRightChunk,0);
-                               }*/
+                                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backRightChunk,false),0);
+                               }
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
@@ -1446,10 +1552,10 @@ public class Chunk : MonoBehaviour
         NativeArray<Vertex> pos = data.GetVertexData<Vertex>();
      
         for(int i=0;i<verts.Count;i++){
-            if(pos==null){
+        /*    if(pos==null){
                 Debug.Log("null");
                 return;
-            }
+            }*/
             pos[i]=new Vertex(verts[i],norms[i],uvs[i]);
            
         }
@@ -1471,10 +1577,10 @@ public class Chunk : MonoBehaviour
         NativeArray<Vertex> posNS = dataNS.GetVertexData<Vertex>();
       
         for(int i=0;i<vertsNS.Count;i++){
-            if(posNS==null){
+   /*         if(posNS==null){
                 Debug.Log("null");
                 return;
-            }
+            }*/
             posNS[i]=new Vertex(vertsNS[i],normsNS[i],uvsNS[i]);
            
         }
@@ -1500,10 +1606,10 @@ public class Chunk : MonoBehaviour
         NativeArray<Vertex> posWT = dataWT.GetVertexData<Vertex>();
       
         for(int i=0;i<vertsWT.Count;i++){
-            if(posWT==null){
+        /*    if(posWT==null){
                 Debug.Log("null");
                 return;
-            }
+            }*/
             posWT[i]=new Vertex(vertsWT[i],normsWT[i],uvsWT[i]);
            
         }
@@ -1563,15 +1669,14 @@ public class Chunk : MonoBehaviour
 
 
 
-   
-
+  
    public bool isTaskCompleted=false;
 
-       public async void BuildChunk(){
+       public async void BuildChunk(bool isStrongLoading){
         isTaskCompleted=false;
         try{
- //     System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
-    //   sw.Start();
+   //   System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+  //     sw.Start();
         if(!isChunkPosInited){
               WorldManager.chunkUnloadingQueue.Enqueue(this.chunkPos,0);  
               isTaskCompleted=true;
@@ -1668,6 +1773,7 @@ public class Chunk : MonoBehaviour
      //    chunkMesh.RecalculateNormals();
         chunkNonSolidMesh.RecalculateBounds();
         chunkWaterMesh.RecalculateBounds();
+       // chunkWaterMesh=WeldVertices(chunkWaterMesh);
    //     chunkWaterMesh.RecalculateNormals();
     //    chunkNonSolidMesh.RecalculateNormals();
       
@@ -1750,19 +1856,24 @@ public class Chunk : MonoBehaviour
            
     
             jh.Complete();
-            meshCollider.sharedMesh=chunkMesh;
+            if(isStrongLoading==true){
+             meshCollider.sharedMesh=chunkMesh;  
+             isStrongLoaded=true;  
+            }
+           
    
         
        
       //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
     
      //   sw.Stop();
-   //     Debug.Log("Time used:"+sw.ElapsedMilliseconds);
+     //   Debug.Log("Time used:"+sw.ElapsedMilliseconds);
  //       yield break;
        
   
       //  isStrongLoaded=false;
-        }catch{
+        }catch(Exception e){
+            Debug.Log(e);
             isTaskCompleted=true;
         }
  
@@ -1905,6 +2016,7 @@ public class Chunk : MonoBehaviour
         }
        // return 0;
     }
+    
     public int GetChunkBlockType(int x, int y, int z){
         if (y < 0 || y > chunkHeight - 1)
         {
@@ -1914,20 +2026,20 @@ public class Chunk : MonoBehaviour
         if ((x < 0) || (z < 0) || (x >= chunkWidth) || (z >= chunkWidth))
         {
             if(x>=chunkWidth){
-                if(rightChunk!=null){
+                if(rightChunk!=null&&isRightChunkUnloaded==false){
                 return rightChunk.map[0,y,z];    
                 }else return PredictBlockType(thisHeightMap[x-chunkWidth+25,z+8],y);
                 
             }else if(z>=chunkWidth){
-                if(frontChunk!=null){
+                if(frontChunk!=null&&isFrontChunkUnloaded==false){
                 return frontChunk.map[x,y,0];
                  }else return PredictBlockType(thisHeightMap[x+8,z-chunkWidth+25],y);
             }else if(x<0){
-                if(leftChunk!=null){
+                if(leftChunk!=null&&isLeftChunkUnloaded==false){
                 return leftChunk.map[chunkWidth-1,y,z];
                  }else return PredictBlockType(thisHeightMap[8+x,z+8],y);
             }else if(z<0){
-                if(backChunk!=null){
+                if(backChunk!=null&&isBackChunkUnloaded==false){
                 return backChunk.map[x,y,chunkWidth-1];
                  }else return PredictBlockType(thisHeightMap[x+8,8+z],y);
             }
@@ -2087,7 +2199,7 @@ public class Chunk : MonoBehaviour
             if(c.Value.isChunkMapUpdated==true){
                c.Value.isModifiedInGame=true;  
             if(c.Value.isMeshBuildCompleted==true){
-                 WorldManager.chunkLoadingQueue.Enqueue(c.Value,-50); 
+                 WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(c.Value,true),-50); 
             }else{
                 continue;
             }

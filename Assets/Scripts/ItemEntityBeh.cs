@@ -271,6 +271,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
         lastItemPos=transform.position;
         RemoveItemEntityFromSave();
+        worldItemEntities.Remove(this); 
         await Task.Run(()=>{
 
         lifeTime=0f;
@@ -288,7 +289,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         tris.Clear();
         itemID=0;
         RemoveItemEntityFromSave();
-        worldItemEntities.Remove(this); */ 
+        */ 
         
         
     }
@@ -340,6 +341,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     }
     public void SaveSingleItemEntity(){
    //     Debug.Log(this.guid);
+        lastItemPos=transform.position;
         ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime);
        // tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){
@@ -507,7 +509,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
       
 
-          if(currentChunk==null){
+          if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
           rb.constraints = RigidbodyConstraints.FreezeAll;
             isInUnloadedChunks=true;
         }else{

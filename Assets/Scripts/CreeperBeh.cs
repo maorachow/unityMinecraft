@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 
 public class CreeperBeh : MonoBehaviour,ILivingEntity
 {
- 
+    
     public int curFootBlockID;
     public int prevFootBlockID;
-    public Transform targetPosition;
+    public Transform playerPosition;
     public AudioSource AS;
     public static AudioClip creeperHurtClip;
     public static GameObject diedCreeperPrefab;
@@ -34,6 +36,10 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     public float entitySpeed;
      public float entityMoveDrag=0f;
      public EntityBeh entity;
+   //  [SerializeField]
+      public bool isIdling{get;set;}
+     public bool hasReachedTarget=false;
+     public float timeUsedToReachTarget=0f;
     public void Start () {
         entity=GetComponent<EntityBeh>();
         AS=GetComponent<AudioSource>();
@@ -45,7 +51,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
                 explosionPrefab=Resources.Load<GameObject>("Prefabs/creeperexploeffect");
                 isCreeperPrefabLoaded=true;
         }
-        targetPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        playerPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         headTransform=transform.GetChild(1);
         entityFacingPos=transform.rotation.eulerAngles;
     
@@ -151,7 +157,8 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     }
     public void ChangeHeadPos(Vector3 pos){
      //   headTransform.rotation=q;
-     headTransform.LookAt(pos);
+      Vector3 direction = (pos-headTransform.position).normalized;
+     headTransform.rotation=Quaternion.Slerp(headTransform.rotation,Quaternion.LookRotation(direction),10f*Time.deltaTime);
     }
  
     float Speed()
@@ -170,8 +177,12 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
 		
 	}
     void FixedUpdate(){
-        targetPos = targetPosition.position;
-    curFootBlockID=WorldHelper.instance.GetBlock(transform.position,entity.currentChunk);
+        var results = new NativeArray<RaycastHit>(1, Allocator.TempJob);
+        var commands = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
+        Vector3 rayDirection=Vector3.Normalize(playerPosition.position-(transform.position+new Vector3(0f,1f,0f)));
+        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters(LayerMask.GetMask("Default","Ignore Raycast")),16f);
+        JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 1, 1, default(JobHandle));
+        curFootBlockID=WorldHelper.instance.GetBlock(transform.position,entity.currentChunk);
  //  curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
     if(curFootBlockID==0||(101<=curFootBlockID&&curFootBlockID<=200)){
         gravity=-9.8f;
@@ -191,28 +202,76 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         }
     }
     prevFootBlockID=curFootBlockID;
+    handle.Complete();
+  //  isIdling=true;
+   // RaycastHit info;
+     //isIdling=false;
+     //Debug.DrawLine(transform.position+new Vector3(0f,1f,0f),playerPosition.position+new Vector3(0f,1f,0f),Color.green,0.05f);
+        if(results[0].collider!=null){
+          //  Debug.Log("hit");
+           
+            if(results[0].collider.gameObject.tag=="Player"){
+               // Debug.Log("hitplayer");
+                 isIdling=false;
+            }else{
+                isIdling=true; 
+            }
+            
+        }else{
+            isIdling=true;
+        }
+
+    if(isIdling==true){
+        if(hasReachedTarget==true){
+            timeUsedToReachTarget=0f;
+          Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
+         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y),randomTargetPos.y);
+        targetPos=finalTargetPos;  
+        }else{
+            timeUsedToReachTarget+=Time.deltaTime;
+            if(timeUsedToReachTarget>=5f){
+                hasReachedTarget=true;
+                timeUsedToReachTarget=0f;
+                   Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
+         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
+        targetPos=finalTargetPos;  
+            }
+        }
+           
+    }else{
+        targetPos=playerPosition.position;
+    }
+    results.Dispose();
+        commands.Dispose();
     }
     public void MoveToTarget(CharacterController cc,Vector3 pos,float dt){
         if(cc.enabled==false){
             return;
         }
          transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.Euler(new Vector3(0f,headTransform.eulerAngles.y,0f)),5f*Time.deltaTime);
-        ChangeHeadPos(pos);
-         
-        if((transform.position-pos).magnitude>=3f){ 
-              if(entitySpeed<0.1f){
-            Jump();
-            }
-             entityVec.x=1f;
-          if(creeperExplodeFuse>=0f){
-                creeperExplodeFuse-=Time.deltaTime;
-            }
-        }else{
+            ChangeHeadPos(pos);
+           if((transform.position-playerPosition.position).magnitude<=3f){
             entityVec.x=0f;
-            creeperExplodeFuse+=Time.deltaTime;
-            if(creeperExplodeFuse>2f){
+            creeperExplodeFuse+=Time.deltaTime;    
+            }else{
+                 entityVec.x=1f;
+               if(creeperExplodeFuse>=0f){
+                creeperExplodeFuse-=Time.deltaTime;
+                    }    
+            if(entitySpeed<=0.01f){
+                Jump();
+            }
+            }
+        if(creeperExplodeFuse>2f){
             CreeperExplode();
-        }
+        }       
+           
+  
+         if((transform.position - pos).magnitude<1.4f){
+            hasReachedTarget=true;
+        }else{
+            
+            hasReachedTarget=false;
         }
             if(entityMotionVec.magnitude>0.7f){
                 cc.Move(entityMotionVec*Time.deltaTime*(1f-entityMoveDrag)); 
@@ -222,7 +281,28 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
             entitySpeed=Speed();
             am.SetFloat("speed",entitySpeed);
     }
+
+
+
     public void ApplyGravity(CharacterController cc,float gravity,float dt){
+            if(cc.enabled==true){
+              cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*dt);
+        if(cc.isGrounded!=true){
+            if(!GetComponent<EntityBeh>().isInUnloadedChunks){
+             entityY+=gravity*dt;   
+            }
+            
+        }else{
+            entityY=0f;
+        }
+        if(cc.isGrounded==true&&isJumping==true){
+            entityY=jumpHeight;
+            isJumping=false;
+        }
+        entityVec.y=entityY;    
+        }else return;
+        }
+  /*  public void ApplyGravity(CharacterController cc,float gravity,float dt){
         
             if(cc.isGrounded!=true){
            
@@ -253,12 +333,15 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         entityVec.y=entityY;
         cc.Move(new Vector3(0f,entityVec.y,0f)*5f*dt);        
       
-    }
+    }*/
 
 
-    Vector3 targetPos;
+   public Vector3 targetPos;
 
     public void EntityGroundSinkPrevent(CharacterController cc,int blockID,float dt){
+        if(cc.enabled==false){
+            return;
+        }
          if(blockID>0f&&blockID<100f){
             cc.Move(new Vector3(0f,dt*5f,0f));
             gravity=0f;
@@ -292,10 +375,10 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
          
          if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
                     return;
-                }
+        }
         if(cc.enabled==true){
             MoveToTarget(cc,targetPos,dt);
-            ApplyGravity(cc,gravity,dt);
+             ApplyGravity(cc,gravity,dt);
         }
        
             transform.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);

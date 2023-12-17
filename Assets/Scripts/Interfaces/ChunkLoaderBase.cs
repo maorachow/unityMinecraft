@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 public class ChunkLoaderBase:MonoBehaviour
 {
+  //  public static int chunkStrongLoadingRange=32;
     public Vector2 chunkLoadingCenter;
     public float chunkLoadingRange;
     public bool isChunksNeedLoading=false;
@@ -47,11 +48,12 @@ public class ChunkLoaderBase:MonoBehaviour
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
                                 continue;
-                            }else{
+                                }else{
                     WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 
                 }
             }
         }
+        
         isChunksNeedLoading=false;
     }
 }

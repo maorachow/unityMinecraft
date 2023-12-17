@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public interface ILivingEntity
-{
+{   
+  //  public bool isIdling{get;set;}
+   
     public float entityHealth{get;set;}
     public float moveSpeed{get;set;}
     public void DieWithKnockback(Vector3 knockback);

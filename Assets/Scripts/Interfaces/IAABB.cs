@@ -51,7 +51,7 @@ public class AxisAlignedBB {
         return this;
     }
 
-    public AxisAlignedBB offset(float x, float y, float z) {
+    /*public AxisAlignedBB offset(float x, float y, float z) {
         this.setMinX(this.getMinX() + x);
         this.setMinY(this.getMinY() + y);
         this.setMinZ(this.getMinZ() + z);
@@ -60,7 +60,7 @@ public class AxisAlignedBB {
         this.setMaxZ(this.getMaxZ() + z);
         Debug.Log("move"+x+" "+y+" "+z+" ");
         return this;
-    }
+    }*/
 
     public AxisAlignedBB shrink(float x, float y, float z) {
         return new SimpleAxisAlignedBB(this.getMinX() + x, this.getMinY() + y, this.getMinZ() + z, this.getMaxX() - x, this.getMaxY() - y, this.getMaxZ() - z);

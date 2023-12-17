@@ -14,6 +14,14 @@ using System;
 using Cysharp.Threading.Tasks;
 using Object=UnityEngine.Object;
 using Random=UnityEngine.Random;
+public class ChunkLoadingQueueItem{
+  public Chunk c;
+  public bool isStrongLoading;
+  public ChunkLoadingQueueItem(Chunk c,bool isStrongLoading){
+    this.c=c;
+    this.isStrongLoading=isStrongLoading;
+  }
+}
 public class WorldManager : MonoBehaviour
 {
 
@@ -28,7 +36,7 @@ public class WorldManager : MonoBehaviour
     public static bool isGoingToQuitGame=false;
 
     public static SimplePriorityQueue<Vector2Int> chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
-    public static SimplePriorityQueue<Chunk> chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
+    public static SimplePriorityQueue<ChunkLoadingQueueItem> chunkLoadingQueue=new SimplePriorityQueue<ChunkLoadingQueueItem>();
     public static SimplePriorityQueue<Vector2Int> chunkUnloadingQueue=new SimplePriorityQueue<Vector2Int>();
     public Transform playerPos;
     public Camera playerCam;
@@ -73,7 +81,7 @@ public class WorldManager : MonoBehaviour
             ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
             StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
             chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
-            chunkLoadingQueue=new SimplePriorityQueue<Chunk>();
+            chunkLoadingQueue=new SimplePriorityQueue<ChunkLoadingQueueItem>();
             chunkUnloadingQueue=new  SimplePriorityQueue<Vector2Int>();
             isGoingToQuitGame=false;
         //    UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
@@ -245,7 +253,12 @@ public class WorldManager : MonoBehaviour
            chunkSpawningQueue.Dequeue();
          continue;
         }
-        ObjectPools.chunkPool.Get(cPos);
+        if(Mathf.Abs(Chunk.playerPosVec.x-cPos.x)<=ChunkStrongLoaderBase.chunkStrongLoadingRange&&Mathf.Abs(Chunk.playerPosVec.z-cPos.y)<=ChunkStrongLoaderBase.chunkStrongLoadingRange){
+        ObjectPools.chunkPool.Get(cPos,true);  
+        }else{
+        ObjectPools.chunkPool.Get(cPos,false);    
+        }
+        
         chunkSpawningQueue.Dequeue();
          continue;
       }
@@ -264,7 +277,12 @@ public class WorldManager : MonoBehaviour
            chunkSpawningQueue.Dequeue();
          continue;
         }
-        ObjectPools.chunkPool.Get(cPos);
+        //ObjectPools.chunkPool.Get(cPos);
+          if(Mathf.Abs(Chunk.playerPosVec.x-cPos.x)<=ChunkStrongLoaderBase.chunkStrongLoadingRange&&Mathf.Abs(Chunk.playerPosVec.z-cPos.y)<=ChunkStrongLoaderBase.chunkStrongLoadingRange){
+        ObjectPools.chunkPool.Get(cPos,true);  
+        }else{
+        ObjectPools.chunkPool.Get(cPos,false);    
+        }
         chunkSpawningQueue.Dequeue();
          continue;
       }
@@ -284,7 +302,7 @@ public class WorldManager : MonoBehaviour
       if(isChunkFastLoadingEnabled==true){
         for(int i=0;i<10;i++){
          if(chunkLoadingQueue.Count>0){
-                if(chunkLoadingQueue.First==null){
+                if(chunkLoadingQueue.First.c==null){
                     chunkLoadingQueue.Dequeue(); 
                     continue;
                 }
@@ -292,7 +310,7 @@ public class WorldManager : MonoBehaviour
             
                 
                      
-                       chunkLoadingQueue.First.StartLoadChunk();  
+                       chunkLoadingQueue.First.c.StartLoadChunk(chunkLoadingQueue.First.isStrongLoading);  
                       
                   
                   
@@ -304,7 +322,7 @@ public class WorldManager : MonoBehaviour
       }else{
           for(int i=0;i<2;i++){
          if(chunkLoadingQueue.Count>0){
-                if(chunkLoadingQueue.First==null){
+                if(chunkLoadingQueue.First.c==null){
                     chunkLoadingQueue.Dequeue(); 
                     continue;
                 }
@@ -312,7 +330,7 @@ public class WorldManager : MonoBehaviour
             
                 
                      
-                       chunkLoadingQueue.First.StartLoadChunk();  
+                  chunkLoadingQueue.First.c.StartLoadChunk(chunkLoadingQueue.First.isStrongLoading);  
                       
                   
                   
@@ -364,7 +382,7 @@ void OnApplicationQuit(){
   
                if(Input.GetKeyDown(KeyCode.H)){
 
-                       ItemEntityBeh.SpawnNewItem(0,100,0,153,Vector3.up);
+                       EntityBeh.SpawnNewEntity(0,100,0,0);
 
                 }
      //   EntityBeh.SpawnNewEntity(0,100,0,0);

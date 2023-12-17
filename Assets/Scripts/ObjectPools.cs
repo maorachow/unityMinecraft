@@ -51,6 +51,33 @@ public class MyChunkObjectPool{
         }
         return tmp;
     }
+    public GameObject Get(Vector2Int pos,bool isStrongLoading)
+    {
+        GameObject tmp;
+    
+        if (objectPool.Count > 0)
+        {
+            // 将对象出队
+            tmp = objectPool.Dequeue();
+            if(tmp==null){
+               return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+
+            }
+            tmp.transform.position=new Vector3(pos.x,0,pos.y);
+            tmp.SetActive(true);
+            tmp.GetComponent<Chunk>().ReInitData(isStrongLoading);
+
+        }
+  
+        else
+        {
+            GameObject c=GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
+                c.GetComponent<Chunk>().ReInitData(isStrongLoading);
+            return c;
+            
+        }
+        return tmp;
+    }
     // 将物体回收进池子
     public void Remove(GameObject obj)
     {

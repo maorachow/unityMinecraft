@@ -293,7 +293,6 @@ MonoBehaviour:
   isSavedInDisk: 0
   isModifiedInGame: 0
   isChunkPosInited: 0
-  isStrongLoaded: 0
   chunkMesh: {fileID: 0}
   chunkWaterMesh: {fileID: 0}
   chunkNonSolidMesh: {fileID: 0}
@@ -322,4 +321,5 @@ MonoBehaviour:
   NSTris: 
   lightPoints: []
   pointLightGameObjects: []
-  isChunkColliderUpdated: 0
+  isStrongLoaded: 0
+  isTaskCompleted: 0

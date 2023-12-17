@@ -227,7 +227,7 @@ public class EntityBeh : MonoBehaviour
         if(WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)==false){
              currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
         }
-        if(currentChunk==null){
+        if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
             cc.enabled=false;
             isInUnloadedChunks=true;
         }else{

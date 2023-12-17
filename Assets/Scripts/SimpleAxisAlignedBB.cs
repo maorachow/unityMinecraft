@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class SimpleAxisAlignedBB : AxisAlignedBB {
 
-    public float minX;
+  /*  public float minX;
     public float minY;
     public float minZ;
     public float maxX;
     public float maxY;
-    public float maxZ;
+    public float maxZ;*/
 
     public SimpleAxisAlignedBB(Vector3 pos1, Vector3 pos2) {
         this.minX =  Mathf.Min(pos1.x, pos2.x);
@@ -35,7 +35,7 @@ public class SimpleAxisAlignedBB : AxisAlignedBB {
     }
 
      
-    public float getMinX() {
+   /* public float getMinX() {
         return minX;
     }
 
@@ -92,7 +92,7 @@ public class SimpleAxisAlignedBB : AxisAlignedBB {
      
     public void setMaxZ(float maxZ) {
         this.maxZ = maxZ;
-    }
+    }*/
     
     public SimpleAxisAlignedBB offset(float x, float y, float z) {
         this.setMinX(this.getMinX() + x);
