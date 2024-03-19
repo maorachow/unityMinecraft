@@ -14,6 +14,7 @@ using Priority_Queue;
 using System.Collections.Concurrent;
 using MessagePack;
 using System.IO;
+using Microsoft.SqlServer.Server;
 //using FastNoise;
 [MessagePackObject]
 public struct WorldData{
@@ -902,18 +903,98 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
-      /*  bool leftChunkLoaded=(isLeftChunkUnloaded==false&&leftChunk!=null);
-        bool rightChunkLoaded=(isRightChunkUnloaded==false&&leftChunk!=null);
-        bool backChunkLoaded=(isFrontChunkUnloaded==false&&leftChunk!=null);
-        bool frontChunkLoaded=(isBackChunkUnloaded==false&&leftChunk!=null);
-        bool leftChunkUnLoaded=(isLeftChunkUnloaded==true&&leftChunk!=null);
-        bool rightChunkUnLoaded=(isRightChunkUnloaded==true&&rightChunk!=null);
-        bool backChunkUnLoaded=(isBackChunkUnloaded==true&&backChunk!=null);
-        bool frontChunkUnLoaded=(isFrontChunkUnloaded==true&&frontChunk!=null);*/
-        bool leftChunkNull=(leftChunk==null);
-        bool rightChunkNull=(rightChunk==null);
-        bool backChunkNull=(backChunk==null);
-        bool frontChunkNull=(frontChunk==null);
+
+                List<Vector3Int> treePoints = new List<Vector3Int>();
+                List<Vector3Int> treeLeafPoints = new List<Vector3Int>();
+                for (int x = 0; x < 32; x++)
+                {
+                    for (int z = 0; z < 32; z++)
+                    {
+                        Vector3Int point = new Vector3Int(x, (int)thisHeightMap[x, z] + 1, z);
+                        if (point.y < chunkSeaLevel)
+                        {
+                            continue;
+                        }
+                        Vector3Int pointTransformed2 = point - new Vector3Int(8, 0, 8);
+                        if (chunkBiomeMapInterpolated[x, z] == 3 || chunkBiomeMapInterpolated[x, z]==0)
+                        {
+                            continue;
+                        }
+                        
+                        if (pointTransformed2.x >= 0 && pointTransformed2.x < chunkWidth && pointTransformed2.y >= 0 && pointTransformed2.y < chunkHeight && pointTransformed2.z >= 0 && pointTransformed2.z < chunkWidth)
+                        {
+                            if (map[pointTransformed2.x, pointTransformed2.y - 1, pointTransformed2.z] == 1)
+                            {
+                                continue;
+                            }
+                        }
+                        if (RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(point.x, point.y, point.z) + new Vector3Int(chunkPos.x, 0, chunkPos.y)) > 98.5f)
+                        {
+                            treePoints.Add(point);
+                            treePoints.Add(point + new Vector3Int(0, 1, 0));
+                            treePoints.Add(point + new Vector3Int(0, 2, 0));
+                            treePoints.Add(point + new Vector3Int(0, 3, 0));
+                            treePoints.Add(point + new Vector3Int(0, 4, 0));
+                            treePoints.Add(point + new Vector3Int(0, 5, 0));
+                            for (int i = -2; i < 3; i++)
+                            {
+                                for (int j = -2; j < 3; j++)
+                                {
+                                    for (int k = 3; k < 5; k++)
+                                    {
+                                        Vector3Int pointLeaf = point + new Vector3Int(i, k, j);
+                                        treeLeafPoints.Add(pointLeaf);
+                                    }
+                                }
+                            }
+                            treeLeafPoints.Add(point + new Vector3Int(0, 5, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(0, 6, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(1, 5, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(1, 6, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(0, 5, 1));
+                            treeLeafPoints.Add(point + new Vector3Int(0, 6, 1));
+                            treeLeafPoints.Add(point + new Vector3Int(-1, 5, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(-1, 6, 0));
+                            treeLeafPoints.Add(point + new Vector3Int(0, 5, -1));
+                            treeLeafPoints.Add(point + new Vector3Int(0, 6, -1));
+                        }
+                    }
+                }
+                //  Debug.WriteLine(treePoints[0].x +" "+ treePoints[0].y+" " + treePoints[0].z);
+                foreach (var point1 in treeLeafPoints)
+                {
+                    Vector3Int pointTransformed1 = point1 - new Vector3Int(8, 0, 8);
+                    //   Debug.WriteLine(pointTransformed.x + " "+pointTransformed.y + " "+pointTransformed.z);
+                    if (pointTransformed1.x >= 0 && pointTransformed1.x < chunkWidth && pointTransformed1.y >= 0 && pointTransformed1.y < chunkHeight && pointTransformed1.z >= 0 && pointTransformed1.z < chunkWidth)
+                    {
+                        if (map[pointTransformed1.x, pointTransformed1.y, pointTransformed1.z] == 0)
+                        {
+                            map[pointTransformed1.x, pointTransformed1.y, pointTransformed1.z] = 9;
+                        }
+
+                    }
+                }
+                foreach (var point in treePoints)
+                {
+                    Vector3Int pointTransformed = point - new Vector3Int(8, 0, 8);
+                    //   Debug.WriteLine(pointTransformed.x + " "+pointTransformed.y + " "+pointTransformed.z);
+                    if (pointTransformed.x >= 0 && pointTransformed.x < chunkWidth && pointTransformed.y >= 0 && pointTransformed.y < chunkHeight && pointTransformed.z >= 0 && pointTransformed.z < chunkWidth)
+                    {
+                        map[pointTransformed.x, pointTransformed.y, pointTransformed.z] = 7;
+                    }
+                }
+                /*  bool leftChunkLoaded=(isLeftChunkUnloaded==false&&leftChunk!=null);
+                  bool rightChunkLoaded=(isRightChunkUnloaded==false&&leftChunk!=null);
+                  bool backChunkLoaded=(isFrontChunkUnloaded==false&&leftChunk!=null);
+                  bool frontChunkLoaded=(isBackChunkUnloaded==false&&leftChunk!=null);
+                  bool leftChunkUnLoaded=(isLeftChunkUnloaded==true&&leftChunk!=null);
+                  bool rightChunkUnLoaded=(isRightChunkUnloaded==true&&rightChunk!=null);
+                  bool backChunkUnLoaded=(isBackChunkUnloaded==true&&backChunk!=null);
+                  bool frontChunkUnLoaded=(isFrontChunkUnloaded==true&&frontChunk!=null);*/
+        /*        bool leftChunkNull=(leftChunk==null);
+            bool rightChunkNull=(rightChunk==null);
+            bool backChunkNull=(backChunk==null);
+            bool frontChunkNull=(frontChunk==null);
                 for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
        
@@ -1218,13 +1299,13 @@ public class Chunk : MonoBehaviour
                                
 
                       //         treeCount--;
-                            }
+               /*             }
                         }
                     }
                     
                 }
             }
-        }
+        }*/
            for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
                  for(int k=0;k<chunkHeight/4;k++){
@@ -1247,7 +1328,7 @@ public class Chunk : MonoBehaviour
                 map[i,0,j]=5;
             }
         }
-                                if(isLeftChunkUpdated==true){
+                      /*          if(isLeftChunkUpdated==true){
                                    WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(leftChunk,false),0);
                                }
                                if(isRightChunkUpdated==true){
@@ -1270,7 +1351,7 @@ public class Chunk : MonoBehaviour
                                }
                                if(isBackRightChunkUpdated==true){
                                  WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backRightChunk,false),0);
-                               }
+                               }*/
         }else if(worldGenType==1){
             for(int i=0;i<chunkWidth;i++){
             for(int j=0;j<chunkWidth;j++){
@@ -1672,7 +1753,7 @@ public class Chunk : MonoBehaviour
   
    public bool isTaskCompleted=false;
 
-       public async void BuildChunk(bool isStrongLoading){
+    public async void BuildChunk(bool isStrongLoading){
         isTaskCompleted=false;
         try{
    //   System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
@@ -1770,9 +1851,9 @@ public class Chunk : MonoBehaviour
         Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataWT,chunkWaterMesh);
         JobHandle jh=new BakeJob{meshID=chunkMesh.GetInstanceID()}.Schedule();
          chunkMesh.RecalculateBounds();
-     //    chunkMesh.RecalculateNormals();
-        chunkNonSolidMesh.RecalculateBounds();
-        chunkWaterMesh.RecalculateBounds();
+         chunkMesh.RecalculateTangents();
+            chunkNonSolidMesh.RecalculateBounds();
+            chunkWaterMesh.RecalculateBounds();
        // chunkWaterMesh=WeldVertices(chunkWaterMesh);
    //     chunkWaterMesh.RecalculateNormals();
     //    chunkNonSolidMesh.RecalculateNormals();
@@ -2082,12 +2163,12 @@ public class Chunk : MonoBehaviour
         
         //    tris.Add(index + 2);
             tris.Add(index + 3);
-         //   tris.Add(index + 0);
-            Vector3 v1 = Vector3.Cross(up, right);
-            norms.Add(v1);
-            norms.Add(v1);
-            norms.Add(v1);
-            norms.Add(v1);
+            //   tris.Add(index + 0);
+            Vector3 normal = Vector3.Cross(up, right);
+            norms.Add(normal);
+            norms.Add(normal);
+            norms.Add(normal);
+            norms.Add(normal);
             }
             else
             {
@@ -2098,14 +2179,14 @@ public class Chunk : MonoBehaviour
             tris.Add(index+2);
             tris.Add(index+1);
             tris.Add(index+0);
-       //     tris.Add(index + 3);
-         //   tris.Add(index + 2);
-         //   tris.Add(index + 0);
-            Vector3 v1 = -Vector3.Cross(up, right);
-            norms.Add(v1);
-            norms.Add(v1);
-            norms.Add(v1);
-            norms.Add(v1);
+            //     tris.Add(index + 3);
+            //   tris.Add(index + 2);
+            //   tris.Add(index + 0);
+            Vector3 normal = -Vector3.Cross(up, right);
+            norms.Add(normal);
+            norms.Add(normal);
+            norms.Add(normal);
+            norms.Add(normal);
         }
     
     }

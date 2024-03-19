@@ -177,7 +177,7 @@ MonoBehaviour:
       m_MaxBound: 60
     m_AdaptiveResolution:
       m_Name: Adaptive Resolution
-      m_Enabled: 1
+      m_Enabled: 0
       m_Scale: 1
       m_VisualImpact: 2
       m_Target: 6
@@ -222,7 +222,7 @@ MonoBehaviour:
       m_MaxBound: 1
     m_AdaptiveShadowCascade:
       m_Name: Adaptive Shadow Cascade
-      m_Enabled: 1
+      m_Enabled: 0
       m_Scale: 1
       m_VisualImpact: 2
       m_Target: 3
@@ -290,7 +290,7 @@ MonoBehaviour:
       m_VisualImpact: 2
       m_Target: 1
       m_MaxLevel: 5
-      m_MinBound: 0.5
+      m_MinBound: 0.3
       m_MaxBound: 1
     m_AdaptiveDecals:
       m_Name: Adaptive Decals

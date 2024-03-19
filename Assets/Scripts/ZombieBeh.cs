@@ -157,10 +157,13 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
 
 
     public void FixedUpdate(){
+        if(entity.isInUnloadedChunks==true){
+            return;
+        }
          var results = new NativeArray<RaycastHit>(1, Allocator.TempJob);
         var commands = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
         Vector3 rayDirection=Vector3.Normalize(playerPosition.position-(transform.position+new Vector3(0f,1f,0f)));
-        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters(LayerMask.GetMask("Default","Ignore Raycast")),16f);
+        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters((1 << 0) | (1 << 2) ),16f);
         JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 1, 1, default(JobHandle));
         curBlockOnFootID=WorldHelper.instance.GetBlock(currentTrans.position,entity.currentChunk);
          if(curBlockOnFootID==0||(101<=curBlockOnFootID&&curBlockOnFootID<=200)){
@@ -200,17 +203,17 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
         if(isIdling==true){
         if(hasReachedTarget==true){
             timeUsedToReachTarget=0f;
-          Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
-         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y),randomTargetPos.y);
-        targetPos=finalTargetPos;  
+            Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
+            Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
+            targetPos=finalTargetPos;  
         }else{
             timeUsedToReachTarget+=Time.deltaTime;
             if(timeUsedToReachTarget>=5f){
                 hasReachedTarget=true;
                 timeUsedToReachTarget=0f;
-                   Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
-         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
-        targetPos=finalTargetPos;  
+                Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
+                Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
+                targetPos=finalTargetPos;  
             }
         }
            
@@ -262,10 +265,12 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
         }
         }
         public void ApplyGravity(CharacterController cc,float gravity,float dt){
-            if(cc.enabled==true){
+         //   Debug.Log("gra");
+                        if(cc.enabled==true){
               cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*dt);
         if(cc.isGrounded!=true){
-            if(!GetComponent<EntityBeh>().isInUnloadedChunks){
+
+            if(entity.isInUnloadedChunks==false){
              entityY+=gravity*dt;   
             }
             
@@ -277,7 +282,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
             isJumping=false;
         }
         entityVec.y=entityY;    
-        }else return;
+        }
         }
     public void Update () {
        float dt=Time.deltaTime;
@@ -296,7 +301,9 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
           if(attackCD>0f){
          attackCD-=dt;
             }
-       
+        if(entity.isInUnloadedChunks==true){
+            return;
+        }
        
       MoveToTarget(cc,targetPos,dt);
         if(Vector3.Magnitude(currentTrans.position - playerPosition.position)<1.4f){
@@ -305,7 +312,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
              
             entitySpeed=Mathf.Lerp(entitySpeed,Speed(),5f*dt);
    //     Debug.Log(Speed());
-            am.SetFloat("speed",entitySpeed);
+          //  am.SetFloat("speed",entitySpeed);
             Attack();
           
         }

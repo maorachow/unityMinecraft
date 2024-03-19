@@ -177,10 +177,13 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
 		
 	}
     void FixedUpdate(){
+        if(entity.isInUnloadedChunks==true){
+            return;
+        }
         var results = new NativeArray<RaycastHit>(1, Allocator.TempJob);
         var commands = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
         Vector3 rayDirection=Vector3.Normalize(playerPosition.position-(transform.position+new Vector3(0f,1f,0f)));
-        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters(LayerMask.GetMask("Default","Ignore Raycast")),16f);
+        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters((1 << 0) | (1 << 2)),16f);
         JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 1, 1, default(JobHandle));
         curFootBlockID=WorldHelper.instance.GetBlock(transform.position,entity.currentChunk);
  //  curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
@@ -224,15 +227,15 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     if(isIdling==true){
         if(hasReachedTarget==true){
             timeUsedToReachTarget=0f;
-          Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
-         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y),randomTargetPos.y);
+          Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
+         Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
         targetPos=finalTargetPos;  
         }else{
             timeUsedToReachTarget+=Time.deltaTime;
             if(timeUsedToReachTarget>=5f){
                 hasReachedTarget=true;
                 timeUsedToReachTarget=0f;
-                   Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-5f,transform.position.x+5f),Random.Range(transform.position.z-5f,transform.position.z+5f));
+                   Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
          Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
         targetPos=finalTargetPos;  
             }
@@ -288,7 +291,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
             if(cc.enabled==true){
               cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*dt);
         if(cc.isGrounded!=true){
-            if(!GetComponent<EntityBeh>().isInUnloadedChunks){
+            if(entity.isInUnloadedChunks==false){
              entityY+=gravity*dt;   
             }
             
@@ -373,7 +376,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
       
        
          
-         if(GetComponent<EntityBeh>().isInUnloadedChunks==true){
+         if(entity.isInUnloadedChunks==true){
                     return;
         }
         if(cc.enabled==true){

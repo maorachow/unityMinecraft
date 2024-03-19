@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1779033395367242925}
   - component: {fileID: 953352562394011047}
   - component: {fileID: 3308383070115198680}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg1_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 5278068641113265000}
   - component: {fileID: 4241438373017711423}
   - component: {fileID: 8661511592810734481}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg2_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -277,7 +277,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3626535348115011596}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -309,7 +309,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7545124074380613220}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -341,7 +341,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8377132911083646550}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -377,7 +377,7 @@ GameObject:
   - component: {fileID: 8188743956558135119}
   - component: {fileID: 4364366293987794689}
   - component: {fileID: 9146210729073847846}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: head_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -511,7 +511,7 @@ GameObject:
   - component: {fileID: 1187002735955731236}
   - component: {fileID: 1644617180607995663}
   - component: {fileID: 8660013217398583033}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: body_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -645,7 +645,7 @@ GameObject:
   - component: {fileID: 249399806079996941}
   - component: {fileID: 4258542031666334971}
   - component: {fileID: 7186292010936684807}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg0_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -775,7 +775,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2658937929347862498}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -807,7 +807,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5749835856379985215}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -839,7 +839,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8947563148879786026}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: diedcreeper
   m_TagString: Entity
   m_Icon: {fileID: 0}
@@ -880,7 +880,7 @@ GameObject:
   - component: {fileID: 2225831346547712403}
   - component: {fileID: 8136941979327328620}
   - component: {fileID: 6986281435053296532}
-  m_Layer: 2
+  m_Layer: 6
   m_Name: leg3_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

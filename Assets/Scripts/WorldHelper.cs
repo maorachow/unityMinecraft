@@ -7,6 +7,7 @@ public class WorldHelper:IWorldHelper{
     public int chunkWidth=16;
     public int chunkHeight=256;
     public static WorldHelper instance=new WorldHelper();
+    public Vector3 cameraPos;
      public Vector3Int Vec3ToBlockPos(Vector3 pos){
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         return intPos;

@@ -179,10 +179,10 @@ MonoBehaviour:
       m_Name: Adaptive Resolution
       m_Enabled: 0
       m_Scale: 1
-      m_VisualImpact: 0
+      m_VisualImpact: 2
       m_Target: 6
       m_MaxLevel: 9
-      m_MinBound: 0.5
+      m_MinBound: 0
       m_MaxBound: 1
     m_AdaptiveBatching:
       m_Name: Adaptive Batching

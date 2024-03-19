@@ -162,6 +162,7 @@ public class ItemEntityBeh : MonoBehaviour
         itemMesh.triangles = tris.ToArray();
         itemMesh.RecalculateBounds();
         itemMesh.RecalculateNormals();
+        itemMesh.RecalculateTangents();
         mc.sharedMesh=itemMesh;
         mf.mesh=itemMesh;
 
@@ -613,7 +614,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         mesh.triangles=tris.ToArray();
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
-     
+        mesh.RecalculateTangents();
     }
 
 static void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){

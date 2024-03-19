@@ -636,7 +636,7 @@ public class PlayerMove : MonoBehaviour
             cameraPos.localEulerAngles=new Vector3(0f,0f,0f);
             break;
         }
-     
+        WorldHelper.instance.cameraPos = cameraPos.position;
             if((cc.isGrounded!=true)){
             if(curFootBlockID==100){
             playerY+=gravity*Time.deltaTime;
