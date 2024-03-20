@@ -21,7 +21,7 @@ public class SSRRenderFeature : ScriptableRendererFeature
         material = new Material(shader);
         ssrRenderPass = new SSRRenderPass(material,settings);
 
-        ssrRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+        ssrRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer,
@@ -176,12 +176,11 @@ public class SSRRenderPass : ScriptableRenderPass
         material.SetMatrix("matInverseView", camera.worldToCameraMatrix.inverse);
         material.SetMatrix("matInverseProjection", camera.projectionMatrix.inverse);
         material.SetVector("CameraPos", WorldHelper.instance.cameraPos);
-        material.SetVector("CameraPos", WorldHelper.instance.cameraPos);
-        material.SetVector("CameraPos", WorldHelper.instance.cameraPos);
+ 
         //  cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
         //   cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
         //   cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-        Blitter.BlitCameraTexture(cmd, cameraTargetHandle, ssrHandle, material, 0);
+        Blit(cmd, cameraTargetHandle, ssrHandle, material, 0);
         Blit(cmd, ssrHandle, cameraTargetHandle,material,1);
 
         //Execute the command buffer and release it back to the pool.

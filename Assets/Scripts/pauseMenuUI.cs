@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 public class pauseMenuUI : MonoBehaviour
 {
     public static pauseMenuUI instance;
-    public Texture terrainNormal;
+    public Texture2D terrainNormal;
     public Button rebuildAllChunksButton;
     public Button SaveWorldButton;
     public Text viewRangeText;
@@ -26,7 +26,8 @@ public class pauseMenuUI : MonoBehaviour
         resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
         loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
         terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-        player=GameObject.Find("player").GetComponent<PlayerMove>();
+        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(terrainNormal);
+        player =GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
         graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
         viewRangeSlider=GameObject.Find("viewrangeslider").GetComponent<Slider>();
@@ -66,7 +67,7 @@ public class pauseMenuUI : MonoBehaviour
             case 4:
              graphicsQualityText.text="Very High";
             QualitySettings.SetQualityLevel(4, true);
-              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
+              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", terrainNormal);
             break;
             case 5:
              graphicsQualityText.text="Ultra";

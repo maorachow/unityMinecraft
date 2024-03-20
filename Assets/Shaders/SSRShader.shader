@@ -68,7 +68,7 @@ Shader "CustomEffects/SSREffect"
                 float3 worldPos = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_P);
                 return worldPos;
             }
-
+             
             void ReconstructUVAndDepthMatrix(float3 wpos, out float2 uv, out float depth) {  
                 float4 cpos = mul(UNITY_MATRIX_P, wpos);  
                 uv = float2(cpos.x, cpos.y) / cpos.w * 0.5 + 0.5;  
