@@ -51,25 +51,6 @@ MonoBehaviour:
     stepCount: 64
     intensity: 0.002
     fogColor: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
---- !u!114 &-2058874944050327512
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99fe01b3dcac223468d7dd2deee562c0, type: 3}
-  m_Name: CustomRenderPassFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  settings:
-    stepCount: 256
-    strideSize: 0.05
-    thickness: 0.366
-    fadeDistance: 22
-  shader: {fileID: 4800000, guid: af919127830936149acd88fa445218df, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,10 +68,10 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: 7720631892302898836}
-  - {fileID: -2058874944050327512}
   - {fileID: -5177011848809515823}
   - {fileID: -3687317512885311871}
-  m_RendererFeatureMap: 942644e6cc31256b2890ed9225686de3d174b809278f27b881e6641e4204d4cc
+  - {fileID: 1917834307435849357}
+  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -129,6 +110,25 @@ MonoBehaviour:
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 1
   m_IntermediateTextureMode: 0
+--- !u!114 &1917834307435849357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99fe01b3dcac223468d7dd2deee562c0, type: 3}
+  m_Name: SSRRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    stepCount: 64
+    strideSize: 0.05
+    thickness: 0.1
+    fadeDistance: 22
+  shader: {fileID: 4800000, guid: af919127830936149acd88fa445218df, type: 3}
 --- !u!114 &7720631892302898836
 MonoBehaviour:
   m_ObjectHideFlags: 0

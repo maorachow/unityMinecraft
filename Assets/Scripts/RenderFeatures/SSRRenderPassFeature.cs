@@ -27,10 +27,9 @@ public class SSRRenderFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer,
         ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game)
-        {
+       
             renderer.EnqueuePass(ssrRenderPass);
-        }
+        
     }
 
     protected override void Dispose(bool disposing)

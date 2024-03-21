@@ -15,25 +15,24 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
         terrainMat=ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
         terrainTex=new Texture2D(1024,1024,TextureFormat.RGBA32,6, false);
         terrainTex.filterMode=FilterMode.Point;
-        terrainNormalTex=new Texture2D (1024,1024,TextureFormat.RGBA32,6,false);
-        terrainNormalTex.filterMode=FilterMode.Point;
+ 
 
         //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
         terrainMip0 =Resources.Load<Texture2D>("Textures/terrain");
-        terrainNormalMip0 = Resources.Load<Texture2D>("Textures/terrainnormal");
+     
         terrainTex.SetPixels(terrainMip0.GetPixels(0),0);
-        terrainNormalTex.SetPixels(terrainNormalMip0.GetPixels(0), 0);
+ 
 
         terrainTex.Apply(true,true);
-        terrainNormalTex.Apply(true, true);
+     
         terrainMat.SetTexture("_BaseMap",terrainTex);
-        terrainMat.SetTexture("_BumpMap", terrainNormalTex);
+   
     }
 
     public static void SetTerrainNormalMipmap(Texture2D terrainNormalTexIn)
     {
 
-        terrainNormalTexIn = new Texture2D(1024, 1024, TextureFormat.RGBA32, 6, false);
+        terrainNormalTexIn = new Texture2D(1024, 1024, TextureFormat.RGBA32, 3, false);
         terrainNormalTexIn.filterMode = FilterMode.Point;
 
         //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");

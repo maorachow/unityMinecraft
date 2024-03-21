@@ -120,8 +120,9 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
             diedZombieTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
             cc.enabled=true;
             Destroy(diedZombieTrans.gameObject,30f);
+        ItemEntityBeh.SpawnNewItem(transform.position.x,transform.position.y,transform.position.z,154,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));
             ObjectPools.zombieEntityPool.Release(gameObject);
-            ItemEntityBeh.SpawnNewItem(transform.position.x,transform.position.y,transform.position.z,154,new Vector3(Random.Range(-3f,3f),Random.Range(-3f,3f),Random.Range(-3f,3f)));
+            
     }
 
 

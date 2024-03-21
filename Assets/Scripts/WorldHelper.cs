@@ -90,7 +90,10 @@ public class WorldHelper:IWorldHelper{
         }
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
-
+        if (chunkNeededUpdate == null)
+        {
+            return;
+        }
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
             return;

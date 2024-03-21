@@ -134,8 +134,10 @@ PlayerSettings:
   vulkanEnableLateAcquireNextImage: 0
   vulkanEnableCommandBufferRecycling: 1
   loadStoreDebugModeEnabled: 0
-  bundleVersion: 1.21
-  preloadedAssets: []
+  bundleVersion: 1.22
+  preloadedAssets:
+  - {fileID: 5532114894766277484, guid: 26e5e373f96d3f4489706ebf5d8d470e, type: 2}
+  - {fileID: 11400000, guid: f05060430d6b73340afa48850bdd5406, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1

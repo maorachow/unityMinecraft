@@ -16,13 +16,13 @@ public class FileAssetLoaderBeh : MonoBehaviour
     }
 
     public bool LoadBlockNameDic(string path){
-        PlayerMove.blockNameDic.Clear();
+        GameUIBeh.blockNameDic.Clear();
         try{
-        PlayerMove.blockNameDic=MessagePackSerializer.Deserialize<Dictionary<int,string>>(File.ReadAllBytes(path));
+            GameUIBeh.blockNameDic=MessagePackSerializer.Deserialize<Dictionary<int,string>>(File.ReadAllBytes(path));
             return true;
         }catch(Exception e){
             Debug.Log("Loading block name failed: "+e.ToString());
-            PlayerMove.AddBlockNameInfo();
+            GameUIBeh.AddBlockNameInfo();
              return false;
         }
        

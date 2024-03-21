@@ -32,10 +32,7 @@ public class MyChunkObjectPool{
         {
             // 将对象出队
             tmp = objectPool.Dequeue();
-            if(tmp==null){
-               return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
-
-            }
+ 
             tmp.transform.position=new Vector3(pos.x,0,pos.y);
             tmp.SetActive(true);
             tmp.GetComponent<Chunk>().ReInitData();
@@ -51,33 +48,7 @@ public class MyChunkObjectPool{
         }
         return tmp;
     }
-    public GameObject Get(Vector2Int pos,bool isStrongLoading)
-    {
-        GameObject tmp;
-    
-        if (objectPool.Count > 0)
-        {
-            // 将对象出队
-            tmp = objectPool.Dequeue();
-            if(tmp==null){
-               return GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
 
-            }
-            tmp.transform.position=new Vector3(pos.x,0,pos.y);
-            tmp.SetActive(true);
-            tmp.GetComponent<Chunk>().ReInitData(isStrongLoading);
-
-        }
-  
-        else
-        {
-            GameObject c=GameObject.Instantiate(Object, new Vector3(pos.x,0,pos.y),Quaternion.identity);
-                c.GetComponent<Chunk>().ReInitData(isStrongLoading);
-            return c;
-            
-        }
-        return tmp;
-    }
     // 将物体回收进池子
     public void Remove(GameObject obj)
     {
@@ -137,6 +108,7 @@ public class MyItemObjectPool{
             // 将对象出队
             tmp = objectPool.Dequeue();
             tmp.transform.position=pos;
+            tmp.GetComponent<Rigidbody>().position=pos;
             tmp.SetActive(true);
         }
   
@@ -180,6 +152,7 @@ public class ObjectPools : MonoBehaviour
         public static MyChunkObjectPool chunkPool=new MyChunkObjectPool();
         public static ObjectPool<GameObject> creeperEntityPool;
         public static ObjectPool<GameObject> zombieEntityPool;
+        public static ObjectPool<GameObject> tntEntityPool;
        // public static ObjectPool<GameObject> itemEntityPool;
         public static MyItemObjectPool itemEntityPool=new MyItemObjectPool();
         public void Start(){
@@ -189,8 +162,9 @@ public class ObjectPools : MonoBehaviour
         particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
         creeperEntityPool=new ObjectPool<GameObject>(CreateCreeper,GetCreeper,ReleaseCreeper,DestroyCreeper,true,10,300);
         zombieEntityPool=new ObjectPool<GameObject>(CreateZombie,GetZombie,ReleaseZombie,DestroyZombie,true,10,300);
-     //   itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
-        chunkPrefab=Resources.Load<GameObject>("Prefabs/chunk");
+        tntEntityPool = new ObjectPool<GameObject>(CreateTNT, GetTNT, ReleaseTNT, DestroyTNT, true, 10, 300);
+        //   itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
+        chunkPrefab =Resources.Load<GameObject>("Prefabs/chunk");
           TerrainTextureMipmapAdjusting.SetTerrainTexMipmap();
         chunkPool.Object=chunkPrefab;
         chunkPool.maxCount=3000;
@@ -273,8 +247,30 @@ public class ObjectPools : MonoBehaviour
         Destroy(gameObject);
     }
 
+    public GameObject CreateTNT()
+    {
+        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[2], new Vector3(100f, 0f, 100f), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetTNT(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseTNT(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyTNT(GameObject gameObject)
+    {
+
+        Destroy(gameObject);
+    }
 
 
 
-   
 }

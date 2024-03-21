@@ -156,7 +156,7 @@ public class EntityBeh : MonoBehaviour
        File.WriteAllBytes(gameWorldEntityDataPath+"unityMinecraftData/GameData/worldentities.json",tmpData);
         isWorldEntityDataSaved=true;
     }
-    public static void SpawnNewEntity(float posX,float posY,float posZ,int entityID){
+    public static EntityBeh SpawnNewEntity(float posX,float posY,float posZ,int entityID){
       
                 switch(entityID){
                 case 0:
@@ -168,6 +168,7 @@ public class EntityBeh : MonoBehaviour
                 a.GetComponent<EntityBeh>().entityTypeID=entityID;
                 a.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
                 a.GetComponent<CreeperBeh>().SendMessage("InitPos");
+                return a.GetComponent<EntityBeh>();
                 break;
                 case 1:
                 GameObject b=ObjectPools.zombieEntityPool.Get();
@@ -178,9 +179,19 @@ public class EntityBeh : MonoBehaviour
                 b.GetComponent<ZombieBeh>().SendMessage("InitPos");
    
 
-                 
+                 return b.GetComponent<EntityBeh>();
                 break;
-            }
+                case 2:
+                GameObject c = ObjectPools.tntEntityPool.Get();
+                c.transform.position = new Vector3(posX, posY, posZ);
+                c.GetComponent<Rigidbody>().position = new Vector3(posX,posY,posZ); 
+                c.GetComponent<EntityBeh>().entityTypeID = entityID;
+                c.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                c.GetComponent<TNTBeh>().SendMessage("InitPos");
+                return c.GetComponent<EntityBeh>();
+                break;
+            default: return null;
+        }
         
     }
     public static void SpawnEntityFromFile(){
@@ -194,6 +205,7 @@ public class EntityBeh : MonoBehaviour
                 a.GetComponent<CreeperBeh>().SendMessage("InitPos");
                 a.GetComponent<EntityBeh>().entityTypeID=ed.entityTypeID;
                 a.GetComponent<EntityBeh>().guid=ed.guid;
+                  
                 break;
                 case 1:
                 GameObject b=ObjectPools.zombieEntityPool.Get();
@@ -202,7 +214,19 @@ public class EntityBeh : MonoBehaviour
                 b.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
                 b.GetComponent<EntityBeh>().entityTypeID=ed.entityTypeID;
                 b.GetComponent<EntityBeh>().guid=ed.guid;
+              
                 break;
+                case 2:
+                    GameObject c = ObjectPools.tntEntityPool.Get();
+                    c.GetComponent<TNTBeh>().SendMessage("InitPos");
+                    c.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                    c.GetComponent<Rigidbody>().position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                    c.transform.rotation = Quaternion.Euler(ed.rotationX, ed.rotationY, ed.rotationZ);
+                    c.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
+                    c.GetComponent<EntityBeh>().guid = ed.guid;
+
+                    break;
+
             }
 
             
@@ -211,7 +235,8 @@ public class EntityBeh : MonoBehaviour
     public static void LoadEntities(){
         worldEntityTypes.Add(0,Resources.Load<GameObject>("Prefabs/creeper"));
         worldEntityTypes.Add(1,Resources.Load<GameObject>("Prefabs/zombie"));
-        isEntitiesLoad=true;
+        worldEntityTypes.Add(2, Resources.Load<GameObject>("Prefabs/tnt"));
+        isEntitiesLoad =true;
     }
     void OnEnable(){
         worldEntities.Add(this); 
@@ -228,10 +253,18 @@ public class EntityBeh : MonoBehaviour
              currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
         }
         if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
+            if (cc != null)
+            {
             cc.enabled=false;
+            }
+            
             isInUnloadedChunks=true;
         }else{
+            if (cc != null)
+            {
                 cc.enabled=true;
+            }
+                
              isInUnloadedChunks=false;
         }
     }

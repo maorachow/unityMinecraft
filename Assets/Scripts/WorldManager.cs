@@ -114,13 +114,15 @@ public class WorldManager : MonoBehaviour
     }
     int blockedDisablingCount=0;
     void DisableChunks(){
- //   Debug.Log(chunkUnloadingQueue.Count);
+  //  Debug.Log(chunkUnloadingQueue.Count);
      if(chunkUnloadingQueue.Count>0){
      
         Chunk c=Chunk.GetChunk(chunkUnloadingQueue.First);
-        Chunk cUnloaded=Chunk.GetUnloadedChunk(chunkUnloadingQueue.First);
+        
         if(c!=null){
-          if(c.isTaskCompleted==true){
+                lock (c.taskLock)
+                {
+            if(c.isTaskCompleted==true){
             ObjectPools.chunkPool.Remove(c.gameObject);
             chunkUnloadingQueue.Dequeue();
           //  Debug.Log("completed");
@@ -131,62 +133,15 @@ public class WorldManager : MonoBehaviour
               blockedDisablingCount=0;
                 Destroy(c.gameObject);
             chunkUnloadingQueue.Dequeue();
-      //      Debug.Log("destroy");
+           Debug.Log("destroy");
             return;
             }
              return;
           }
-        }else if(cUnloaded!=null){
-          if(cUnloaded.isTaskCompleted==true){
-            ObjectPools.chunkPool.Remove(cUnloaded.gameObject);
-            chunkUnloadingQueue.Dequeue();
-        //     Debug.Log("completedu");
-            return;
-          }else{
-            blockedDisablingCount++;
-            if(blockedDisablingCount>15){
-              blockedDisablingCount=0;
-                Destroy(cUnloaded.gameObject);
-        //         Debug.Log("destroyu");
-            chunkUnloadingQueue.Dequeue();
-            return;
-            }
-             return;
-          }
-        }else if(c!=null&&cUnloaded!=null){
-         if(c.isTaskCompleted==true){
-            ObjectPools.chunkPool.Remove(c.gameObject);
-            chunkUnloadingQueue.Dequeue();
-       //     Debug.Log("completeda");
-            return;
-          }else{
-            blockedDisablingCount++;
-            if(blockedDisablingCount>15){
-              blockedDisablingCount=0;
-                Destroy(c.gameObject);
-            chunkUnloadingQueue.Dequeue();
-        //    Debug.Log("destroya");
-            return;
-            }
-             return;
-          }
-            if(cUnloaded.isTaskCompleted==true){
-            ObjectPools.chunkPool.Remove(cUnloaded.gameObject);
-            chunkUnloadingQueue.Dequeue();
-        //     Debug.Log("completeda");
-            return;
-          }else{
-            blockedDisablingCount++;
-            if(blockedDisablingCount>15){
-              blockedDisablingCount=0;
-                Destroy(cUnloaded.gameObject);
-        //         Debug.Log("destroya");
-            chunkUnloadingQueue.Dequeue();
-            return;
-            }
-             return;
-          }
-       }else{
+                }
+         
+        } 
+        else{
          chunkUnloadingQueue.Dequeue();
        //  Debug.Log("none");
          return;
@@ -253,11 +208,9 @@ public class WorldManager : MonoBehaviour
            chunkSpawningQueue.Dequeue();
          continue;
         }
-        if(Mathf.Abs(Chunk.playerPosVec.x-cPos.x)<=ChunkStrongLoaderBase.chunkStrongLoadingRange&&Mathf.Abs(Chunk.playerPosVec.z-cPos.y)<=ChunkStrongLoaderBase.chunkStrongLoadingRange){
-        ObjectPools.chunkPool.Get(cPos,true);  
-        }else{
-        ObjectPools.chunkPool.Get(cPos,false);    
-        }
+       
+        ObjectPools.chunkPool.Get(cPos);    
+         
         
         chunkSpawningQueue.Dequeue();
          continue;
@@ -278,11 +231,9 @@ public class WorldManager : MonoBehaviour
          continue;
         }
         //ObjectPools.chunkPool.Get(cPos);
-          if(Mathf.Abs(Chunk.playerPosVec.x-cPos.x)<=ChunkStrongLoaderBase.chunkStrongLoadingRange&&Mathf.Abs(Chunk.playerPosVec.z-cPos.y)<=ChunkStrongLoaderBase.chunkStrongLoadingRange){
-        ObjectPools.chunkPool.Get(cPos,true);  
-        }else{
-        ObjectPools.chunkPool.Get(cPos,false);    
-        }
+        
+        ObjectPools.chunkPool.Get(cPos);    
+       
         chunkSpawningQueue.Dequeue();
          continue;
       }
@@ -310,7 +261,7 @@ public class WorldManager : MonoBehaviour
             
                 
                      
-                       chunkLoadingQueue.First.c.StartLoadChunk(chunkLoadingQueue.First.isStrongLoading);  
+                       chunkLoadingQueue.First.c.StartLoadChunk();  
                       
                   
                   
@@ -330,7 +281,7 @@ public class WorldManager : MonoBehaviour
             
                 
                      
-                  chunkLoadingQueue.First.c.StartLoadChunk(chunkLoadingQueue.First.isStrongLoading);  
+                  chunkLoadingQueue.First.c.StartLoadChunk();  
                       
                   
                   
@@ -385,9 +336,15 @@ void OnApplicationQuit(){
                        EntityBeh.SpawnNewEntity(0,100,0,0);
 
                 }
-     //   EntityBeh.SpawnNewEntity(0,100,0,0);
-       // EntityBeh.SpawnNewEntity(0,100,0,1);
-     //  StartCoroutine(ItemEntityBeh.SpawnNewItem(0,70,0,1,Vector3.up));
+        //   EntityBeh.SpawnNewEntity(0,100,0,0);
+        // EntityBeh.SpawnNewEntity(0,100,0,1);
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+
+      //      EntityBeh.SpawnNewEntity(0, 100, 0, 2);
+            ItemEntityBeh.SpawnNewItem(0, 100, 0, 155, new Vector3(0, 0, 0));
+        }
+        
     // foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){
      //   i.AddForceInvoke(Vector3.up*10f);
    //  }

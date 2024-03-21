@@ -43,6 +43,7 @@ public class pauseMenuUI : MonoBehaviour
         loadResourceButton.onClick.AddListener(LoadResourceButtonOnClick);
     }
     void GraphicsQualitySliderOnValueChanged(float f){
+        Debug.Log(terrainNormal.activeMipmapLimit);
         switch((int)graphicsQualitySlider.value){
             case 0:
             graphicsQualityText.text="Very Low";
@@ -85,6 +86,7 @@ public class pauseMenuUI : MonoBehaviour
         FileAssetLoaderBeh.instance.UnloadAndResetResouces();
           ItemEntityBeh.AddFlatItemInfo();
         terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
+        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(terrainNormal);
         ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
         ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
         ZombieBeh.isZombiePrefabLoaded=false;

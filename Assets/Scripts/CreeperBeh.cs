@@ -23,7 +23,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     public float creeperExplodeFuse=0f;
     public Vector3 entityVec;
     public float moveSpeed{get{return 5f;}set{moveSpeed=5f;}}
-    public static float gravity=-9.8f;
+    public float gravity=-9.8f;
     public float entityY=0f;
     public float jumpHeight=2f;
     public Vector3 entityFacingPos;
@@ -140,10 +140,12 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
             diedCreeperTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
            diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-           diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-      //     cc.enabled=true;
-           Destroy(diedCreeperTrans.gameObject,30f);
-           ObjectPools.creeperEntityPool.Release(gameObject);
+           diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity= knockback;
+        //     cc.enabled=true;
+        Destroy(diedCreeperTrans.gameObject, 30f);
+        ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 155, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
+        ObjectPools.creeperEntityPool.Release(gameObject);
+       
     }
 
     public void InitPos(){
@@ -193,18 +195,37 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     EntityGroundSinkPrevent(cc,curFootBlockID,Time.deltaTime);
     if(curFootBlockID!=prevFootBlockID){
        
-        if(curFootBlockID==100){
+        if(curFootBlockID==100 && prevFootBlockID == 0)
+            {
           
         gravity=-0.1f;
         entityMoveDrag=0.6f;
          AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
          WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
-        }else{
-            entityMoveDrag=0f;
-        gravity=-9.8f;
-        }
+        } 
+
+            if (curFootBlockID == 0 && prevFootBlockID == 100)
+            {
+                entityMoveDrag = 0f;
+                gravity = -9.8f;
+                      AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
+         WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+            }
     }
-    prevFootBlockID=curFootBlockID;
+
+        if (curFootBlockID == 100)
+        {
+            gravity = -0.1f;
+            entityMoveDrag = 0.6f;
+            
+
+        }
+        else
+        {
+            entityMoveDrag = 0f;
+            gravity = -9.8f;
+        }
+            prevFootBlockID =curFootBlockID;
     handle.Complete();
   //  isIdling=true;
    // RaycastHit info;

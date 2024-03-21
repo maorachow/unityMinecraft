@@ -56,7 +56,7 @@ public class PlayerMove : MonoBehaviour
     public Animator am;
   
     public static string gameWorldPlayerDataPath;
-    public static Dictionary<int,string> blockNameDic=new Dictionary<int,string>();
+    
     public static bool isBlockNameDicAdded=false;
     public int blockOnHandID=0;
     public int cameraPosMode=0;//0fp 1sp 2tp
@@ -77,7 +77,7 @@ public class PlayerMove : MonoBehaviour
     public float moveSpeed=5f;
     public static float gravity=-9.8f;
     public float playerY=0f;
-    public float jumpHeight=2f;
+    public float jumpHeight=2;
     public static float mouseSens=1f;
     public static float cameraFOV=90f;
     public float currentSpeed;
@@ -182,34 +182,10 @@ public class PlayerMove : MonoBehaviour
 
 
 
-    public static void AddBlockNameInfo(){
-
- //       if(isBlockNameDicAdded==false){
-        blockNameDic.Clear();
-        blockNameDic.Add(0,"None");
-        blockNameDic.Add(1,"Stone");
-        blockNameDic.Add(2,"Grass");
-        blockNameDic.Add(3,"Dirt");
-        blockNameDic.Add(4,"Side Grass Block");
-        blockNameDic.Add(5,"Bedrock");
-        blockNameDic.Add(6,"WoodX");
-        blockNameDic.Add(7,"WoodY");
-        blockNameDic.Add(8,"WoodZ");
-        blockNameDic.Add(9,"Leaves");
-        blockNameDic.Add(11,"Sand");
-        blockNameDic.Add(100,"Water");
-        blockNameDic.Add(101,"Grass Crop");
-        blockNameDic.Add(102,"Torch");
-        blockNameDic.Add(151,"Diamond Pickaxe");
-        blockNameDic.Add(152,"Diamond Sword");
-        blockNameDic.Add(153,"Diamond"); 
-        blockNameDic.Add(154,"Rotten Flesh");
-   //     isBlockNameDicAdded=true;
-   //     }
-    }
+    
     void Awake(){
        
-        AddBlockNameInfo();
+       
       
     }
     void OnDestroy(){
@@ -221,7 +197,7 @@ public class PlayerMove : MonoBehaviour
         if(blockOnHandText==null){
             blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
         }
-        blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];
+        blockOnHandText.text=GameUIBeh.blockNameDic[inventoryDic[currentSelectedHotbar-1]];
     }
     public void BreakBlockButtonPress(){
         if(isPlayerKilled==true||GameUIBeh.isPaused==true||GameUIBeh.instance.isCraftingMenuOpened==true){
@@ -435,6 +411,19 @@ public class PlayerMove : MonoBehaviour
           inventoryItemNumberDic[GetItemFromSlot(7)]--;
         AddItem(102,1);  
         }
+        }else if(exchangeID == 3)
+        {
+            if (GetItemFromSlot(155) == -1)
+            {
+                return;
+            }
+            else
+            {
+
+                inventoryItemNumberDic[GetItemFromSlot(155)]--;
+                AddItem(156, 1);
+            }
+
         }
         
         
@@ -586,8 +575,8 @@ public class PlayerMove : MonoBehaviour
                 if(blockOnHandText==null){
                 blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
                 }
-                if(blockNameDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
-                blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];    
+                if(GameUIBeh.blockNameDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
+                blockOnHandText.text= GameUIBeh.blockNameDic[inventoryDic[currentSelectedHotbar-1]];    
                 }else{
                 blockOnHandText.text=  "Unknown Block Name,ID:"+inventoryDic[currentSelectedHotbar-1];  
                 }
@@ -1131,8 +1120,8 @@ public class PlayerMove : MonoBehaviour
                 playerHealth=Mathf.Clamp(playerHealth,0f,20f);
                 inventoryItemNumberDic[currentSelectedHotbar-1]--;
                 GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
-                  if(blockNameDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
-                blockOnHandText.text=blockNameDic[inventoryDic[currentSelectedHotbar-1]];    
+                  if(GameUIBeh.blockNameDic.ContainsKey(inventoryDic[currentSelectedHotbar-1])){
+                blockOnHandText.text= GameUIBeh.blockNameDic[inventoryDic[currentSelectedHotbar-1]];    
                 }else{
                 blockOnHandText.text=  "Unknown Block Name,ID:"+inventoryDic[currentSelectedHotbar-1];  
                 }
@@ -1141,6 +1130,16 @@ public class PlayerMove : MonoBehaviour
                 return;
             }
              
+    }
+    async void ThrowTNT()
+    {
+        Vector3 tntPos = headPos.position + headPos.forward;
+        EntityBeh tntEntity=EntityBeh.SpawnNewEntity(tntPos.x,tntPos.y,tntPos.z,2);
+        await UniTask.WaitUntil(() => tntEntity.GetComponent<TNTBeh>().rigidbody!=null);
+        tntEntity.GetComponent<TNTBeh>().AddForce((headPos.forward * 16));
+        inventoryItemNumberDic[currentSelectedHotbar - 1]--;
+        AttackAnimate();
+        Invoke("cancelAttackInvoke", 0.16f);
     }
     void RightClick(){
         if(cameraPosMode==1){
@@ -1155,7 +1154,12 @@ public class PlayerMove : MonoBehaviour
              PlayerEat();
                 return;
         }
-        if(Physics.Raycast(ray,out info,5f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
+        if (inventoryDic[currentSelectedHotbar - 1] == 156)
+        {
+            ThrowTNT();
+            return;
+        }
+        if (Physics.Raycast(ray,out info,5f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
             
              if(inventoryDic[currentSelectedHotbar-1]==152){
                 PlayerCritAttack();

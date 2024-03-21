@@ -46,7 +46,7 @@ public class ChunkLoaderBase:MonoBehaviour
                 Vector2Int chunkPos=  WorldHelper.instance.Vec3ToChunkPos(pos);
                
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-                if (chunk != null||Chunk.GetUnloadedChunk(chunkPos)!=null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
+                if (chunk != null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
                                 continue;
                                 }else{
                     WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 

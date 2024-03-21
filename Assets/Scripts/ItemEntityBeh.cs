@@ -74,7 +74,7 @@ public class ItemEntityBeh : MonoBehaviour
     verts=new List<Vector3>();
     uvs=new List<Vector2>();
     tris=new List<int>();
-    if(itemID>150&&itemID<=200){
+    if(itemID>150&&itemID<=200&&itemID!=156){
       //  itemMesh=new Mesh();
         await BuildFlatItemModel(itemID,itemMesh);
            mf.mesh=itemMesh;
@@ -84,78 +84,109 @@ public class ItemEntityBeh : MonoBehaviour
         ReleaseItem();
         return;
     }
-    if(itemID>0&&itemID<100){
-        BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
-        //Right
-   
-         BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
-
-        //Bottom
-   
-         BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
-        //Top
-  
-        BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
-
-        //Back
-     
-        BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
-        //Front
-       
-        BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
-    }else if(itemID==100){
-        BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
-        //Right
-   
-         BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris,1);
-
-        //Bottom
-   
-         BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris,2);
-        //Top
-  
-        BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris,3);
-
-        //Back
-     
-        BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris,4);
-        //Front
-       
-        BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris,5); 
-    }else{
-    
-        if(itemID>=101&&itemID<150){
-            if(itemID==102){
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, verts, uvs, tris);
+        if (itemID > 0 && itemID < 100)
+        {
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
             //Right
-     
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0.125f,0f,0f),  new Vector3(0f,0.625f,0f),new Vector3(0f,0f,0.125f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, verts, uvs, tris);
+
+            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
 
             //Bottom
-     
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f),new Vector3(0f,0f,0.125f),new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), false, verts, uvs, tris);
-                //Top
-       
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0.625f,0.4375f), new Vector3(0f,0f,0.125f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0078125f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0.03125f), true, verts, uvs, tris);
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+            //Top
+
+            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
 
             //Back
-    
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f), new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f), true, verts, uvs, tris);
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
             //Front
-    
-            BuildFaceComplex(new Vector3(x, y, z)+new Vector3(0.4375f,0f,0.4375f)+new Vector3(0f,0f,0.125f),  new Vector3(0f,0.625f,0f), new Vector3(0.125f,0f,0f),new Vector2(0.0078125f,0.0390625f),new Vector2(0.0625f,0.0625f)+new Vector2(0.02734375f,0f),false, verts, uvs, tris); 
-            
-            }else{
-                Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
-            BuildFace(itemID, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, verts, uvs, tris,0);
-            BuildFace(itemID, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, true, verts, uvs, tris,0);
-            BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, verts, uvs, tris,0);
-            BuildFace(itemID, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, true, verts, uvs, tris,0);
-            }
-            
+
+            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
         }
-       
-    }
+        else if (itemID == 100)
+        {
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
+            //Right
+
+            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
+
+            //Bottom
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+            //Top
+
+            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
+
+            //Back
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
+            //Front
+
+            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
+        }
+        else if (itemID == 156) {
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
+            //Right
+
+            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
+
+            //Bottom
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+            //Top
+
+            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
+
+            //Back
+
+            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
+            //Front
+
+            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
+
+
+        }
+        else
+        {
+
+            if (itemID >= 101 && itemID < 150)
+            {
+                if (itemID == 102)
+                {
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+                    //Right
+
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
+
+                    //Bottom
+
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+                    //Top
+
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.625f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0.03125f), true, verts, uvs, tris);
+
+                    //Back
+
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
+                    //Front
+
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0f, 0f, 0.125f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+
+                }
+                else
+                {
+                    Vector3 randomCrossModelOffset = new Vector3(0f, 0f, 0f);
+                    BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
+                    BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
+                    BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
+                    BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
+                }
+
+            }
+
+        }
 
         itemMesh.vertices = verts.ToArray();
         itemMesh.uv = uvs.ToArray();
@@ -510,7 +541,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
       
 
-          if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
+          if(currentChunk==null){
           rb.constraints = RigidbodyConstraints.FreezeAll;
             isInUnloadedChunks=true;
         }else{
@@ -527,7 +558,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
      public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
     public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
-    //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh
+    //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh 155gun powder 156tnt
     public static Texture2D itemTextureInfo;
 //    public List<Vector3> verts=new List<Vector3>();
   //  public List<Vector2> uvs=new List<Vector2>();
@@ -542,7 +573,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         itemMaterialInfo.TryAdd(153,new Vector2(0.125f,0.125f));
         itemMaterialInfo.TryAdd(151,new Vector2(0.0625f,0.125f));
         itemMaterialInfo.TryAdd(152,new Vector2(0.0f,0.125f));
+        itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.125f));
+        itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.125f));
         itemTexturePosInfo.TryAdd(154,new Vector2Int(192,128));
+        itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 128));
+        itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 128));
         itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
         itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
         itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));
@@ -561,42 +596,12 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y+1f, z)/16, Vector3.forward*textureXSize/4/16, Vector3.right*textureYSize/4/16, true, verts, uvs, tris);
         for(int i=0;i<textureXSize;i++){
             for(int j=0;j<textureYSize;j++){
-                if(i+1<textureXSize&&i-1>0&&j+1<textureYSize&&j-1>0){
-                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i+1,itemTexturePosInfo[itemID].y+j).a==0f){
-                        //right
-                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i + 1, y, z+j)/4/16, Vector3.up/16, Vector3.forward/4/16, true, verts, uvs, tris);
+                
 
-                    }
-                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i-1,itemTexturePosInfo[itemID].y+j).a==0f){
-                        //left
-                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i, y, z+j)/4/16, Vector3.up/16, Vector3.forward/4/16, false, verts, uvs, tris);
-
-                    }
-                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j+1).a==0f){
-                        //front
-                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)0.0625f*0.0625f*0.25f,new Vector3(x+i, y, z+j + 1)/4/16, Vector3.up/16, Vector3.right/4/16, false, verts, uvs, tris);
-
-                    }
-                    if(itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j).a!=0f&&itemTextureInfo.GetPixel(itemTexturePosInfo[itemID].x+i,itemTexturePosInfo[itemID].y+j-1).a==0f){
-                        //back
-                        BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f),  (float)0.0625f*0.0625f*0.25f,new Vector3(x+i,y, z+j)/4/16, Vector3.up/16, Vector3.right/4/16, true, verts, uvs, tris);
-
-                    }
-                }else{
-                    if(i+1>=textureXSize){
-                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)1/16*0.0625f,new Vector3(x+i + 1, y,z+ j)/4/16, Vector3.up/16, Vector3.forward/4/16, true, verts, uvs, tris);
-                    }
-                    if(i-1<0){
-                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)1/16*0.0625f,new Vector3(x+i, y, z+j)/4/16, Vector3.up/16, Vector3.forward/4/16, false, verts, uvs, tris);
-                    }
-                    if(j+1>=textureYSize){
-                          BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f), (float)1/16*0.0625f,new Vector3(x+i, y, z+j + 1)/4/16, Vector3.up/16, Vector3.right/4/16, false, verts, uvs, tris);
-                    }
-                    if(j-1<0){
-                         BuildFlatItemFace(itemMaterialInfo[itemID].x+(float)i/textureXSize*0.0625f+(-0.00001f),itemMaterialInfo[itemID].y+(float)j/textureYSize*0.0625f+(-0.00001f),  (float)1/16*0.0625f,new Vector3(x+i, y, z+j)/4/16, Vector3.up/16, Vector3.right/4/16, true, verts, uvs, tris);
-                    }
-                   
-                }
+                    BuildModelPixel(itemTexturePosInfo[itemID].x + i, itemTexturePosInfo[itemID].y + j, itemTexturePosInfo[itemID].x, itemTexturePosInfo[itemID].y,1f, verts, uvs, tris);
+         //           Debug.Log((float)(itemTexturePosInfo[itemID].x + i) / textureXSize * 0.0625f);
+                 
+                 
                     
             }
         }
@@ -616,7 +621,36 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
     }
+   public static void BuildModelPixel(int x,int y,int originX,int originY,float scale, List<Vector3> verts, List<Vector2> uvs, List<int> tris)
+    {
 
+       
+        if (itemTextureInfo.GetPixel(x, y).a != 0f && itemTextureInfo.GetPixel(x + 1,y).a == 0f)
+        {
+            //right
+            BuildFlatItemFace((float)x / (float)textureXSize * 0.0625f, (float)y / (float)textureYSize * 0.0625f, (float)1f/64f/16f, new Vector3(x- originX + 1, 0, y-originY) / 4f / 16f * scale, Vector3.up / 16f * scale, Vector3.forward / 4f / 16f * scale, true, verts, uvs, tris);
+
+        }
+        if (itemTextureInfo.GetPixel(x, y).a != 0f && itemTextureInfo.GetPixel(x-1,y).a == 0f)
+        {
+            //left
+            BuildFlatItemFace((float)x / (float)textureXSize * 0.0625f, (float)y / (float)textureYSize * 0.0625f,(float)1f / 64f / 16f, new Vector3(x - originX, 0, y- originY) / 4f / 16f * scale, Vector3.up / 16 * scale, Vector3.forward / 4 / 16 * scale, false, verts, uvs, tris);
+
+        }
+        if (itemTextureInfo.GetPixel(x, y).a != 0f && itemTextureInfo.GetPixel(x,y+1).a == 0f)
+        {
+            //front
+            BuildFlatItemFace((float)x / (float)textureXSize * 0.0625f, (float)y / (float)textureYSize * 0.0625f, (float)1f / 64f / 16f, new Vector3(x - originX, 0,y - originY + 1) / 4f / 16f* scale, Vector3.up / 16 * scale, Vector3.right / 4 / 16 * scale, false, verts, uvs, tris);
+
+        }
+        if (itemTextureInfo.GetPixel(x, y).a != 0f && itemTextureInfo.GetPixel(x,y-1).a == 0f)
+        {
+            //back
+            BuildFlatItemFace((float)x / (float)textureXSize * 0.0625f, (float)y / (float)textureYSize * 0.0625f, (float)1f / 64f / 16f, new Vector3(x - originX, 0,y - originY) / 4f / 16f * scale, Vector3.up / 16 * scale, Vector3.right / 4 / 16 * scale, true, verts, uvs, tris);
+
+        }
+
+    }
 static void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
         Vector2 uvCorner=new Vector2(uvX,uvY);
      

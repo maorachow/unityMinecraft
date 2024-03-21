@@ -35,6 +35,7 @@ void OnEnable(){
     psr=GetComponent<ParticleSystemRenderer>();
 }
 public void EmitParticle(){
+   //     Debug.Log(blockID);
     if(Chunk.blockAudioDic.ContainsKey(blockID)){
     AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockID],transform.position,1f);    
     }else{
@@ -110,7 +111,7 @@ public void EmitParticle(){
         particleMesh.RecalculateNormals();
        psr.mesh=particleMesh;
        ps.Play();
-       Invoke("ReleaseGameObject",2f);
+       Invoke("ReleaseGameObject",1.5f);
 }
 static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right,Vector2 uvWidth,Vector2 uvCorner, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
         int index = verts.Count;

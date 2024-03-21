@@ -112,7 +112,7 @@ Shader "CustomEffects/SSREffect"
                 float3 vnormal = SampleSceneNormals(input.texcoord);  
                 float3 wPos=GetWorldPosition(input.texcoord,rawDepth).xyz;
 
-                float3 vDir = normalize(wPos-CameraPos);  
+                float3 vDir = normalize(wPos-_WorldSpaceCameraPos);  
                  float diff = max(dot(vnormal, vDir), -1.0);
                 if (diff >= -0.3)
                 {

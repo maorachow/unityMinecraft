@@ -19,24 +19,55 @@ public class GameUIBeh : MonoBehaviour
    public static Dictionary<int,Sprite> blockImageDic=new Dictionary<int,Sprite>();
    public static Dictionary<int,Image> hotbarImageDic=new Dictionary<int,Image>();
    public static Dictionary<int,TMP_Text> hotbarTextDic=new Dictionary<int,TMP_Text>();
-   public int selectedHotbar=1;
-   /* blockNameDic.Add(0,"None");
-        blockNameDic.Add(1,"Stone");
-        blockNameDic.Add(2,"Grass");
-        blockNameDic.Add(3,"Dirt");
-        blockNameDic.Add(4,"Side Grass Block");
-        blockNameDic.Add(5,"Bedrock");
-        blockNameDic.Add(6,"WoodX");
-        blockNameDic.Add(7,"WoodY");
-        blockNameDic.Add(8,"WoodZ");
-        blockNameDic.Add(9,"Leaves");*/
-   void Start(){
+    public static Dictionary<int, string> blockNameDic = new Dictionary<int, string>();
+    public int selectedHotbar=1;
+    /* blockNameDic.Add(0,"None");
+         blockNameDic.Add(1,"Stone");
+         blockNameDic.Add(2,"Grass");
+         blockNameDic.Add(3,"Dirt");
+         blockNameDic.Add(4,"Side Grass Block");
+         blockNameDic.Add(5,"Bedrock");
+         blockNameDic.Add(6,"WoodX");
+         blockNameDic.Add(7,"WoodY");
+         blockNameDic.Add(8,"WoodZ");
+         blockNameDic.Add(9,"Leaves");*/
+
+    public static void AddBlockNameInfo()
+    {
+
+        //       if(isBlockNameDicAdded==false){
+        blockNameDic.Clear();
+        blockNameDic.Add(0, "None");
+        blockNameDic.Add(1, "Stone");
+        blockNameDic.Add(2, "Grass");
+        blockNameDic.Add(3, "Dirt");
+        blockNameDic.Add(4, "Side Grass Block");
+        blockNameDic.Add(5, "Bedrock");
+        blockNameDic.Add(6, "WoodX");
+        blockNameDic.Add(7, "WoodY");
+        blockNameDic.Add(8, "WoodZ");
+        blockNameDic.Add(9, "Leaves");
+        blockNameDic.Add(11, "Sand");
+        blockNameDic.Add(100, "Water");
+        blockNameDic.Add(101, "Grass Crop");
+        blockNameDic.Add(102, "Torch");
+        blockNameDic.Add(151, "Diamond Pickaxe");
+        blockNameDic.Add(152, "Diamond Sword");
+        blockNameDic.Add(153, "Diamond");
+        blockNameDic.Add(154, "Rotten Flesh");
+        blockNameDic.Add(155, "Gunpowder");
+        blockNameDic.Add(156, "TNT");
+        //     isBlockNameDicAdded=true;
+        //     }
+    }
+    void Start(){
     instance=this;
     craftUI=transform.Find("inventoryconvertUI").gameObject;
     if(pauseMenu==null){
              pauseMenu=transform.Find("pausemenuUI").gameObject;
              pauseMenu.SetActive(true);
         }
+        AddBlockNameInfo();
     blockImageDic.Clear();
     blockImageDic.TryAdd(-1,Sprite.Create(new Texture2D(16,16),new Rect(0,0,16,16),new Vector2(0.5f,0.5f)));
     blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/emptyslot"));
@@ -57,7 +88,9 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
     blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
     blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/rotten_flesh"));
-    hotbarImageDic.Clear();
+    blockImageDic.TryAdd(155, Resources.Load<Sprite>("Textures/gunpowder"));
+    blockImageDic.TryAdd(156, Resources.Load<Sprite>("Textures/tnt_side"));
+        hotbarImageDic.Clear();
     hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
         
