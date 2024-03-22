@@ -1048,6 +1048,21 @@ public class PlayerMove : MonoBehaviour
                   go.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(1f,(transform.position-go.transform.position).normalized*-10f);   
             }
         }
+        if (go.GetComponent<SkeletonBeh>() != null)
+        {
+            if (inventoryDic[currentSelectedHotbar - 1] == 152)
+            {
+                go.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
+            }
+            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
+            {
+                go.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
+            }
+            else
+            {
+                go.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
+            }
+        }
     }
    async void LeftClick(){
         if(cameraPosMode==1){

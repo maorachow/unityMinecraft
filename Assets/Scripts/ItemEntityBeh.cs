@@ -575,9 +575,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         itemMaterialInfo.TryAdd(152,new Vector2(0.0f,0.125f));
         itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.125f));
         itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.125f));
+        itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.125f));
         itemTexturePosInfo.TryAdd(154,new Vector2Int(192,128));
         itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 128));
         itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 128));
+        itemTexturePosInfo.TryAdd(157, new Vector2Int(512, 128));
         itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
         itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
         itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));

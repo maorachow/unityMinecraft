@@ -54,7 +54,7 @@ public class EntityBeh : MonoBehaviour
 {
     public Chunk currentChunk;
     public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
-    //0Creeper 1zombie
+    //0Creeper 1zombie 2tnt 3skeleton 4arrow
     public CharacterController cc;
     public static bool isEntitiesLoad=false;
     public static string gameWorldEntityDataPath;
@@ -190,6 +190,23 @@ public class EntityBeh : MonoBehaviour
                 c.GetComponent<TNTBeh>().SendMessage("InitPos");
                 return c.GetComponent<EntityBeh>();
                 break;
+                case 3:
+                GameObject d = ObjectPools.skeletonEntityPool.Get();
+                d.transform.position = new Vector3(posX, posY, posZ);
+             
+                d.GetComponent<EntityBeh>().entityTypeID = entityID;
+                d.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                d.GetComponent<SkeletonBeh>().SendMessage("InitPos");
+                return d.GetComponent<EntityBeh>();
+                break;
+                case 4:
+                GameObject e = ObjectPools.arrowEntityPool.Get();
+                e.transform.position = new Vector3(posX, posY, posZ);
+                e.GetComponent<Rigidbody>().position = new Vector3(posX, posY, posZ);
+                e.GetComponent<EntityBeh>().entityTypeID = entityID;
+                e.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+              
+                return e.GetComponent<EntityBeh>();
             default: return null;
         }
         
@@ -227,15 +244,34 @@ public class EntityBeh : MonoBehaviour
 
                     break;
 
+                case 3:
+                    GameObject d = ObjectPools.skeletonEntityPool.Get();
+                    d.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                    d.transform.rotation = Quaternion.Euler(ed.rotationX, ed.rotationY, ed.rotationZ);
+                    d.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
+                    d.GetComponent<EntityBeh>().guid = ed.guid;
+                    d.GetComponent<SkeletonBeh>().SendMessage("InitPos");
+                   
+                    break;
+
+                case 4:
+                    GameObject e = ObjectPools.arrowEntityPool.Get();
+                    e.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                    e.GetComponent<Rigidbody>().position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                    e.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
+                    e.GetComponent<EntityBeh>().guid = ed.guid;
+                    break;
             }
 
-            
+
         }
     }
     public static void LoadEntities(){
         worldEntityTypes.Add(0,Resources.Load<GameObject>("Prefabs/creeper"));
         worldEntityTypes.Add(1,Resources.Load<GameObject>("Prefabs/zombie"));
         worldEntityTypes.Add(2, Resources.Load<GameObject>("Prefabs/tnt"));
+        worldEntityTypes.Add(3, Resources.Load<GameObject>("Prefabs/skeleton"));
+        worldEntityTypes.Add(4, Resources.Load<GameObject>("Prefabs/arrow"));
         isEntitiesLoad =true;
     }
     void OnEnable(){

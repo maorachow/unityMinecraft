@@ -109,7 +109,20 @@ public class WorldManager : MonoBehaviour
   //   }
         if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
-          EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,(int)Random.Range(0f,1.999f));  
+
+          EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,0);  
+        }
+        if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+        {
+            Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
+
+            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y,1);
+        }
+        if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+        {
+            Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
+
+            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y, 3);
         }
     }
     int blockedDisablingCount=0;
@@ -341,8 +354,8 @@ void OnApplicationQuit(){
         if (Input.GetKeyDown(KeyCode.I))
         {
 
-      //      EntityBeh.SpawnNewEntity(0, 100, 0, 2);
-            ItemEntityBeh.SpawnNewItem(0, 100, 0, 155, new Vector3(0, 0, 0));
+            EntityBeh.SpawnNewEntity(0, 100, 0, 3);
+      //      ItemEntityBeh.SpawnNewItem(0, 100, 0, 157, new Vector3(0, 0, 0));
         }
         
     // foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){

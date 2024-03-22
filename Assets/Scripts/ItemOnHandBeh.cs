@@ -173,9 +173,14 @@ public class ItemOnHandBeh : MonoBehaviour
     {
         t.localPosition=new Vector3(-0.01f,-0.2f,-0.25f);
         t.localEulerAngles=new Vector3(-70f,0f,-90f);
-    float x=0f;
-    float y=0f;
-    float z=0f;
+        if (itemID == 157)
+        {
+            t.localPosition = new Vector3(-0.02f, 0f, -0.725f);
+            t.localEulerAngles = new Vector3(-45f, 0f, -90f);
+        }
+        float x=0f;
+        float y=0f;
+        float z=0f;
      itemMesh=new Mesh();
 
         BuildFlatItemFace(itemMaterialInfo[itemID].x,itemMaterialInfo[itemID].y,0.0625f, new Vector3(x, y, z)/4, Vector3.forward*textureXSize/4/4, Vector3.right*textureYSize/4/4, false, verts, uvs, tris);

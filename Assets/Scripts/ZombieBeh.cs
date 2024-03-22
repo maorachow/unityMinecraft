@@ -158,7 +158,11 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
 
 
     public void FixedUpdate(){
-        if(entity.isInUnloadedChunks==true){
+        if (!isPosInited)
+        {
+            return;
+        }
+        if (entity.isInUnloadedChunks==true){
             return;
         }
          var results = new NativeArray<RaycastHit>(1, Allocator.TempJob);
@@ -267,7 +271,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
         }
         public void ApplyGravity(CharacterController cc,float gravity,float dt){
          //   Debug.Log("gra");
-                        if(cc.enabled==true){
+         if(cc.enabled==true){
               cc.Move((new Vector3(0f,entityVec.y,0f))*moveSpeed*dt);
         if(cc.isGrounded!=true){
 

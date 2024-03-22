@@ -44,6 +44,8 @@ public class ItemIDToBlockID
         ItemIDToBlockIDDic.TryAdd(101,101);
         ItemIDToBlockIDDic.TryAdd(102,102);
         ItemIDToBlockIDDic.TryAdd(155, -1);
+        ItemIDToBlockIDDic.TryAdd(156, -1);
+        ItemIDToBlockIDDic.TryAdd(157, -1);
         //   ItemIDToBlockIDDic.TryAdd();
 
     }

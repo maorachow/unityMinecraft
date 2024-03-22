@@ -98,6 +98,10 @@ public class TNTBeh : MonoBehaviour
                 {
                     c.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
+                if (c.GetComponent<SkeletonBeh>() != null)
+                {
+                    c.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
+                }
                 if (c.GetComponent<ItemEntityBeh>() != null)
                 {
                     c.GetComponent<Rigidbody>().velocity = (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f);

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7833694229843695706}
   - component: {fileID: 1928028759912982809}
   - component: {fileID: -2505605410020906349}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: tnt
   m_TagString: Entity
   m_Icon: {fileID: 0}
