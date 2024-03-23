@@ -35,6 +35,27 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 3302065f671a8450b82c9ddf07426f3a, type: 3}
   - {fileID: 2800000, guid: 56a77a3e8d64f47b6afe9e3c95cb57d5, type: 3}
   m_Shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+--- !u!114 &-3177337306708088904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
+  m_Name: ContactShadowRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
+  settings:
+    sampleCount: 1000
+    edgeWidth: 0.008
+    shadowWeight: 100
+    length: 1
+    shadowBias: 0.000022
+    fadeDistance: 10
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52,7 +73,8 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: -5515370508526995826}
-  m_RendererFeatureMap: 8e369582be7775b3
+  - {fileID: -3177337306708088904}
+  m_RendererFeatureMap: 8e369582be7775b3b86711c68dd4e7d3
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}

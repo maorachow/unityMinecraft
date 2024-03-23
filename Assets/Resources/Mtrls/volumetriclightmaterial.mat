@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: volumetriclightmaterial
-  m_Shader: {fileID: 4800000, guid: e96ae37cfa3454b46a184e9227f83cf3, type: 3}
+  m_Shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

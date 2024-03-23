@@ -153,6 +153,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             Vector3 arrowPos = headTransform.position + headTransform.forward*1.3f;
             EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
+            await UniTask.WaitUntil(()=>arrow.GetComponent<Rigidbody>() != null);
             arrow.GetComponent<Rigidbody>().velocity = headTransform.forward*20f;
             AudioSource.PlayClipAtPoint(skeletonShootClip, transform.position);
             Invoke("CancelAttack", 0.2f);
