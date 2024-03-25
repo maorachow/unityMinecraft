@@ -36,7 +36,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 6044100050397551840}
   - {fileID: -8944133610511894259}
-  m_RendererFeatureMap: e0dcdd0af9f4e0530d79ce89de0de083
+  - {fileID: 398475055810397327}
+  m_RendererFeatureMap: e0dcdd0af9f4e0530d79ce89de0de0838fc46eb9f3aa8705
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -75,6 +76,27 @@ MonoBehaviour:
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &398475055810397327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
+  m_Name: ContactShadowRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
+  settings:
+    sampleCount: 295
+    edgeWidth: 0.005
+    shadowWeight: 100
+    length: 1
+    shadowBias: 0.00002
+    fadeDistance: 10
 --- !u!114 &6044100050397551840
 MonoBehaviour:
   m_ObjectHideFlags: 0

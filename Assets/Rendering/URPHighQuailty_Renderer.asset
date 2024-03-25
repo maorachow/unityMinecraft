@@ -47,15 +47,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
   m_Name: ContactShadowRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
   settings:
-    sampleCount: 1000
-    edgeWidth: 0.008
+    sampleCount: 100
+    edgeWidth: 0.005
     shadowWeight: 100
     length: 1
-    shadowBias: 0.000022
-    fadeDistance: 10
+    shadowBias: 0.00008
+    fadeDistance: 16.4
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

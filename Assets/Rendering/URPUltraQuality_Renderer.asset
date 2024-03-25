@@ -51,6 +51,27 @@ MonoBehaviour:
     stepCount: 64
     intensity: 0.002
     fogColor: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
+--- !u!114 &-435272401445118997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
+  m_Name: ContactShadowRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
+  settings:
+    sampleCount: 200
+    edgeWidth: 0.005
+    shadowWeight: 100
+    length: 1
+    shadowBias: 0.000006
+    fadeDistance: 10
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,7 +92,8 @@ MonoBehaviour:
   - {fileID: -5177011848809515823}
   - {fileID: -3687317512885311871}
   - {fileID: 1917834307435849357}
-  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1a
+  - {fileID: -435272401445118997}
+  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1aeb1b559b0e9af5f9
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
