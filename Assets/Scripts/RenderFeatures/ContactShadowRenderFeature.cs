@@ -34,7 +34,7 @@ public class ContactShadowSettings
     [Range(0f, 1f)] public float edgeWidth;
     [Range(0f, 100f)] public float shadowWeight;
     [Range(0.1f, 5f)] public float length;
-    [Range(0f, 0.001f)] public float shadowBias;
+    [Range(0f, 0.1f)] public float shadowBias;
     [Range(0f,30f)] public float fadeDistance;
 }
 public class ContactShadowRenderPass : ScriptableRenderPass

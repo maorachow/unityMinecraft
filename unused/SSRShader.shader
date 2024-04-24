@@ -29,17 +29,19 @@ Shader "CustomEffects/SSREffect"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
          #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
-   
-            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-              #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" 
+
            
               #pragma vertex Vert
               #pragma fragment SSRPassFragment
-               #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-      
-           
-         
+            uniform matrix matView;
+            uniform matrix matProjection;
+            uniform matrix matInverseView;
+            uniform matrix matInverseProjection;
+            uniform float3 CameraPos;
+             uniform float4 _ProjectionParams2;
+            uniform float4 _CameraViewTopLeftCorner;
+            uniform float4 _CameraViewXExtent;
+            uniform float4 _CameraViewYExtent;
                 
             uniform float StrideSize;
             uniform float SSRThickness;
@@ -48,17 +50,13 @@ Shader "CustomEffects/SSREffect"
             uniform Texture2D HiZBufferTexture;
             uniform float MaxHiZufferTextureMipLevel;
              SamplerState sampler_point_clamp;
-             SamplerState sampler2D_float;
-                 uniform float4 ProjectionParams2;
-            uniform float4 CameraViewTopLeftCorner;
-            uniform float4 CameraViewXExtent;
-            uniform float4 CameraViewYExtent;
-                        float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
+
+            half3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
                 // Screen is y-inverted  
                 uv.y = 1.0 - uv.y;  
 
-                float zScale = linearEyeDepth * ProjectionParams2.x; // divide by near plane  
-                float3 viewPos = CameraViewTopLeftCorner.xyz + CameraViewXExtent.xyz * uv.x + CameraViewYExtent.xyz * uv.y;  
+                float zScale = linearEyeDepth * _ProjectionParams2.x; // divide by near plane  
+                float3 viewPos = _CameraViewTopLeftCorner.xyz + _CameraViewXExtent.xyz * uv.x + _CameraViewYExtent.xyz * uv.y;  
                 viewPos *= zScale;  
                 return viewPos;  
             }
@@ -108,110 +106,80 @@ Shader "CustomEffects/SSREffect"
             }
 
 
-            float GetShadow(float3 posWorld)
-            {
-                float4 shadowCoord = TransformWorldToShadowCoord(posWorld);
-                float shadow = MainLightRealtimeShadow(shadowCoord);
-                return shadow;
-            }  
 
-            float3 UnpackNormal(float3 normal)
-            {
-            
-                float2 remappedOctNormalWS = Unpack888ToFloat2(normal); // values between [ 0,  1]
-                float2 octNormalWS = remappedOctNormalWS.xy * 2.0 - 1.0;    // values between [-1, +1]
-                normal = UnpackNormalOctQuadEncode(octNormalWS);
-             
-    
-                return normal;
-            }
-            uniform sampler2D _GBuffer2;
-            float4 SSRPassFragment(Varyings input) : SV_Target {  
 
-         
-                float rawDepth = SampleSceneDepth(input.texcoord).r;  
-                
-                float rawDepth1=SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,input.texcoord,1);
-              //  return float4(rawDepth1.xxx,1);
-               // float4 gbuff = tex2D(_GBuffer2, input.texcoord);
+ 
+            half4 SSRPassFragment(Varyings input) : SV_Target {  
+
+
+                float rawDepth = SampleSceneDepth(input.texcoord);  
+                 return float4(rawDepth.xxx,1);
                 float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
-                float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-            //    return float4(vpos.xyz,1);
-                float3 vnormal = (SampleSceneNormals(input.texcoord).xyz);
-          //     return float4(vnormal.xyz,1);
-                vpos=vpos+ vnormal * (length(vpos) / _ProjectionParams.z * 4.2) ;
-               
+                float3 vpos = ReconstructViewPosMatrix(input.texcoord);  
+                
+                float3 vnormal = SampleSceneNormals(input.texcoord);
+                vpos=vpos+ vnormal * (-vpos.z / _ProjectionParams.z * 0.2 + 0.05) ;
+                float3 wPos=GetWorldPosition(input.texcoord,rawDepth).xyz;
 
-                float3 vDir = normalize(vpos);  
-                //return float4(vDir.xyz,1);
+                float3 vDir = normalize(wPos-_WorldSpaceCameraPos);  
         //         float diff = max(dot(vnormal, vDir), -1.0);
          //       if (diff >= -0.3)
          //       {
          //       return float4(0,0,0,1);
          //       }
-
-               
-
                 float3 rDir = normalize(reflect(vDir, vnormal));  
-                float strideLen=StrideSize;
+                float strideLen=0.05;
                 
-               
-                 
+                 bool hit=false;
+                 float curLength=StrideSize;
                  float3 curPos=vpos;
                
+                float2 uv1;
+                float resultDepth=0;
+                 ReconstructUVAndDepthMatrix(curPos,uv1,resultDepth);
+
+               resultDepth=rawDepth;
+              
+
                 
- 
-                
+
                 float mipLevel = 0.0;
                 UNITY_LOOP
-                for(int i = 0; i < StepCount; i++){
+                for(int i = 0; i < 40; i++){
                     curPos += rDir*strideLen;// 步近
-                         float2 uv1=0;
-                     float resultDepth=0;
                     ReconstructUVAndDepthMatrix(curPos,uv1,resultDepth);
                     float sampleDepth=0.0;
-                    
-                    
-                    
-                     
+                    if(mipLevel>0.0){ 
                     
                      sampleDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,uv1,mipLevel), _ZBufferParams);
-                    
-                    
+                    }else{
+                      sampleDepth = LinearEyeDepth(SampleSceneDepth(uv1), _ZBufferParams);
+                    }
                     
                     if(resultDepth>sampleDepth){
-                    
-                        if(mipLevel <= 0){
+                        if(mipLevel == 0){
                          if (resultDepth>sampleDepth &&abs(resultDepth-sampleDepth) <  SSRThickness )
                            {
-                              if(sampleDepth/_ProjectionParams.z>0.9||resultDepth/_ProjectionParams.z>0.9){
-                               return float4(0,0,0,0);
-                             }
+                                // If it's hit something, then return the UV position
                               if(uv1.x<0||uv1.x>1||uv1.y<0||uv1.y>1){
-                                 return float4(0,0,0,0);
+                                 return float4(0,0,0,1);
                              }
                                return GetSource(uv1);
                             }
                         }
-                      //  return float4(mipLevel.xxx/MaxHiZufferTextureMipLevel,1);
-                              mipLevel --; 
-                        
-                        curPos -= rDir*strideLen; 
-                       
-                        strideLen /= 2.0;
-
-                       
+                        mipLevel --;
+                        curPos -= rDir*strideLen;// 回溯一步
+                        strideLen /= 2;// 步长减半 
                     }
                     else{
                     if(mipLevel<MaxHiZufferTextureMipLevel){
-                        mipLevel ++;
-                        
-                        strideLen *=2.0;
+                    mipLevel ++;
+                        strideLen *= 2;
                     }
                          
                     }
                 }
-                return float4(0,0,0,0);
+                return float4(0,0,0,1);
            //     UNITY_LOOP
           //       for (int i = 0;i <StepCount; i++)
            //             {
@@ -287,7 +255,7 @@ Shader "CustomEffects/SSREffect"
          ZTest NotEqual
         ZWrite Off
         Cull Off
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend Off
          HLSLPROGRAM
             
          #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  

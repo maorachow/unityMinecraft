@@ -11,6 +11,7 @@ public class ArrowBeh : MonoBehaviour
     public Transform arrowTrans;
     public float lifeTime = 0f;
     public Transform sourceTrans;
+    public bool isPosInited = false;
     void Start()
     {
         entity= GetComponent<EntityBeh>();
@@ -21,6 +22,7 @@ public class ArrowBeh : MonoBehaviour
     {
         lifeTime = 0f;
         rigidbody.velocity= Vector3.zero;
+        isPosInited = false;
     }
     // Update is called once per frame
     void Update()
@@ -47,9 +49,9 @@ public class ArrowBeh : MonoBehaviour
             rigidbody.constraints = RigidbodyConstraints.None;
         }
     }
-    public void OnCollisionEnter(Collision collision)
+    public void OnTriggerEnter(Collider other )
     {
-        Collider c = collision.collider;
+        Collider c = other;
         if(sourceTrans == null) {
             return;
         }

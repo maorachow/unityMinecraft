@@ -1,3 +1,4 @@
+using MessagePack.Formatters;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,21 +30,39 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
    
     }
 
-    public static void SetTerrainNormalMipmap(Texture2D terrainNormalTexIn)
+    public static void SetTerrainNormalMipmap()
     {
-
-        terrainNormalTexIn = new Texture2D(1024, 1024, TextureFormat.RGBA32, 3, false);
-        terrainNormalTexIn.filterMode = FilterMode.Point;
-
+        terrainMat = ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+        terrainNormalTex = new Texture2D(1024, 1024, TextureFormat.RGBAFloat, 6, false);
+        terrainNormalTex.filterMode = FilterMode.Point;
+        
         //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
         
         terrainNormalMip0 = Resources.Load<Texture2D>("Textures/terrainnormal");
 
-        terrainNormalTexIn.SetPixels(terrainNormalMip0.GetPixels(0), 0);
+        terrainNormalTex.SetPixels(terrainNormalMip0.GetPixels(0), 0);
 
 
-        terrainNormalTexIn.Apply(true, true);
-      
+        terrainNormalTex.Apply(true, false);
+        terrainMat.SetTexture("_BumpMap", terrainNormalTex);
+
+    }
+    public static void SetTerrainNormalMipmap(out Texture2D bumpMapTexIn)
+    {
+       // terrainMat = ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+        bumpMapTexIn = new Texture2D(1024, 1024, TextureFormat.RGBAFloat, 6, false);
+        bumpMapTexIn.filterMode = FilterMode.Point;
+
+        //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
+
+        terrainNormalMip0 = Resources.Load<Texture2D>("Textures/terrainnormal");
+        
+        bumpMapTexIn.SetPixels(terrainNormalMip0.GetPixels(0), 0);
+
+
+        bumpMapTexIn.Apply(true, false);
+  //      terrainMat.SetTexture("_BumpMap", terrainNormalTex);
+
     }
     public static void SetTerrainTexMipmap(Texture2D terrainTexIn,Texture2D bumpMapTexIn,Texture2D nonSolidTextureIn,Texture2D waterTexIn)
         {

@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7233325810640339407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d76d5bde2df8844ea95b630d445a645, type: 3}
+  m_Name: CameraFrustumRayRenderPassFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
 --- !u!114 &-5515370508526995826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47,15 +60,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
   m_Name: ContactShadowRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
   settings:
-    sampleCount: 100
-    edgeWidth: 0.005
-    shadowWeight: 100
-    length: 1
-    shadowBias: 0.00008
-    fadeDistance: 16.4
+    sampleCount: 64
+    edgeWidth: 0.08
+    shadowWeight: 42.6
+    length: 0.8
+    shadowBias: 0.0285
+    fadeDistance: 17.2
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,7 +87,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: -5515370508526995826}
   - {fileID: -3177337306708088904}
-  m_RendererFeatureMap: 8e369582be7775b3b86711c68dd4e7d3
+  - {fileID: -7233325810640339407}
+  m_RendererFeatureMap: 8e369582be7775b3b86711c68dd4e7d3313e1ec07f109e9b
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -108,7 +122,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 2
+  m_RenderingMode: 1
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 1
   m_AccurateGbufferNormals: 0

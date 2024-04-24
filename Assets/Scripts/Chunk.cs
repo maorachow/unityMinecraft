@@ -1593,21 +1593,21 @@ public class Chunk : MonoBehaviour
   
             }else{
                     Vector3 randomCrossModelOffset=new Vector3(0f,0f,0f);
-            BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0,normsNS);
-            
+                                BuildFace(typeid, new Vector3(x, y, z)+randomCrossModelOffset+new Vector3(-0.005f, 0f, 0.005f), new Vector3(0f,1f,0f)+randomCrossModelOffset + new Vector3(-0.005f, 0f, 0.005f), new Vector3(1f,0f,1f)+randomCrossModelOffset + new Vector3(-0.005f, 0f, 0.005f), false, vertsNS, uvsNS, trisNS,0,normsNS);
 
-
-       
-
-
-
-          BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset, new Vector3(0f,1f,0f)+randomCrossModelOffset, new Vector3(1f,0f,-1f)+randomCrossModelOffset, false, vertsNS, uvsNS, trisNS,0,normsNS);
+                                BuildFace(typeid, new Vector3(x, y, z) + randomCrossModelOffset- new Vector3(-0.005f, 0f, 0.005f), new Vector3(0f, 1f, 0f) + randomCrossModelOffset - new Vector3(-0.005f, 0f, 0.005f), new Vector3(1f, 0f, 1f) + randomCrossModelOffset - new Vector3(-0.005f, 0f, 0.005f), true, vertsNS, uvsNS, trisNS, 0, normsNS);
 
 
 
-     
-  
-            }
+
+
+                                BuildFace(typeid, new Vector3(x, y, z+1f)+randomCrossModelOffset + new Vector3(0.005f, 0f, 0.005f), new Vector3(0f,1f,0f)+randomCrossModelOffset + new Vector3(0.005f, 0f, 0.005f), new Vector3(1f,0f,-1f)+randomCrossModelOffset + new Vector3(0.005f, 0f, 0.005f), false, vertsNS, uvsNS, trisNS,0,normsNS);
+
+                                BuildFace(typeid, new Vector3(x, y, z + 1f) + randomCrossModelOffset - new Vector3(0.005f, 0f, 0.005f), new Vector3(0f, 1f, 0f) + -new Vector3(0.005f, 0f, 0.005f), new Vector3(1f, 0f, -1f) + randomCrossModelOffset - new Vector3(0.005f, 0f, 0.005f), true, vertsNS, uvsNS, trisNS, 0, normsNS);
+
+
+
+                            }
       
 
         }

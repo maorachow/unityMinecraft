@@ -19,14 +19,17 @@ public class pauseMenuUI : MonoBehaviour
     public InputField resourcesDirectoryField;
     public Button loadResourceButton;
     public Text resourcePackLoadingStatsText;
+  //  public Image normalMapImage;
     void Start()
     {
         instance=this;
         resourcePackLoadingStatsText=GameObject.Find("resourcepackloadingstatstext").GetComponent<Text>();
         resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
+    //    normalMapImage = GameObject.Find("normalmapimage").GetComponent<Image>();
         loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
         terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(terrainNormal);
+        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out terrainNormal);
+     //   normalMapImage.sprite=  Sprite.Create(terrainNormal, new Rect(0, 0, terrainNormal.width, terrainNormal.height), Vector2.zero);
         player =GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
         graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
@@ -63,7 +66,7 @@ public class pauseMenuUI : MonoBehaviour
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
-               ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
+              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 4:
              graphicsQualityText.text="Very High";
@@ -86,7 +89,7 @@ public class pauseMenuUI : MonoBehaviour
         FileAssetLoaderBeh.instance.UnloadAndResetResouces();
           ItemEntityBeh.AddFlatItemInfo();
         terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(terrainNormal);
+        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out terrainNormal);
         ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
         ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
         ZombieBeh.isZombiePrefabLoaded=false;

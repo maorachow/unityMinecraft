@@ -205,7 +205,7 @@ public class EntityBeh : MonoBehaviour
                 e.GetComponent<Rigidbody>().position = new Vector3(posX, posY, posZ);
                 e.GetComponent<EntityBeh>().entityTypeID = entityID;
                 e.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
-              
+                e.GetComponent<ArrowBeh>().isPosInited = true;
                 return e.GetComponent<EntityBeh>();
             default: return null;
         }

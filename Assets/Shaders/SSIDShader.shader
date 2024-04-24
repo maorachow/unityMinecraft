@@ -1,4 +1,4 @@
-Shader "CustomEffects/SSREffect"
+Shader "CustomEffects/SSIDEffect"
 {
     
      
@@ -20,7 +20,7 @@ Shader "CustomEffects/SSREffect"
         ZWrite Off Cull Off
         Pass
         {
-            Name "SSRQuad"
+            Name "SSIDQuad"
 
             HLSLPROGRAM
             
@@ -35,25 +35,30 @@ Shader "CustomEffects/SSREffect"
               #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" 
            
               #pragma vertex Vert
-              #pragma fragment SSRPassFragment
+              #pragma fragment SSIDPassFragment
                #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-      
+       
+ 
            
-         
+ 
                 
-            uniform float StrideSize;
-            uniform float SSRThickness;
-            uniform int StepCount;
-            uniform float FadeDistance;
+            uniform float SSIDIntensity;
+             uniform float SSIDStepCount;
+              uniform float SSIDRayCount;
+               uniform float SSIDStepLength;
             uniform Texture2D HiZBufferTexture;
             uniform float MaxHiZufferTextureMipLevel;
              SamplerState sampler_point_clamp;
+              SamplerState sampler_point_repeat;
              SamplerState sampler2D_float;
+             uniform Texture2D SSIDNoiseTex;
+             uniform float SSIDRadius;
+             uniform float SSIDFadeDistance;
                  uniform float4 ProjectionParams2;
             uniform float4 CameraViewTopLeftCorner;
             uniform float4 CameraViewXExtent;
             uniform float4 CameraViewYExtent;
-                        float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
+            float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
                 // Screen is y-inverted  
                 uv.y = 1.0 - uv.y;  
 
@@ -126,45 +131,97 @@ Shader "CustomEffects/SSREffect"
                 return normal;
             }
             uniform sampler2D _GBuffer2;
-            float4 SSRPassFragment(Varyings input) : SV_Target {  
+
+   
+	    Texture2D _CameraDepthNormalsTexture;
+ 
+
+        float Random2DTo1D(float2 value,float a ,float2 b)
+            {			
+	            //avaoid artifacts
+	            float2 smallValue = sin(value);
+	            //get scalar value from 2d vector	
+	            float  random = dot(smallValue,b);
+	            random = frac(sin(random) * a);
+	            return random;
+            }
+            float Random2DTo1D(float2 value){
+	            return (
+		            Random2DTo1D(value,14375.5964, float2(15.637, 76.243))
+		          
+	            );
+            }
+          
+            float Random1DTo1D(float value,float a,float b){
+	            //make value more random by making it bigger
+	            float random = frac(sin(value+b)*a);
+                    return random;
+            }
+              float3 Random1DTo3D(float value){
+                return float3(
+                    Random1DTo1D(value,14375.5964,0.546),
+                    Random1DTo1D(value,18694.2233,0.153),
+                    Random1DTo1D(value,19663.6565,0.327)
+                );
+            }
+            float4 SSIDPassFragment(Varyings input) : SV_Target {  
 
          
                 float rawDepth = SampleSceneDepth(input.texcoord).r;  
                 
-                float rawDepth1=SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,input.texcoord,1);
+             
               //  return float4(rawDepth1.xxx,1);
                // float4 gbuff = tex2D(_GBuffer2, input.texcoord);
                 float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
                 float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-            //    return float4(vpos.xyz,1);
-                float3 vnormal = (SampleSceneNormals(input.texcoord).xyz);
+               // return float4(_CameraViewTopLeftCorner.xyz*10000,1); 
+             
+                float3 vnormal = (SampleSceneNormals(input.texcoord).xyz);  
+                 
           //     return float4(vnormal.xyz,1);
-                vpos=vpos+ vnormal * (length(vpos) / _ProjectionParams.z * 4.2) ;
-               
+                vpos=vpos+ vnormal * (length(vpos-_WorldSpaceCameraPos) / _ProjectionParams.z * 0.2) ;
+                float3 wPos=GetWorldPosition(input.texcoord,rawDepth).xyz;
 
                 float3 vDir = normalize(vpos);  
-                //return float4(vDir.xyz,1);
         //         float diff = max(dot(vnormal, vDir), -1.0);
          //       if (diff >= -0.3)
          //       {
          //       return float4(0,0,0,1);
          //       }
-
+         UNITY_BRANCH
+          if(length(vpos)>SSIDFadeDistance){
+                return float4(0,0,0,0);
+                }
                
-
-                float3 rDir = normalize(reflect(vDir, vnormal));  
-                float strideLen=StrideSize;
+               float3 randomVec = float3(Random2DTo1D((input.texcoord.xy)*200).r*2-1,
+               Random2DTo1D((input.texcoord.xy)*100).r*2-1,0);
                 
-               
+                float strideLen=SSIDStepLength;
+             
                  
+               //  float3 curPos=vpos;
+                
+                float3 tangent =normalize(randomVec - vnormal * dot(randomVec,vnormal));
+                float3 bitangent = cross(vnormal,tangent);
+                float3x3 TBN = float3x3(tangent,bitangent,vnormal);
+                
+              
+              //  return float4(randomVec.xyz,1);
+                float4 finalColor=float4(0,0,0,0);
+              //   return float4(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,input.texcoord,2).xxx,1);
+                for(int j=0;j<SSIDRayCount;j++){
                  float3 curPos=vpos;
-               
-                
- 
-                
+                 float3 randomDir=Random1DTo3D(j+curPos.x*curPos.y+curPos.z+_Time.x);
+                 randomDir=normalize(float3(randomDir.x*2-1,randomDir.y*2-1,randomDir.z));
+                float3 rDir = (normalize(mul(randomDir,TBN)));  
+            //  return float4(rDir.xyz,1);
                 float mipLevel = 0.0;
+                bool hit=false;
+                float2 finalUV=0.0; 
+                
+               
                 UNITY_LOOP
-                for(int i = 0; i < StepCount; i++){
+                for(int i = 0; i < SSIDStepCount; i++){
                     curPos += rDir*strideLen;// ²½½ü
                          float2 uv1=0;
                      float resultDepth=0;
@@ -176,27 +233,32 @@ Shader "CustomEffects/SSREffect"
                      
                     
                      sampleDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,uv1,mipLevel), _ZBufferParams);
-                    
+               //      return float4(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,uv1,2).xxx,1);
                     
                     
                     if(resultDepth>sampleDepth){
                     
                         if(mipLevel <= 0){
-                         if (resultDepth>sampleDepth &&abs(resultDepth-sampleDepth) <  SSRThickness )
+                         if (resultDepth>sampleDepth &&abs(resultDepth-sampleDepth) <  0.1 )
                            {
                               if(sampleDepth/_ProjectionParams.z>0.9||resultDepth/_ProjectionParams.z>0.9){
-                               return float4(0,0,0,0);
+                               hit=false;
+                               break;
                              }
                               if(uv1.x<0||uv1.x>1||uv1.y<0||uv1.y>1){
-                                 return float4(0,0,0,0);
+                              hit=false;
+                               break;
                              }
-                               return GetSource(uv1);
+                               finalUV=uv1;
+                               hit=true;
+                            //   return i/16.0;
+                               break;
                             }
                         }
-                      //  return float4(mipLevel.xxx/MaxHiZufferTextureMipLevel,1);
+                     //   return float4(mipLevel.xxx/MaxHiZufferTextureMipLevel,1);
                               mipLevel --; 
                         
-                        curPos -= rDir*strideLen; 
+                       curPos -= rDir*strideLen; 
                        
                         strideLen /= 2.0;
 
@@ -206,12 +268,23 @@ Shader "CustomEffects/SSREffect"
                     if(mipLevel<MaxHiZufferTextureMipLevel){
                         mipLevel ++;
                         
-                        strideLen *=2.0;
+                    strideLen *=2.0;
                     }
                          
                     }
+
                 }
-                return float4(0,0,0,0);
+                if(hit==true){
+                float lightWeight=(SSIDRadius-length(curPos-vpos))/SSIDRadius;
+                 
+                finalColor +=float4(GetSource(finalUV).rgb*lightWeight,1*lightWeight);
+              // finalColor+=float4(lightWeight.xxx/20,1);
+                }  
+                
+                }
+                finalColor/=SSIDRayCount;
+                finalColor*=SSIDIntensity;
+                return (finalColor);
            //     UNITY_LOOP
           //       for (int i = 0;i <StepCount; i++)
            //             {
@@ -278,6 +351,61 @@ Shader "CustomEffects/SSREffect"
 
 
             ENDHLSL
+
+              HLSLINCLUDE
+    
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        // The Blit.hlsl file provides the vertex shader (Vert),
+        // the input structure (Attributes), and the output structure (Varyings)
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+       uniform float BlurStrength;
+        
+    
+        float4 _BlitTexture_TexelSize;
+    
+        float4 BlurVertical (Varyings input) : SV_Target
+        {
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            float4 color = 0;
+            float blurPixels = BlurStrength * _ScreenParams.y;
+            
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
+            {
+                float2 sampleOffset =
+                    float2 (0, (blurPixels / _BlitTexture_TexelSize.w) *
+                        (i / BLUR_SAMPLES_RANGE));
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgba;
+            }
+            
+            return float4(color.rgba / (BLUR_SAMPLES + 1));
+        }
+
+        float4 BlurHorizontal (Varyings input) : SV_Target
+        {
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float4 color = 0;
+            float blurPixels = BlurStrength * _ScreenParams.x;
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
+            {
+                float2 sampleOffset =
+                    float2 ((blurPixels / _BlitTexture_TexelSize.z) *
+                        (i / BLUR_SAMPLES_RANGE), 0);
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgba;
+            }
+            return float4(color / (BLUR_SAMPLES + 1));
+        }
+    
+    ENDHLSL
         }
         
         Pass
@@ -287,8 +415,9 @@ Shader "CustomEffects/SSREffect"
          ZTest NotEqual
         ZWrite Off
         Cull Off
+     //  Blend Off
         Blend SrcAlpha OneMinusSrcAlpha
-         HLSLPROGRAM
+        HLSLPROGRAM
             
          #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
@@ -311,6 +440,57 @@ Shader "CustomEffects/SSREffect"
               ENDHLSL
         
         }
+
+        Pass
+        {
+         Name "BlurVertical"
+
+         ZTest NotEqual
+        ZWrite Off
+        Cull Off
+       Blend Off
+      //  Blend SrcAlpha OneMinusSrcAlpha
+        HLSLPROGRAM
+            
+         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
+         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+          
+              #pragma vertex Vert
+              #pragma fragment BlurVertical
+              
+
+              ENDHLSL
         
+        }
+        
+        Pass
+        {
+         Name "BlurHorizontal"
+
+         ZTest NotEqual
+        ZWrite Off
+        Cull Off
+       Blend Off
+      //  Blend SrcAlpha OneMinusSrcAlpha
+        HLSLPROGRAM
+            
+         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
+         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+
+          
+              #pragma vertex Vert
+              #pragma fragment BlurHorizontal
+               
+
+              ENDHLSL
+        
+        }
     }
 }

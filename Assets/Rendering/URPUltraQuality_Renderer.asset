@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-5978071585418487888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c481ac0d4c96d584bac24c92bc751e75, type: 3}
+  m_Name: HiZBufferPassFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  hiZShader: {fileID: 4800000, guid: ce8bb165d71db0d438e68b95634a0b47, type: 3}
+  hiZMipCount: 6
 --- !u!114 &-5737242305006816815
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32,7 +47,20 @@ MonoBehaviour:
   m_Name: DepthNormalsFeature
   m_EditorClassIdentifier: 
   m_Active: 1
-  NormalTexture: 1
+  NormalTexture: 0
+--- !u!114 &-4511575169167659615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d76d5bde2df8844ea95b630d445a645, type: 3}
+  m_Name: CameraFrustumRayRenderPassFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
 --- !u!114 &-3687317512885311871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63,15 +91,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17a030d6a1c8e97439a4dd41d8ec161d, type: 3}
   m_Name: ContactShadowRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   shader: {fileID: 4800000, guid: 4dfb14841037d5642be549436a95e797, type: 3}
   settings:
-    sampleCount: 200
-    edgeWidth: 0.005
+    sampleCount: 356
+    edgeWidth: 0.355
     shadowWeight: 100
-    length: 1
-    shadowBias: 0.000006
-    fadeDistance: 10
+    length: 0.83
+    shadowBias: 0
+    fadeDistance: 30
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93,7 +121,10 @@ MonoBehaviour:
   - {fileID: -3687317512885311871}
   - {fileID: 1917834307435849357}
   - {fileID: -435272401445118997}
-  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1aeb1b559b0e9af5f9
+  - {fileID: -5978071585418487888}
+  - {fileID: -4511575169167659615}
+  - {fileID: 4178059339579496572}
+  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1aeb1b559b0e9af5f9b05746f5909f09ada1ed497849aa63c17c982342d572fb39
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -127,10 +158,10 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 2
+  m_RenderingMode: 1
   m_DepthPrimingMode: 1
   m_CopyDepthMode: 1
-  m_AccurateGbufferNormals: 1
+  m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
 --- !u!114 &1917834307435849357
 MonoBehaviour:
@@ -146,11 +177,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    stepCount: 64
-    strideSize: 0.05
+    stepCount: 128
+    strideSize: 0.2
     thickness: 0.1
     fadeDistance: 22
   shader: {fileID: 4800000, guid: af919127830936149acd88fa445218df, type: 3}
+--- !u!114 &4178059339579496572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8638c0c23e0cdc84296741bb4f39abdc, type: 3}
+  m_Name: SSIDRenderPassFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  noiseTex: {fileID: 2800000, guid: 05b36263bcb1a554b94f8c0813466d23, type: 3}
+  shader: {fileID: 4800000, guid: 167190c7834942640b55795c038c1400, type: 3}
+  settings:
+    SSIDIntensity: 1.3
+    SSIDStepCount: 64
+    SSIDRayCount: 2
+    SSIDStepLength: 0.094
+    SSIDRadius: 6
+    SSIDFadeDistance: 20
+    blurStrength: 0.0005
 --- !u!114 &7720631892302898836
 MonoBehaviour:
   m_ObjectHideFlags: 0
