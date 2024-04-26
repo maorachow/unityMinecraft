@@ -153,8 +153,15 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             Vector3 arrowPos = headTransform.position + headTransform.forward*1.3f;
             EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
+            System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+         //   sw.Start();
+            
             await UniTask.WaitUntil(()=>arrow.GetComponent<ArrowBeh>().isPosInited==true);
-            arrow.GetComponent<Rigidbody>().velocity = headTransform.forward*20f;
+            //   sw.Stop();
+            // Debug.Log(sw.Elapsed.TotalMilliseconds);
+            arrow.GetComponent<Rigidbody>().constraints=RigidbodyConstraints.None;
+            arrow.GetComponent<Rigidbody>().WakeUp();
+            arrow.GetComponent<Rigidbody>().AddForce( headTransform.forward*20f,ForceMode.VelocityChange);
             AudioSource.PlayClipAtPoint(skeletonShootClip, transform.position);
             Invoke("CancelAttack", 0.2f);
         }
@@ -209,7 +216,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     float Speed()
     {
         //      Debug.Log(cc.velocity);
-        return cc.velocity.magnitude;
+        return new Vector3(cc.velocity.x,0,cc.velocity.y).magnitude;
 
     }
     public void Jump()

@@ -35,6 +35,7 @@ public class SSIDSettings
     [Range(1f, 20.0f)] public float SSIDRadius = 6f;
     [Range(1f, 50f)] public float SSIDFadeDistance = 15f;
     [Range(0.0005f, 0.025f)] public float blurStrength=0.01f;
+    public bool isUsingHalfResolusion=false;
 }
 public class SSIDRenderPass : ScriptableRenderPass
 {
@@ -85,7 +86,9 @@ public class SSIDRenderPass : ScriptableRenderPass
     public override void Configure(CommandBuffer cmd,
        RenderTextureDescriptor cameraTextureDescriptor)
     {
-        // Set the blur texture size to be the same as the camera target size.
+        if (settings.isUsingHalfResolusion == false)
+        {
+     // Set the blur texture size to be the same as the camera target size.
         SSIDTextureDescriptor.width = cameraTextureDescriptor.width;
         SSIDTextureDescriptor.height = cameraTextureDescriptor.height;
         blurTextureDescriptor.width = cameraTextureDescriptor.width;
@@ -95,6 +98,22 @@ public class SSIDRenderPass : ScriptableRenderPass
         RenderingUtils.ReAllocateIfNeeded(ref SSIDHandle, SSIDTextureDescriptor);
         RenderingUtils.ReAllocateIfNeeded(ref blurHandle1, blurTextureDescriptor);  
         RenderingUtils.ReAllocateIfNeeded(ref blurHandle2, blurTextureDescriptor);
+        }
+        else
+        {
+            // Set the blur texture size to be the same as the camera target size.
+            SSIDTextureDescriptor.width = cameraTextureDescriptor.width/2;
+            SSIDTextureDescriptor.height = cameraTextureDescriptor.height / 2;
+            blurTextureDescriptor.width = cameraTextureDescriptor.width / 2;
+            blurTextureDescriptor.height = cameraTextureDescriptor.height / 2;
+
+            // Check if the descriptor has changed, and reallocate the RTHandle if necessary
+            RenderingUtils.ReAllocateIfNeeded(ref SSIDHandle, SSIDTextureDescriptor);
+            RenderingUtils.ReAllocateIfNeeded(ref blurHandle1, blurTextureDescriptor);
+            RenderingUtils.ReAllocateIfNeeded(ref blurHandle2, blurTextureDescriptor);
+        }
+
+       
     }
     public void UpdateSettings()
     {

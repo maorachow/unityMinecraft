@@ -234,4 +234,15 @@ public class WorldHelper:IWorldHelper{
             return (int)f-1;
         }
     }
+
+    public static int PreCalculateChunkMaxHeight(Vector2Int chunkPos)
+    {
+        float[,] chunkRawHeight =Chunk. GetRawChunkHeightmap(chunkPos);
+        float maxValue = 0f;
+        foreach(float x in chunkRawHeight)
+        {
+            if (x > maxValue) { maxValue = x; }
+        }
+        return (int)maxValue;
+    }
 }

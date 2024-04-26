@@ -66,6 +66,7 @@ public class SSRSettings
     [Range(0.05f, 0.4f)] public float strideSize;
     [Range(0.1f, 1f)] public float thickness;
     [Range(0.1f, 200f)] public float fadeDistance;
+    public bool isUsingHalfResolusion = false;
 }
 
 /*public class HiZBufferPass : ScriptableRenderPass
@@ -201,7 +202,7 @@ public class SSRRenderPass : ScriptableRenderPass
     private SSRSettings defaultSettings;
     private Material material;
 
-    private RenderTextureDescriptor blurTextureDescriptor;
+    private RenderTextureDescriptor ssrTextureDescriptor;
     private RTHandle ssrHandle;
 
     public SSRRenderPass(Material material, SSRSettings settings)
@@ -209,7 +210,7 @@ public class SSRRenderPass : ScriptableRenderPass
         this.material = material;
 
         this.defaultSettings = settings;
-        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width,
+        ssrTextureDescriptor = new RenderTextureDescriptor(Screen.width,
             Screen.height, RenderTextureFormat.Default, 0);
     }
     public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -251,12 +252,26 @@ public class SSRRenderPass : ScriptableRenderPass
     public override void Configure(CommandBuffer cmd,
         RenderTextureDescriptor cameraTextureDescriptor)
     {
-        // Set the blur texture size to be the same as the camera target size.
-        blurTextureDescriptor.width = cameraTextureDescriptor.width;
-        blurTextureDescriptor.height = cameraTextureDescriptor.height;
+
+        if (defaultSettings.isUsingHalfResolusion == false)
+        {
+            // Set the blur texture size to be the same as the camera target size.
+            ssrTextureDescriptor.width = cameraTextureDescriptor.width;
+            ssrTextureDescriptor.height = cameraTextureDescriptor.height;
 
         // Check if the descriptor has changed, and reallocate the RTHandle if necessary
-        RenderingUtils.ReAllocateIfNeeded(ref ssrHandle, blurTextureDescriptor);
+        RenderingUtils.ReAllocateIfNeeded(ref ssrHandle, ssrTextureDescriptor);
+        }
+        else
+        {
+            // Set the blur texture size to be the same as the camera target size.
+            ssrTextureDescriptor.width = cameraTextureDescriptor.width/2;
+            ssrTextureDescriptor.height = cameraTextureDescriptor.height/2;
+
+            // Check if the descriptor has changed, and reallocate the RTHandle if necessary
+            RenderingUtils.ReAllocateIfNeeded(ref ssrHandle, ssrTextureDescriptor);
+        }
+       
     }
 
     private void UpdateSSRSettings()

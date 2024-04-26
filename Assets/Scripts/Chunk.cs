@@ -647,26 +647,53 @@ public class Chunk : MonoBehaviour
     //访问[x,y]元素*p=arr[0,0]+x*i+j
     //int[i][j]交错数组
     //指针访问[x][y]元素*p=&arr[0][0]+y*i+j
+    public static float[,] GetRawChunkHeightmap(Vector2Int pos)
+    {
+        float[,] heightMap = new float[chunkWidth / 8 + 2, chunkWidth / 8 + 2];//插值算法
+        int[,] chunkBiomeMap = GenerateChunkBiomeMap(pos);
 
-     public static unsafe float[,] GenerateChunkHeightmap(Vector2Int pos){
-             float[,] heightMap=new float[chunkWidth/8+2,chunkWidth/8+2];//插值算法
-             int[,] chunkBiomeMap=GenerateChunkBiomeMap(pos);
-
-            for(int i=0;i<chunkWidth/8+2;i++){
-                for(int j=0;j<chunkWidth/8+2;j++){
-         //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
+        for (int i = 0; i < chunkWidth / 8 + 2; i++)
+        {
+            for (int j = 0; j < chunkWidth / 8 + 2; j++)
+            {
+                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
                 //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
 
-                heightMap[i,j]=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+(i-1)*8,pos.y+(j-1)*8)*20f+chunkBiomeMap[i,j]*15f;
-                switch(chunkBiomeMap[i,j]){
-                    case -1:heightMap[i,j]+=(float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x+(i-1)*8,1,pos.y+(j-1)*8))*0.2f-10f;
-                    break;
-                    case 3:heightMap[i,j]+=(float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x+(i-1)*8,1,pos.y+(j-1)*8))*0.4f-10f;
-                    break;
+                heightMap[i, j] = chunkSeaLevel + noiseGenerator.GetSimplex(pos.x + (i - 1) * 8, pos.y + (j - 1) * 8) * 20f + chunkBiomeMap[i, j] * 15f;
+                switch (chunkBiomeMap[i, j])
+                {
+                    case -1:
+                        heightMap[i, j] += (float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x + (i - 1) * 8, 1, pos.y + (j - 1) * 8)) * 0.2f - 10f;
+                        break;
+                    case 3:
+                        heightMap[i, j] += (float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x + (i - 1) * 8, 1, pos.y + (j - 1) * 8)) * 0.4f - 10f;
+                        break;
                 }
-                }
+            }
 
-            }//32,32
+        }
+        return heightMap;
+    }
+     public static unsafe float[,] GenerateChunkHeightmap(Vector2Int pos){
+        /*       float[,] heightMap=new float[chunkWidth/8+2,chunkWidth/8+2];//插值算法
+               int[,] chunkBiomeMap=GenerateChunkBiomeMap(pos);
+
+              for(int i=0;i<chunkWidth/8+2;i++){
+                  for(int j=0;j<chunkWidth/8+2;j++){
+           //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
+                  //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
+
+                  heightMap[i,j]=chunkSeaLevel+noiseGenerator.GetSimplex(pos.x+(i-1)*8,pos.y+(j-1)*8)*20f+chunkBiomeMap[i,j]*15f;
+                  switch(chunkBiomeMap[i,j]){
+                      case -1:heightMap[i,j]+=(float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x+(i-1)*8,1,pos.y+(j-1)*8))*0.2f-10f;
+                      break;
+                      case 3:heightMap[i,j]+=(float)RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x+(i-1)*8,1,pos.y+(j-1)*8))*0.4f-10f;
+                      break;
+                  }
+                  }
+
+              }//32,32*/
+        float[,] heightMap = GetRawChunkHeightmap(pos);
             int interMultiplier=8;
             float[,] heightMapInterpolated=new float[(chunkWidth/8+2)*interMultiplier,(chunkWidth/8+2)*interMultiplier];
             fixed(float* p=&heightMapInterpolated[0,0]){
@@ -2468,10 +2495,17 @@ public class Chunk : MonoBehaviour
         UpdateBlock(x,y,z-1);
         UpdateBlock(x,y,z+1);
     }
-   
-    
- //   void UpdatePlayerDistance(){
-//        playerDistance = (chunkPos - new Vector2(playerPos.position.x,playerPos.position.z)).sqrMagnitude;
-//
-  //  }
+
+
+    //   void UpdatePlayerDistance(){
+    //        playerDistance = (chunkPos - new Vector2(playerPos.position.x,playerPos.position.z)).sqrMagnitude;
+    //
+    //  }
+   /* public void Update()
+    {
+        if(BoundingBoxCullingHelper.IsBoundingBoxInOrIntersectsFrustum(meshRenderer.bounds,GeometryUtility.CalculateFrustumPlanes(Camera.main)))
+        {
+            Debug.DrawLine(meshRenderer.bounds.center + new Vector3(0, -100, 0), meshRenderer.bounds.center + new Vector3(0, 100, 0),Color.green);
+        }
+    }*/
 }

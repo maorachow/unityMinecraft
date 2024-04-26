@@ -33,6 +33,7 @@ MonoBehaviour:
     strideSize: 0
     thickness: 0
     fadeDistance: 0
+    isUsingHalfResolusion: 0
   shader: {fileID: 0}
 --- !u!114 &-5177011848809515823
 MonoBehaviour:
@@ -181,6 +182,7 @@ MonoBehaviour:
     strideSize: 0.2
     thickness: 0.1
     fadeDistance: 22
+    isUsingHalfResolusion: 1
   shader: {fileID: 4800000, guid: af919127830936149acd88fa445218df, type: 3}
 --- !u!114 &4178059339579496572
 MonoBehaviour:
@@ -201,10 +203,11 @@ MonoBehaviour:
     SSIDIntensity: 1.3
     SSIDStepCount: 64
     SSIDRayCount: 2
-    SSIDStepLength: 0.094
+    SSIDStepLength: 0.01
     SSIDRadius: 6
-    SSIDFadeDistance: 20
-    blurStrength: 0.0005
+    SSIDFadeDistance: 15
+    blurStrength: 0.008
+    isUsingHalfResolusion: 1
 --- !u!114 &7720631892302898836
 MonoBehaviour:
   m_ObjectHideFlags: 0

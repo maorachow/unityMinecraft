@@ -9,6 +9,7 @@ public class ChunkLoaderBase:MonoBehaviour
     public Vector2 chunkLoadingCenter;
     public float chunkLoadingRange;
     public bool isChunksNeedLoading=false;
+    public Plane[] cameraFrustum;
     public static List<ChunkLoaderBase> allChunkLoaders=new List<ChunkLoaderBase>();
     public static void InitChunkLoader(){
         allChunkLoaders.Clear();
@@ -44,12 +45,31 @@ public class ChunkLoaderBase:MonoBehaviour
                 Vector3 pos = new Vector3(x, 0, z);
 
                 Vector2Int chunkPos=  WorldHelper.instance.Vec3ToChunkPos(pos);
-               
+                Vector2 chunkCenterPos = chunkPos + new Vector2(Chunk.chunkWidth / 2, Chunk.chunkWidth / 2);
+
                 Chunk chunk = Chunk.GetChunk(chunkPos);
                 if (chunk != null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
                                 continue;
                                 }else{
-                    WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 
+                    bool isLoadingChunk = false;
+                    if ((chunkCenterPos - chunkLoadingCenter).magnitude < Chunk.chunkWidth) {
+
+                        isLoadingChunk = true;
+                    }
+                   int maxHeight= WorldHelper.PreCalculateChunkMaxHeight(chunkPos);
+                    //Debug.Log(maxHeight);
+                    Bounds bounds = new Bounds(new Vector3(chunkPos.x, 0, chunkPos.y) + new Vector3((float)Chunk.chunkWidth / 2, (float)maxHeight / 2, (float)Chunk.chunkWidth / 2), new Vector3(Chunk.chunkWidth, maxHeight, Chunk.chunkWidth));
+           //         Debug.Log(bounds.ToString());
+                    if (BoundingBoxCullingHelper.IsBoundingBoxInOrIntersectsFrustum(bounds, cameraFrustum))
+                    {
+                        isLoadingChunk = true;
+                   
+                    }
+                    if (isLoadingChunk == true)
+                    {
+             WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 
+                    }
+                   
                 }
             }
         }

@@ -77,6 +77,7 @@ public class pauseMenuUI : MonoBehaviour
              graphicsQualityText.text="Ultra";
             QualitySettings.SetQualityLevel(5, true);
            ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", terrainNormal);
+               
             break;
         }
     }

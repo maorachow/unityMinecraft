@@ -48,7 +48,7 @@ Shader "CustomEffects/SSREffect"
             uniform Texture2D HiZBufferTexture;
             uniform float MaxHiZufferTextureMipLevel;
              SamplerState sampler_point_clamp;
-             SamplerState sampler2D_float;
+            // SamplerState sampler2D_float;
                  uniform float4 ProjectionParams2;
             uniform float4 CameraViewTopLeftCorner;
             uniform float4 CameraViewXExtent;

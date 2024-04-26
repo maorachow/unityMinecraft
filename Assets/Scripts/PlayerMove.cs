@@ -790,6 +790,7 @@ public class PlayerMove : MonoBehaviour
     }
    }*/
         curChunkLoader.chunkLoadingCenter=playerChunkLoadingPos;
+        curChunkLoader.cameraFrustum = GeometryUtility.CalculateFrustumPlanes(mainCam);
         curChunkLoader.chunkLoadingRange=viewRange;
 
       if(curChunk==null){

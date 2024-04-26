@@ -34,13 +34,14 @@ MonoBehaviour:
   noiseTex: {fileID: 2800000, guid: 05b36263bcb1a554b94f8c0813466d23, type: 3}
   shader: {fileID: 4800000, guid: 167190c7834942640b55795c038c1400, type: 3}
   settings:
-    SSIDIntensity: 1.62
+    SSIDIntensity: 1.3
     SSIDStepCount: 32
     SSIDRayCount: 2
     SSIDStepLength: 0.05
     SSIDRadius: 6
     SSIDFadeDistance: 15
     blurStrength: 0.0024
+    isUsingHalfResolusion: 1
 --- !u!114 &-951980548713417772
 MonoBehaviour:
   m_ObjectHideFlags: 0

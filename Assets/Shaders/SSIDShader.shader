@@ -23,7 +23,7 @@ Shader "CustomEffects/SSIDEffect"
             Name "SSIDQuad"
 
             HLSLPROGRAM
-            
+      //      #include "UnityStandardCore.cginc"
          #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
@@ -33,7 +33,8 @@ Shader "CustomEffects/SSIDEffect"
    
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
               #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" 
-           
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
+        //    #include "com.unity.render-pipelines.universal/Shaders/Utils/UnityGBuffer.hlsl"
               #pragma vertex Vert
               #pragma fragment SSIDPassFragment
                #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
@@ -50,7 +51,7 @@ Shader "CustomEffects/SSIDEffect"
             uniform float MaxHiZufferTextureMipLevel;
              SamplerState sampler_point_clamp;
               SamplerState sampler_point_repeat;
-             SamplerState sampler2D_float;
+          
              uniform Texture2D SSIDNoiseTex;
              uniform float SSIDRadius;
              uniform float SSIDFadeDistance;
@@ -130,12 +131,7 @@ Shader "CustomEffects/SSIDEffect"
     
                 return normal;
             }
-            uniform sampler2D _GBuffer2;
-
-   
-	    Texture2D _CameraDepthNormalsTexture;
- 
-
+     
         float Random2DTo1D(float2 value,float a ,float2 b)
             {			
 	            //avaoid artifacts
@@ -164,6 +160,10 @@ Shader "CustomEffects/SSIDEffect"
                     Random1DTo1D(value,19663.6565,0.327)
                 );
             }
+            TEXTURE2D_X(_GBuffer3);
+            TEXTURE2D_X(_GBuffer2);
+             TEXTURE2D_X(_GBuffer1);
+                TEXTURE2D_X(_GBuffer0);
             float4 SSIDPassFragment(Varyings input) : SV_Target {  
 
          
@@ -208,7 +208,7 @@ Shader "CustomEffects/SSIDEffect"
               
               //  return float4(randomVec.xyz,1);
                 float4 finalColor=float4(0,0,0,0);
-              //   return float4(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,input.texcoord,2).xxx,1);
+ 
                 for(int j=0;j<SSIDRayCount;j++){
                  float3 curPos=vpos;
                  float3 randomDir=Random1DTo3D(j+curPos.x*curPos.y+curPos.z+_Time.x);
@@ -218,8 +218,7 @@ Shader "CustomEffects/SSIDEffect"
                 float mipLevel = 0.0;
                 bool hit=false;
                 float2 finalUV=0.0; 
-                
-               
+            
                 UNITY_LOOP
                 for(int i = 0; i < SSIDStepCount; i++){
                     curPos += rDir*strideLen;// ²½½ü
@@ -276,7 +275,10 @@ Shader "CustomEffects/SSIDEffect"
                 }
                 if(hit==true){
                 float lightWeight=(SSIDRadius-length(curPos-vpos))/SSIDRadius;
-                 
+              //   float brightness=(dot(SAMPLE_TEXTURE2D_X(_BlitTexture,sampler_point_clamp,input.texcoord).rgb,float3(0.2126, 0.7152, 0.0722)));
+                   
+             //   float brightness=length(SAMPLE_TEXTURE2D_X_LOD(_GBuffer3,sampler_point_clamp,finalUV,mipLevel).rgb);
+             
                 finalColor +=float4(GetSource(finalUV).rgb*lightWeight,1*lightWeight);
               // finalColor+=float4(lightWeight.xxx/20,1);
                 }  
@@ -366,7 +368,7 @@ Shader "CustomEffects/SSIDEffect"
     
         float4 BlurVertical (Varyings input) : SV_Target
         {
-            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES = 8;
             const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
             
             float4 color = 0;
@@ -387,7 +389,7 @@ Shader "CustomEffects/SSIDEffect"
 
         float4 BlurHorizontal (Varyings input) : SV_Target
         {
-            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES = 8;
             const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
             
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

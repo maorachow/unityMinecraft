@@ -1,8 +1,10 @@
+using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
-
+using System.Threading;
+using System.Threading.Tasks;
 public class ArrowBeh : MonoBehaviour
 {
     //public static GameObject arrowPrefab;
@@ -12,34 +14,59 @@ public class ArrowBeh : MonoBehaviour
     public float lifeTime = 0f;
     public Transform sourceTrans;
     public bool isPosInited = false;
-    void Start()
+     
+     void Start()
     {
         entity= GetComponent<EntityBeh>();
         rigidbody = GetComponent<Rigidbody>();  
         arrowTrans=transform.GetChild(0);
+       
+    }
+    public void OnEnable()
+    {
+        entity = GetComponent<EntityBeh>();
+        rigidbody = GetComponent<Rigidbody>();
+        rigidbody.constraints = RigidbodyConstraints.None;
+        isPosInited = true;
+        entity.isInUnloadedChunks = false;
     }
     public void OnDisable()
     {
         lifeTime = 0f;
         rigidbody.velocity= Vector3.zero;
         isPosInited = false;
+        entity.isInUnloadedChunks = false;
+        rigidbody.constraints = RigidbodyConstraints.None;
     }
     // Update is called once per frame
+    public float deltaTimeFromPrevFixedUpdate = 0f;
+
+    public Vector3 velocityPrev1;
+    public Vector3 velocityLerped;
+     
+    Vector3 velocityPreDelta;
     void Update()
     {
-        if (rigidbody.velocity.magnitude > 0.1f)
+        deltaTimeFromPrevFixedUpdate += Time.deltaTime;
+        velocityLerped =Vector3.Lerp(velocityLerped, velocityPrev1, Time.deltaTime*10f);
+
+        if (velocityLerped.magnitude > 0.01f)
         {
-            arrowTrans.rotation = Quaternion.LookRotation(rigidbody.velocity.normalized);
+            arrowTrans.rotation = Quaternion.LookRotation(velocityLerped);
         }
        
-        lifeTime+= Time.deltaTime;
+         lifeTime += Time.deltaTime;
         if(lifeTime > 20f) {
             ObjectPools.arrowEntityPool.Release(this.gameObject);
         }
     }
+   
     private void FixedUpdate()
     {
-        if(entity.isInUnloadedChunks)
+        velocityPrev1 = rigidbody.velocity;
+      
+        deltaTimeFromPrevFixedUpdate = 0f;
+        if (entity.isInUnloadedChunks)
         {
             rigidbody.constraints = RigidbodyConstraints.FreezeAll;
 ;
@@ -48,6 +75,7 @@ public class ArrowBeh : MonoBehaviour
         {
             rigidbody.constraints = RigidbodyConstraints.None;
         }
+       
     }
     public void OnTriggerEnter(Collider other )
     {
