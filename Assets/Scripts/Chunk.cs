@@ -585,6 +585,44 @@ public class Chunk : MonoBehaviour
     //    }
        
     }
+
+
+    public void SaveSingleChunk(VoxelWorld world)
+    {
+        if (!isChunkPosInited)
+        {
+            return;
+        }
+        if (!isModifiedInGame)
+        {
+            return;
+        }
+        //  lock(chunkDataLock){
+        if (world.chunkDataReadFromDisk.ContainsKey(chunkPos))
+        {
+
+
+            //    int[,,] worldDataMap=map;
+            WorldData wd = new WorldData(chunkPos.x, chunkPos.y, map);
+            //  wd.map=worldDataMap;
+            //  wd.posX=chunkPos.x;
+            //  wd.posZ=chunkPos.y;
+            WorldData wdtmp;
+            world.chunkDataReadFromDisk.TryRemove(chunkPos, out wdtmp);
+            world.chunkDataReadFromDisk.TryAdd(chunkPos, wd);
+            //     wdtmp=null;
+
+        }
+        else
+        {
+            //       int[,,] worldDataMap=map;
+            WorldData wd = new WorldData(chunkPos.x, chunkPos.y, map);
+            world.chunkDataReadFromDisk.TryAdd(chunkPos, wd);
+        }
+
+        //    }
+
+    }
     public static void SaveWorldData(){
         
         FileStream fs;

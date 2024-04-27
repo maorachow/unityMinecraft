@@ -1,0 +1,494 @@
+using MessagePack;
+using Priority_Queue;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using UnityEngine;
+
+public class VoxelWorld
+{
+    public static GameObject chunkPrefab;
+    public static MessagePackSerializerOptions lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
+    public static List<VoxelWorld> worlds = new List<VoxelWorld>();
+
+
+    public Dictionary<Vector2Int, Chunk> chunks = new Dictionary<Vector2Int, Chunk>();
+    public ConcurrentDictionary<Vector2Int, WorldData> chunkDataReadFromDisk = new ConcurrentDictionary<Vector2Int, WorldData>();
+    public static string gameWorldDataPath;
+    public string curWorldSaveName="default.json";
+    public int worldGenType = 0;
+    public static VoxelWorld currentWorld;
+
+    public SimplePriorityQueue<Vector2Int> chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
+    public SimplePriorityQueue<ChunkLoadingQueueItem> chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
+    public SimplePriorityQueue<Vector2Int> chunkUnloadingQueue = new SimplePriorityQueue<Vector2Int>();
+    public MyChunkObjectPool chunkPool = new MyChunkObjectPool();
+    public bool isWorldDataSaved = false;
+    public bool isJsonReadFromDisk = false;
+    public bool isGoingToQuitWorld = false;
+    public bool isFastChunkLoadingEnabled = false;
+    public FastNoise noiseGenerator = new FastNoise();
+    public FastNoise biomeNoiseGenerator = new FastNoise();
+    public Chunk GetChunk(Vector2Int chunkPos)
+    {
+        if (chunks.ContainsKey(chunkPos))
+        {
+            Chunk tmp = chunks[chunkPos];
+            return tmp;
+        }
+        else
+        {
+            return null;
+        }
+
+    }
+    public List<ChunkLoaderBase> allChunkLoaders = new List<ChunkLoaderBase>();
+
+    public void TryUpdateAllChunkLoadersThread()
+    {
+        while (true)
+        {
+            Thread.Sleep(50);
+            if (WorldManager.isGoingToQuitGame == true)
+            {
+                return;
+            }
+            foreach (var cl in allChunkLoaders)
+            {
+                if (cl.isChunksNeedLoading == true)
+                {
+                    cl.TryUpdateWorldThread();
+                }
+
+            }
+        }
+    }
+    public void TryReleaseChunkThread()
+    {
+        while (true)
+        {
+            /*   if(WorldManager.isGoingToQuitGame==true){
+                      return;
+                  }
+               Thread.Sleep(100);
+                 List<Vector2Int> keys=new List<Vector2Int>(Chunks.Keys);
+             for(int i=0;i<keys.Count;i++){
+              if(!Chunks.ContainsKey(keys[i])){
+                  return;
+              }
+               if(Chunks[keys[i]].isChunkPosInited==false){
+                  continue;
+               }
+                  Vector2Int cPos=Chunks[keys[i]].chunkPos;
+                   if(Mathf.Abs(cPos.x-playerPosVec.x)>PlayerMove.viewRange+Chunk.chunkWidth+3||Mathf.Abs(cPos.y-playerPosVec.z)>PlayerMove.viewRange+Chunk.chunkWidth+3&&Chunks[keys[i]].isMeshBuildCompleted==true&&!WorldManager.chunkUnloadingQueue.Contains(Chunks[keys[i]])){
+
+                 WorldManager.chunkUnloadingQueue.Enqueue(Chunks[keys[i]],1-((int)Mathf.Abs(cPos.x-playerPosVec.x)+(int)Mathf.Abs(cPos.y-playerPosVec.z)));
+                 Chunks[keys[i]].isChunkPosInited=false;
+              } 
+             }*/
+            Thread.Sleep(200);
+            if (isGoingToQuitWorld == true)
+            {
+                return;
+            }
+            foreach (var c in chunks)
+            {
+                if (!chunks.ContainsKey(c.Key))
+                {
+                    continue;
+                }
+                if (chunkUnloadingQueue.Contains(c.Key))
+                {
+                    continue;
+                }
+                Vector2Int cPos = c.Key;
+                bool isChunkNeededRemoving = true;
+                foreach (var cl in allChunkLoaders)
+                {
+                    if (!(Mathf.Abs(cPos.x - cl.chunkLoadingCenter.x) > cl.chunkLoadingRange + Chunk.chunkWidth + 3 || Mathf.Abs(cPos.y - cl.chunkLoadingCenter.y) > cl.chunkLoadingRange + Chunk.chunkWidth + 3))
+                    {
+                        isChunkNeededRemoving = false;
+
+                        //    c.Value.isChunkPosInited=false;
+                    }
+                }
+                if (isChunkNeededRemoving == true && !chunkUnloadingQueue.Contains(c.Key))
+                {
+                    chunkUnloadingQueue.Enqueue(c.Key, 0);
+                }
+            }
+        }
+
+
+    }
+
+    public void TryUpdateChunkThread()
+    {
+        //     delegate void mainBuildChunk();
+        //   mainBuildChunk callback;
+
+        while (true)
+        {
+            Thread.Sleep(5);
+            if (isGoingToQuitWorld == true)
+            {
+                return;
+            }
+
+
+            foreach (var c in chunks)
+            {
+                if (c.Value.isChunkMapUpdated == true)
+                {
+                    c.Value.isModifiedInGame = true;
+                    if (c.Value.isMeshBuildCompleted == true)
+                    {
+                        chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(c.Value, true), -50);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    //InitMap(chunkPos);
+                    c.Value.isChunkMapUpdated = false;
+                }
+            }
+
+
+
+        }
+
+    }
+
+
+
+
+    int blockedDisablingCount = 0;
+   
+
+    void DisableChunks()
+    {
+        //  Debug.Log(chunkUnloadingQueue.Count);
+        if (chunkUnloadingQueue.Count > 0)
+        {
+
+            Chunk c = GetChunk(chunkUnloadingQueue.First);
+
+            if (c != null)
+            {
+                lock (c.taskLock)
+                {
+                    if (c.isTaskCompleted == true)
+                    {
+                        chunkPool.Remove(c.gameObject);
+                        chunkUnloadingQueue.Dequeue();
+                        //  Debug.Log("completed");
+                        return;
+                    }
+                    else
+                    {
+                        blockedDisablingCount++;
+                        if (blockedDisablingCount > 15)
+                        {
+                            blockedDisablingCount = 0;
+                            GameObject.Destroy(c.gameObject);
+                            chunkUnloadingQueue.Dequeue();
+                            Debug.Log("destroy");
+                            return;
+                        }
+                        return;
+                    }
+                }
+
+            }
+            else
+            {
+                chunkUnloadingQueue.Dequeue();
+                //  Debug.Log("none");
+                return;
+            }
+        }
+    }
+
+
+
+
+    void SpawnChunks()
+    {
+        //  (var c in chunkSpawningQueue){
+        //     await Task.Delay(20);
+        if (isFastChunkLoadingEnabled == true)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                if (chunkSpawningQueue.Count > 0)
+                {
+
+                    Vector2Int cPos = chunkSpawningQueue.First;
+                    if (GetChunk(cPos) != null)
+                    {
+                        chunkSpawningQueue.Dequeue();
+                        continue;
+                    }
+                    if (chunkUnloadingQueue.Contains(cPos))
+                    {
+                        chunkSpawningQueue.Dequeue();
+                        continue;
+                    }
+
+                    chunkPool.Get(cPos);
+
+
+                    chunkSpawningQueue.Dequeue();
+                    continue;
+                }
+
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (chunkSpawningQueue.Count > 0)
+                {
+
+                    Vector2Int cPos = chunkSpawningQueue.First;
+                    if (GetChunk(cPos) != null)
+                    {
+                        chunkSpawningQueue.Dequeue();
+                        continue;
+                    }
+                    if (chunkUnloadingQueue.Contains(cPos))
+                    {
+                        chunkSpawningQueue.Dequeue();
+                        continue;
+                    }
+                    //ObjectPools.chunkPool.Get(cPos);
+
+                    chunkPool.Get(cPos);
+
+                    chunkSpawningQueue.Dequeue();
+                    continue;
+                }
+
+            }
+        }
+
+    }
+
+
+
+    public void BuildAllChunks()
+    {
+
+        if (isFastChunkLoadingEnabled == true)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                if (chunkLoadingQueue.Count > 0)
+                {
+                    if (chunkLoadingQueue.First.c == null)
+                    {
+                        chunkLoadingQueue.Dequeue();
+                        continue;
+                    }
+
+
+
+
+                    chunkLoadingQueue.First.c.StartLoadChunk();
+
+
+
+                    chunkLoadingQueue.Dequeue();
+
+
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                if (chunkLoadingQueue.Count > 0)
+                {
+                    if (chunkLoadingQueue.First.c == null)
+                    {
+                        chunkLoadingQueue.Dequeue();
+                        continue;
+                    }
+
+
+
+
+                    chunkLoadingQueue.First.c.StartLoadChunk();
+
+
+
+                    chunkLoadingQueue.Dequeue();
+
+
+                }
+            }
+        }
+
+
+
+
+
+
+
+    }
+    public void ReadJson()
+    {
+        chunkDataReadFromDisk.Clear();
+        gameWorldDataPath = WorldManager.gameWorldDataPath;
+
+        if (!Directory.Exists(gameWorldDataPath + "unityMinecraftData"))
+        {
+            Directory.CreateDirectory(gameWorldDataPath + "unityMinecraftData");
+
+        }
+        if (!Directory.Exists(gameWorldDataPath + "unityMinecraftData/GameData"))
+        {
+            Directory.CreateDirectory(gameWorldDataPath + "unityMinecraftData/GameData");
+        }
+
+        if (!File.Exists(gameWorldDataPath + "unityMinecraftData" + "/GameData/" + curWorldSaveName))
+        {
+            FileStream fs = File.Create(gameWorldDataPath + "unityMinecraftData" + "/GameData/" + curWorldSaveName);
+            fs.Close();
+        }
+
+        byte[] worldData = File.ReadAllBytes(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName);
+        //  List<WorldData> tmpList=new List<WorldData>();
+        /* foreach(string s in worldData){
+             WorldData tmp=JsonSerializer.Deserialize<WorldData>(s);
+             tmpList.Add(tmp);
+         }
+         foreach(WorldData w in tmpList){
+             chunkDataReadFromDisk.Add(new Vector2Int(w.posX,w.posZ),w);
+         }*/
+        if (worldData.Length > 0)
+        {
+            chunkDataReadFromDisk = MessagePackSerializer.Deserialize<ConcurrentDictionary<Vector2Int, WorldData>>(worldData, lz4Options);
+        }
+
+        isJsonReadFromDisk = true;
+        biomeNoiseGenerator.SetSeed(20000);
+        biomeNoiseGenerator.SetFrequency(0.008f);
+        biomeNoiseGenerator.SetNoiseType(FastNoise.NoiseType.Cellular);
+        noiseGenerator.SetNoiseType(FastNoise.NoiseType.Perlin);
+        noiseGenerator.SetFrequency(0.001f);
+        noiseGenerator.SetFractalType(FastNoise.FractalType.FBM);
+        noiseGenerator.SetFractalOctaves(1);
+        RandomGenerator3D.InitNoiseGenerator();
+        //    noiseGenerator.SetFractalLacunarity(100f);
+        //    noiseGenerator. SetNoiseType(FastNoise.NoiseType.Value);
+    }
+
+
+    public void SaveWorldData()
+    {
+
+        FileStream fs;
+        if (File.Exists(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName))
+        {
+            fs = new FileStream(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName, FileMode.Truncate, FileAccess.Write);//Truncate模式打开文件可以清空。
+        }
+        else
+        {
+            fs = new FileStream(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName, FileMode.Create, FileAccess.Write);
+        }
+        fs.Close();
+        foreach (KeyValuePair<Vector2Int, Chunk> c in chunks)
+        {
+            // int[] worldDataMap=ThreeDMapToWorldData(c.Value.map);
+            //   int x=(int)c.Value.transform.position.x;
+            //  int z=(int)c.Value.transform.position.z;
+            //   WorldData wd=new WorldData();
+            //   wd.map=worldDataMap;
+            //   wd.posX=x;
+            //   wd.posZ=z;
+            //   string tmpData=JsonMapper.ToJson(wd);
+            //   File.AppendAllText(Application.dataPath+"/GameData/world.json",tmpData+"\n");
+            c.Value.SaveSingleChunk(this);
+        }
+        Debug.Log(chunkDataReadFromDisk.Count);
+        //    foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
+        //  string tmpData=JsonSerializer.ToJsonString(wd.Value);
+        //  File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
+        //    }
+        byte[] tmpData = MessagePackSerializer.Serialize(chunkDataReadFromDisk, lz4Options);
+        File.WriteAllBytes(gameWorldDataPath + "unityMinecraftData/GameData/"+ curWorldSaveName, tmpData);
+        isWorldDataSaved = true;
+    }
+
+    public VoxelWorld(string curWorldSaveName,int worldGenType)
+    {
+        this.curWorldSaveName = curWorldSaveName;
+        this.worldGenType = worldGenType;
+    }
+
+    public void InitChunkLoader()
+    {
+        allChunkLoaders.Clear();
+    }
+    public void InitWorld()
+    {
+
+        InitChunkLoader();
+        chunkPrefab = Resources.Load<GameObject>("Prefabs/chunk");
+
+        chunkPool.Object = chunkPrefab;
+        chunkPool.maxCount = 3000;
+        chunkPool.Init();
+        ReadJson();
+        chunks.Clear();
+
+        chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
+        chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
+        chunkUnloadingQueue = new SimplePriorityQueue<Vector2Int>();
+        isGoingToQuitWorld = false;
+
+    }
+
+    public void DestroyAllChunks()
+    {
+        foreach (var cKvp in Chunk.Chunks)
+        {
+            var c = cKvp.Value;
+            c.leftChunk = null;
+            c.rightChunk = null;
+            c.frontChunk = null;
+            c.backChunk = null;
+            c.backLeftChunk = null;
+            c.backRightChunk = null;
+            c.frontLeftChunk = null;
+            c.frontRightChunk = null;
+            c = null;
+        }
+        chunks.Clear();
+    }
+    public void SaveAndQuitWorld()
+    {
+
+        SaveWorldData();
+        DestroyAllChunks();
+   //     chunks.Clear();
+
+    }
+    public static void SwitchToWorld(int worldIndex)
+    {
+        if (worldIndex >= worlds.Count)
+        {
+            Debug.Log("invalid index");
+            return;
+        }
+        currentWorld.SaveAndQuitWorld();
+        currentWorld = worlds[worldIndex];
+        currentWorld.InitWorld();
+    }
+}
