@@ -86,14 +86,14 @@ public class FileAssetLoaderBeh : MonoBehaviour
             
            textureAB=AssetBundle.LoadFromFile(path);
             TerrainTextureMipmapAdjusting.SetTerrainTexMipmap(textureAB.LoadAsset<Texture2D>("terrain"),textureAB.LoadAsset<Texture2D>("terrainnormal"),textureAB.LoadAsset<Texture2D>("nonsolid"),textureAB.LoadAsset<Texture2D>("nonsolid"));
-            ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",textureAB.LoadAsset<Texture2D>("itemterrain"));
+            VoxelWorld.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",textureAB.LoadAsset<Texture2D>("itemterrain"));
             ItemEntityBeh.itemTextureInfo=textureAB.LoadAsset<Texture2D>("itemterrain");
             return true;
          }catch(Exception e){
               Debug.Log("Loading block texture failed: "+e.ToString());
                 Chunk.AddBlockInfo();
                  TerrainTextureMipmapAdjusting.SetTerrainTexMipmap(Resources.Load<Texture2D>("Textures/terrain"),Resources.Load<Texture2D>("Textures/terrainnormal"),Resources.Load<Texture2D>("Textures/nonsolid"),Resources.Load<Texture2D>("Textures/nonsolid"));
-                 ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
+            VoxelWorld.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
                 ItemEntityBeh.AddFlatItemInfo();
                 return false;
 

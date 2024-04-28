@@ -10,7 +10,7 @@ public class ChunkLoaderBase:MonoBehaviour
     public float chunkLoadingRange;
     public bool isChunksNeedLoading=false;
     public Plane[] cameraFrustum;
-    public static List<ChunkLoaderBase> allChunkLoaders=new List<ChunkLoaderBase>();
+ /*   public static List<ChunkLoaderBase> allChunkLoaders=new List<ChunkLoaderBase>();
     public static void InitChunkLoader(){
         allChunkLoaders.Clear();
     }
@@ -27,15 +27,15 @@ public class ChunkLoaderBase:MonoBehaviour
                 
             }
         }
-    }
+    }*/
     public void AddChunkLoaderToList(){
-        allChunkLoaders.Add(this);
+        VoxelWorld.currentWorld.allChunkLoaders.Add(this);
     }
     void OnDestroy(){
-        allChunkLoaders.Remove(this);
+        VoxelWorld.currentWorld.allChunkLoaders.Remove(this);
     }
   public void TryUpdateWorldThread(){
-            if(WorldManager.isGoingToQuitGame==true){
+            if(VoxelWorld.currentWorld.isGoingToQuitWorld==true){
                 return;
             }
             for (float x = chunkLoadingCenter.x - chunkLoadingRange; x < chunkLoadingCenter.x + chunkLoadingRange; x += Chunk.chunkWidth)
@@ -48,9 +48,11 @@ public class ChunkLoaderBase:MonoBehaviour
                 Vector2 chunkCenterPos = chunkPos + new Vector2(Chunk.chunkWidth / 2, Chunk.chunkWidth / 2);
 
                 Chunk chunk = Chunk.GetChunk(chunkPos);
-                if (chunk != null||WorldManager.chunkSpawningQueue.Contains(chunkPos)) {
+             //   Debug.Log(chunk);
+                if (chunk != null|| VoxelWorld.currentWorld.chunkSpawningQueue.Contains(chunkPos)) {
                                 continue;
                                 }else{
+                     
                     bool isLoadingChunk = false;
                     if ((chunkCenterPos - chunkLoadingCenter).magnitude < Chunk.chunkWidth) {
 
@@ -67,7 +69,7 @@ public class ChunkLoaderBase:MonoBehaviour
                     }
                     if (isLoadingChunk == true)
                     {
-             WorldManager.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 
+                        VoxelWorld.currentWorld.chunkSpawningQueue.Enqueue(chunkPos,(int)Mathf.Abs(chunkPos.x-chunkLoadingCenter.x)+(int)Mathf.Abs(chunkPos.y-chunkLoadingCenter.y)); 
                     }
                    
                 }

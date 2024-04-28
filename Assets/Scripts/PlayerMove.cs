@@ -27,13 +27,17 @@ public class PlayerData{
     public int[] inventoryDic;
     [Key(5)]
     public int[] inventoryItemNumberDic;
-    public PlayerData(float playerHealth,float posX,float posY,float posZ,int[] inventoryDic,int[] inventoryItemNumberDic){
+    [Key(6)]
+    public int playerInWorldID;
+    public PlayerData(float playerHealth,float posX,float posY,float posZ,int[] inventoryDic,int[] inventoryItemNumberDic, int playerInWorldID)
+    {
         this.playerHealth=playerHealth;
         this.posX=posX;
         this.posY=posY;
         this.posZ=posZ;
         this.inventoryDic=inventoryDic;
         this.inventoryItemNumberDic=inventoryItemNumberDic;
+        this.playerInWorldID=playerInWorldID;
     }
 }
 public class PlayerMove : MonoBehaviour
@@ -103,9 +107,10 @@ public class PlayerMove : MonoBehaviour
     public bool isPlayerGrounded=false;
     public bool isUsingCC=true;
     public ChunkLoaderBase curChunkLoader;
-    public ChunkStrongLoaderBase curChunkStrongLoader;
+   
     public SimpleAxisAlignedBB playerBound;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> blocksAround;
+    public static PlayerMove instance;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> GetBlocksAround(SimpleAxisAlignedBB aabb){
       
             int minX = floorFloat(aabb.getMinX()-0.1f);
@@ -184,9 +189,18 @@ public class PlayerMove : MonoBehaviour
 
     
     void Awake(){
-       
-       
-      
+        instance = this;
+        chunkStrongLoadingRange = 64;
+        viewRange = 64;
+        am = transform.GetChild(0).GetComponent<Animator>();
+        cc = GetComponent<CharacterController>();
+        headPos = transform.GetChild(0).GetChild(0);
+        playerMoveRef = headPos.GetChild(1);
+        playerBodyPos = transform.GetChild(0).GetChild(1);
+        mainCam = headPos.GetChild(0).gameObject.GetComponent<Camera>();
+        mainCam.fieldOfView = cameraFOV;
+        cameraPos = mainCam.transform;
+
     }
     void OnDestroy(){
         curChunk=null;
@@ -215,14 +229,14 @@ public class PlayerMove : MonoBehaviour
             RightClick();
             breakBlockCD=0.3f;}
     }
-
+ 
     void Start()
     {   
       //    ReadPlayerJson();
     
         curChunkLoader=GetComponent<ChunkLoaderBase>();
         curChunkLoader.AddChunkLoaderToList();
-        curChunkStrongLoader=GetComponent<ChunkStrongLoaderBase>();
+        
         pi=new PlayerInput();
         pi.Enable();
          Input.multiTouchEnabled = true;
@@ -240,25 +254,16 @@ public class PlayerMove : MonoBehaviour
         collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
 
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
-        chunkStrongLoadingRange=64;
-        viewRange=64;
-        am=transform.GetChild(0).GetComponent<Animator>();
-        cc=GetComponent<CharacterController>();
-        headPos=transform.GetChild(0).GetChild(0);
-        playerMoveRef=headPos.GetChild(1);
-        playerBodyPos=transform.GetChild(0).GetChild(1);
-        mainCam=headPos.GetChild(0).gameObject.GetComponent<Camera>();
-        mainCam.fieldOfView=cameraFOV;
-     
+        
       //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-      GameUIBeh.instance.CloseCraftingUI();
-         GameUIBeh.instance.Resume();
-        cameraPos=mainCam.transform;
+        GameUIBeh.instance.CloseCraftingUI();
+        GameUIBeh.instance.Resume();
+       
                 transform.GetChild(0).localRotation=Quaternion.Euler(0f,0f,0f);
         transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
-   //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
-          ReadPlayerJson();
+        //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
+       
     }
 
 
@@ -800,7 +805,7 @@ public class PlayerMove : MonoBehaviour
         if(WorldHelper.instance.CheckIsPosInChunk(transform.position,curChunk)==false){
         curChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));    
         curChunkLoader.isChunksNeedLoading=true;
-        curChunkStrongLoader.isChunksNeededStrongLoading=true;
+     //   curChunkStrongLoader.isChunksNeededStrongLoading=true;
         }
    // Debug.Log(finalMoveVec);
    curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f),curChunk);
@@ -1206,60 +1211,101 @@ public class PlayerMove : MonoBehaviour
             WorldHelper.instance.StartUpdateAtPoint(blockPoint);
             AttackAnimate();
             Invoke("cancelAttackInvoke",0.16f);
- 
+
         }
     }
-    
-   
-    public void ReadPlayerJson(){
-          inventoryDic=new int[9];
-            inventoryItemNumberDic=new int[9];
-    
-    gameWorldPlayerDataPath=WorldManager.gameWorldDataPath;
-         
-         if (!Directory.Exists(gameWorldPlayerDataPath+"unityMinecraftData")){
-                Directory.CreateDirectory(gameWorldPlayerDataPath+"unityMinecraftData");
-               
-            }
-          if(!Directory.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData")){
-                    Directory.CreateDirectory(gameWorldPlayerDataPath+"unityMinecraftData/GameData");
-                }
-       
-        if(!File.Exists(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json")){
-            FileStream fs=File.Create(gameWorldPlayerDataPath+"unityMinecraftData"+"/GameData/playerdata.json");
+
+
+    public int ReadPlayerJson(bool ExludePlayerInWorldIDData=false)
+    {
+        inventoryDic = new int[9];
+        inventoryItemNumberDic = new int[9];
+
+        gameWorldPlayerDataPath = WorldManager.gameWorldDataPath;
+
+        if (!Directory.Exists(gameWorldPlayerDataPath + "unityMinecraftData"))
+        {
+            Directory.CreateDirectory(gameWorldPlayerDataPath + "unityMinecraftData");
+
+        }
+        if (!Directory.Exists(gameWorldPlayerDataPath + "unityMinecraftData/GameData"))
+        {
+            Directory.CreateDirectory(gameWorldPlayerDataPath + "unityMinecraftData/GameData");
+        }
+
+        if (!File.Exists(gameWorldPlayerDataPath + "unityMinecraftData" + "/GameData/playerdata.json"))
+        {
+            FileStream fs = File.Create(gameWorldPlayerDataPath + "unityMinecraftData" + "/GameData/playerdata.json");
             fs.Close();
         }
-       
-       byte[] worldPlayerData=File.ReadAllBytes(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json");
-         //   isEntitiesReadFromDisk=true;
 
-          PlayerData pd;
-         if(worldPlayerData.Length>0){
-                pd=MessagePackSerializer.Deserialize<PlayerData>(worldPlayerData);  
-         }else{
-            pd=new PlayerData(20f,0f,150f,0f,new int[9],new int[9]);
-        //    return;
-         }
-         
-         if(pd.posX!=0f&&pd.posY!=0f&&pd.posZ!=0f&&pd.inventoryDic!=null&&pd.inventoryItemNumberDic!=null){
-            cc.enabled=false;
-           transform.position=new Vector3(pd.posX,pd.posY,pd.posZ); 
-           cc.enabled=true;
-           playerHealth=pd.playerHealth;
-           inventoryDic=pd.inventoryDic;
-           inventoryItemNumberDic=pd.inventoryItemNumberDic;
-         }else{
-             cc.enabled=false;
-            transform.position=new Vector3(0f,150f,0f);
-             cc.enabled=true;
-            inventoryDic=new int[9];
-            inventoryItemNumberDic=new int[9];
+        byte[] worldPlayerData = File.ReadAllBytes(gameWorldPlayerDataPath + "unityMinecraftData/GameData/playerdata.json");
+        //   isEntitiesReadFromDisk=true;
 
-         }
-         
+        PlayerData pd;
+        if (worldPlayerData.Length > 0)
+        {
+            pd = MessagePackSerializer.Deserialize<PlayerData>(worldPlayerData);
+        }
+        else
+        {
+            pd = new PlayerData(20f, 0f, 150f, 0f, new int[9], new int[9], 0);
+            //    return;
+        }
+        Debug.Log("player in world ID" + pd.playerInWorldID);
+
+        Debug.Log(!ExludePlayerInWorldIDData);
+        Debug.Log(VoxelWorld.isWorldChanged);
+        if (VoxelWorld.isWorldChanged == false&&!ExludePlayerInWorldIDData)
+        {
+            Debug.Log("switch world");
+            if (VoxelWorld.currentWorld.worldID != pd.playerInWorldID)
+            {
+                switch (pd.playerInWorldID)
+                {
+                    case 0:
+                        Debug.Log("in world 0");
+                        SceneManagementHelper.SwitchToWorldWithoutSavingWithSceneChanged(0, 1);
+                        break;
+                    case 1:
+                        Debug.Log("in world 1");
+                        SceneManagementHelper.SwitchToWorldWithoutSavingWithSceneChanged(1, 2);
+                        break;
+                    default:
+
+                        SceneManagementHelper.SwitchToWorldWithoutSavingWithSceneChanged(0, 1);
+                        break;
+                }
+            }
+
+        }
+        Debug.Log(pd.posX + " " + pd.posY + " " + pd.posZ);
+        if (pd.posX != 0f && pd.posY != 0f && pd.posZ != 0f && pd.inventoryDic != null && pd.inventoryItemNumberDic != null)
+        {
+            cc.enabled = false;
+            transform.position = new Vector3(pd.posX, pd.posY, pd.posZ);
+            cc.enabled = true;
+            playerHealth = pd.playerHealth;
+            inventoryDic = pd.inventoryDic;
+            inventoryItemNumberDic = pd.inventoryItemNumberDic;
+        }
+        else
+        {
+            cc.enabled = false;
+            transform.position = new Vector3(0f, 150f, 0f);
+            cc.enabled = true;
+            inventoryDic = new int[9];
+            inventoryItemNumberDic = new int[9];
+
+        }
+        return pd.playerInWorldID;
     }
+
+
+
+    
     public void SavePlayerData(){
-        PlayerData pd=new PlayerData(playerHealth,transform.position.x,transform.position.y,transform.position.z,inventoryDic,inventoryItemNumberDic);
+        PlayerData pd=new PlayerData(playerHealth,transform.position.x,transform.position.y,transform.position.z,inventoryDic,inventoryItemNumberDic, VoxelWorld.currentWorld.worldID);
    
         FileStream fs;
         if (File.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json"))
@@ -1274,4 +1320,5 @@ public class PlayerMove : MonoBehaviour
         byte[] tmpData=MessagePackSerializer.Serialize(pd);
         File.WriteAllBytes(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json",tmpData);
     }
+ 
 }

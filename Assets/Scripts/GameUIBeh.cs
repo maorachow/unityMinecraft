@@ -48,6 +48,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(8, "WoodZ");
         blockNameDic.Add(9, "Leaves");
         blockNameDic.Add(11, "Sand");
+        blockNameDic.Add(12, "End Stone");
         blockNameDic.Add(100, "Water");
         blockNameDic.Add(101, "Grass Crop");
         blockNameDic.Add(102, "Torch");
@@ -61,12 +62,18 @@ public class GameUIBeh : MonoBehaviour
         //     }
     }
     void Start(){
-    instance=this;
+        if (instance == null)
+        {
+        instance=this;
+        }
+     
+    
+    //    DontDestroyOnLoad(gameObject);
     craftUI=transform.Find("inventoryconvertUI").gameObject;
-    if(pauseMenu==null){
+    //if(pauseMenu==null){
              pauseMenu=transform.Find("pausemenuUI").gameObject;
              pauseMenu.SetActive(true);
-        }
+  //      }
         AddBlockNameInfo();
     blockImageDic.Clear();
     blockImageDic.TryAdd(-1,Sprite.Create(new Texture2D(16,16),new Rect(0,0,16,16),new Vector2(0.5f,0.5f)));
@@ -81,7 +88,8 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(8,Resources.Load<Sprite>("Textures/log_oak"));
     blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/leaves"));
     blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/sand"));
-    blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
+        blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/end_stone"));
+        blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
     blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));
     blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));

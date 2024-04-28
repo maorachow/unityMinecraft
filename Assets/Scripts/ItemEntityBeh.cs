@@ -22,7 +22,9 @@ public struct ItemData{
     public string guid;
     [Key(6)]
     public float lifeTime;
-    public ItemData(int itemID,int itemCount,float posX,float posY,float posZ,string guid,float lifeTime){
+    [Key(7)]
+    public int worldID;
+    public ItemData(int itemID,int itemCount,float posX,float posY,float posZ,string guid,float lifeTime,int worldID){
         this.itemID=itemID;
          this.itemCount=itemCount;
           this.posX=posX;
@@ -30,6 +32,7 @@ public struct ItemData{
             this.posZ=posZ;
              this.guid=guid;
              this.lifeTime=lifeTime;
+        this.worldID=worldID;
     }
 }
 public class ItemEntityBeh : MonoBehaviour
@@ -48,12 +51,12 @@ public class ItemEntityBeh : MonoBehaviour
     public MeshFilter mf;
     public Rigidbody rb;
     public static Transform playerPos;
-
+    public int itemInWorldID;
     public Vector3 lastItemPos;
 
     void ReleaseItem(){
     if(gameObject.activeInHierarchy==true){
-    ObjectPools.itemEntityPool.Remove(gameObject);    
+            VoxelWorld.currentWorld.itemEntityPool.Remove(gameObject);    
     }
     
     }
@@ -64,6 +67,7 @@ public class ItemEntityBeh : MonoBehaviour
     itemMesh=new Mesh();
     worldItemEntities.Add(this); 
     lastItemPos=transform.position;
+        itemInWorldID = VoxelWorld.currentWorld.worldID;
     }
 
     public async void BuildItemModel(){
@@ -357,11 +361,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
   if(worldItemEntitiesData.Length>0){
     itemEntityDataReadFromDisk=MessagePackSerializer.Deserialize<List<ItemData>>(worldItemEntitiesData);
   }
-        
+        Debug.Log("item count:"+itemEntityDataReadFromDisk.Count);
             //isEntitiesReadFromDisk=true;
     }
     public void RemoveItemEntityFromSave(){
-      ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime);
+      ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime, itemInWorldID);
         tmpData.guid=this.guid;
         for(int i=0;i<itemEntityDataReadFromDisk.Count;i++){
             ItemData ed=itemEntityDataReadFromDisk[i];
@@ -374,7 +378,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     public void SaveSingleItemEntity(){
    //     Debug.Log(this.guid);
         lastItemPos=transform.position;
-        ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime);
+        ItemData tmpData=new ItemData(itemID,itemCount,lastItemPos.x,lastItemPos.y,lastItemPos.z,this.guid,lifeTime, itemInWorldID);
        // tmpData.guid=this.guid;
         foreach(ItemData ed in itemEntityDataReadFromDisk){
             if(ed.guid==this.guid){
@@ -423,7 +427,9 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
                 if(itemID==-1){
                     return;
                 }
-                GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(posX,posY,posZ));
+   //     Debug.Log(VoxelWorld.currentWorld.itemEntityPool.Object);
+
+            GameObject a = VoxelWorld.currentWorld.itemEntityPool.Get(new Vector3(posX,posY,posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
                 
                 tmp.itemID=itemID;
@@ -437,31 +443,40 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
 
 
-    public static IEnumerator SpawnItemEntityFromFile(){
+    public static void SpawnItemEntityFromFile(){
         for(int i=0;i<itemEntityDataReadFromDisk.Count;i++){
           //  Debug.Log(ed.guid);
-            ItemData ed=itemEntityDataReadFromDisk[i];
-                GameObject a=ObjectPools.itemEntityPool.Get(new Vector3(ed.posX,ed.posY,ed.posZ));
+
+                ItemData ed=itemEntityDataReadFromDisk[i];
+            if (ed.worldID == VoxelWorld.currentWorld.worldID)
+            {
+            GameObject a= VoxelWorld.currentWorld.itemEntityPool.Get(new Vector3(ed.posX,ed.posY,ed.posZ));
                 ItemEntityBeh tmp=a.GetComponent<ItemEntityBeh>();
            //     a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
           //      a.transform.rotation=Quaternion.identity;
                 tmp.itemID=ed.itemID;
                 tmp.guid=ed.guid;
                 tmp.lifeTime=ed.lifeTime;
-           
+            
                 tmp.SendMessage("InitPos");
+            }
+          
           
 
             
         }
-        yield break;
+       
     }
     public async void AddForceInvoke(Vector3 f){
         if(isPosInited!=true){
             Debug.Log("pos not inited");
         }
         await UniTask.WaitUntil(()=>rb.constraints== RigidbodyConstraints.None);
-        rb.velocity=f;
+        if (rb != null)
+        {
+    rb.velocity=f;
+        }
+     
     }
     public void InitPos(){
             isPosInited=true;

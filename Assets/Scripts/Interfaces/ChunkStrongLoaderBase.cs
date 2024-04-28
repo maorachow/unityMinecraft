@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class ChunkStrongLoaderBase : MonoBehaviour
 {
-      public static int chunkStrongLoadingRange=32;
+  /*      public static int chunkStrongLoadingRange=32;
     public bool isChunksNeededStrongLoading=false;
     public Vector2 chunkLoadingCenter;
 
 
-    void FixedUpdate(){
+  void FixedUpdate(){
         chunkLoadingCenter=new Vector2(transform.position.x,transform.position.z);
         if(isChunksNeededStrongLoading==true){
             StrongLoadChunksAround();
@@ -32,5 +32,5 @@ public class ChunkStrongLoaderBase : MonoBehaviour
             }
         }
         isChunksNeededStrongLoading=false;
-  }
+  }*/
 }

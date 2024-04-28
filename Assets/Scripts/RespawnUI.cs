@@ -9,9 +9,13 @@ public class RespawnUI : MonoBehaviour
     public static RespawnUI instance;
     public Button respawnButton;
     public Button mainMenuButton;
+    private void Awake()
+    {
+        instance = this;  
+    }
     void Start(){
         player=GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMove>();
-        instance=this;
+       
         respawnButton=GameObject.Find("respawnbutton").GetComponent<Button>();
         mainMenuButton=GameObject.Find("mainmenubutton").GetComponent<Button>();
         respawnButton.onClick.AddListener(RespawnButtonOnClick);
@@ -22,13 +26,14 @@ public class RespawnUI : MonoBehaviour
         player.PlayerRespawn();
     }   
     public void MainMenuButtonOnClick(){
-        ZombieBeh.isZombiePrefabLoaded=false;
+     /*   ZombieBeh.isZombiePrefabLoaded=false;
         player.PlayerRespawn();
         player.SavePlayerData();
         Chunk.SaveWorldData();
         ItemEntityBeh.SaveWorldItemEntityData();
         EntityBeh.SaveWorldEntityData();
      //   Application.Quit();
-          SceneManager.LoadScene(0);
+          SceneManager.LoadScene(0);*/
+     SceneManagementHelper.QuitToMainMenu();
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 public class pauseMenuUI : MonoBehaviour
 {
     public static pauseMenuUI instance;
-    public Texture2D terrainNormal;
+   
     public Button rebuildAllChunksButton;
     public Button SaveWorldButton;
     public Text viewRangeText;
@@ -27,8 +27,8 @@ public class pauseMenuUI : MonoBehaviour
         resourcesDirectoryField=GameObject.Find("resourcedirectoryfield").GetComponent<InputField>();
     //    normalMapImage = GameObject.Find("normalmapimage").GetComponent<Image>();
         loadResourceButton=GameObject.Find("loadresourcepackbutton").GetComponent<Button>();
-        terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out terrainNormal);
+       TerrainTextureMipmapAdjusting. applyingTerrainNormal = Resources.Load<Texture2D>("Textures/terrainnormal");
+        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out TerrainTextureMipmapAdjusting.applyingTerrainNormal);
      //   normalMapImage.sprite=  Sprite.Create(terrainNormal, new Rect(0, 0, terrainNormal.width, terrainNormal.height), Vector2.zero);
         player =GameObject.Find("player").GetComponent<PlayerMove>();
         graphicsQualitySlider=GameObject.Find("graphicsqualityslider").GetComponent<Slider>();
@@ -46,37 +46,37 @@ public class pauseMenuUI : MonoBehaviour
         loadResourceButton.onClick.AddListener(LoadResourceButtonOnClick);
     }
     void GraphicsQualitySliderOnValueChanged(float f){
-        Debug.Log(terrainNormal.activeMipmapLimit);
+        Debug.Log(TerrainTextureMipmapAdjusting.applyingTerrainNormal.activeMipmapLimit);
         switch((int)graphicsQualitySlider.value){
             case 0:
             graphicsQualityText.text="Very Low";
             QualitySettings.SetQualityLevel(0, true);
-              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
-               ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
-                ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
-              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
             break;
             case 4:
              graphicsQualityText.text="Very High";
             QualitySettings.SetQualityLevel(4, true);
-              ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", terrainNormal);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.applyingTerrainNormal);
             break;
             case 5:
              graphicsQualityText.text="Ultra";
             QualitySettings.SetQualityLevel(5, true);
-           ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", terrainNormal);
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.applyingTerrainNormal);
                
             break;
         }
@@ -87,28 +87,23 @@ public class pauseMenuUI : MonoBehaviour
 
     }
     void ReturnToMainMenuButtonOnClick(){
-        FileAssetLoaderBeh.instance.UnloadAndResetResouces();
-          ItemEntityBeh.AddFlatItemInfo();
-        terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out terrainNormal);
-        ObjectPools.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",terrainNormal);
-        ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
-        ZombieBeh.isZombiePrefabLoaded=false;
-        WorldManager.isGoingToQuitGame=true;
-        SaveWorldButtonOnClick();
-         WorldManager.DestroyAllChunks();
-         SceneManager.LoadScene(0);
+        TerrainTextureMipmapAdjusting.ResetItemChunkTextures();
+     //   WorldManager.isGoingToQuitGame=true;
+     
+        // WorldManager.DestroyAllChunks();
+          SaveWorldButtonOnClick();
 
 
     }
      void SaveWorldButtonOnClick(){
-        player.SavePlayerData();
-        Chunk.SaveWorldData();
-        EntityBeh.SaveWorldEntityData();
-        ItemEntityBeh.SaveWorldItemEntityData();
+        //   player.SavePlayerData();
+        //  Chunk.SaveWorldData();
+        //    EntityBeh.SaveWorldEntityData();
+        //   ItemEntityBeh.SaveWorldItemEntityData();
+        SceneManagementHelper.QuitToMainMenu();
     }
     void RebuildAllChunksButtonOnClick(){
-        foreach(KeyValuePair<Vector2Int,Chunk> kvp in Chunk.Chunks){
+        foreach(KeyValuePair<Vector2Int,Chunk> kvp in VoxelWorld.currentWorld.chunks){
             kvp.Value.isChunkMapUpdated=true;
         }
     }
@@ -126,10 +121,7 @@ public class pauseMenuUI : MonoBehaviour
         }
     }
     void OnApplicationQuit(){
-           ObjectPools.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",Resources.Load<Texture2D>("Textures/itemterrain"));
-             ItemEntityBeh.AddFlatItemInfo();
-          terrainNormal=Resources.Load<Texture2D>("Textures/terrainnormal");
-            player.curChunk.meshRenderer.sharedMaterial.SetTexture("_BumpMap",terrainNormal);
-                FileAssetLoaderBeh.instance.UnloadAndResetResouces();
+        TerrainTextureMipmapAdjusting.ResetItemChunkTextures();
+        
     }
 }

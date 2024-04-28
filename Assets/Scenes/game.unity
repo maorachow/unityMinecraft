@@ -3352,7 +3352,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e4dc9d063aa5d44e9d8c7c67c04ce54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  terrainNormal: {fileID: 0}
   rebuildAllChunksButton: {fileID: 0}
   SaveWorldButton: {fileID: 0}
   viewRangeText: {fileID: 0}
@@ -3972,7 +3971,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1720877776}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.99999994
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -17473,7 +17472,6 @@ GameObject:
   - component: {fileID: 8571283222048031525}
   - component: {fileID: 8571283222048031526}
   - component: {fileID: 8571283222048031527}
-  - component: {fileID: 8571283222048031528}
   m_Layer: 2
   m_Name: player
   m_TagString: Player
@@ -17578,7 +17576,6 @@ MonoBehaviour:
   isPlayerGrounded: 0
   isUsingCC: 1
   curChunkLoader: {fileID: 0}
-  curChunkStrongLoader: {fileID: 0}
   isPlayerWieldingItem: 0
 --- !u!4 &6095466469615324927
 Transform:
@@ -18064,20 +18061,6 @@ MonoBehaviour:
   chunkLoadingCenter: {x: 0, y: 0}
   chunkLoadingRange: 0
   isChunksNeedLoading: 0
---- !u!114 &8571283222048031528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5334127029556897523}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1d5f1cd4d7e2594f9f7b63bbc4cafc3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isChunksNeededStrongLoading: 0
-  chunkLoadingCenter: {x: 0, y: 0}
 --- !u!20 &8631367289506924961
 Camera:
   m_ObjectHideFlags: 0

@@ -29,6 +29,8 @@ public struct EntityData{
     public int entityTypeID;
     [Key(7)]
     public string guid;
+    [Key(8)]
+    public int entityInWorldID;
     public bool Equals(EntityData other)
     {   
        
@@ -39,7 +41,7 @@ public struct EntityData{
             return false;
         }
     }
-    public EntityData(float posX,float posY,float posZ,float rotationX,float rotationY,float rotationZ,int entityTypeID,string guid){
+    public EntityData(float posX,float posY,float posZ,float rotationX,float rotationY,float rotationZ,int entityTypeID,string guid,int entityInWorldID){
         this.posX=posX;
         this.posY=posY;
         this.posZ=posZ;
@@ -48,6 +50,7 @@ public struct EntityData{
         this.rotationZ=rotationZ;
         this.entityTypeID=entityTypeID;
         this.guid=guid;
+        this.entityInWorldID=entityInWorldID;
     }
 }
 public class EntityBeh : MonoBehaviour
@@ -63,6 +66,7 @@ public class EntityBeh : MonoBehaviour
     public static bool isEntitiesReadFromDisk=false;
     public static bool isEntitySavedInDisk=false;
     public int entityTypeID;
+    public int entityInWorldID;
     public string guid;
     public static bool isWorldEntityDataSaved=false;
     public bool isInUnloadedChunks=false;
@@ -77,6 +81,13 @@ public class EntityBeh : MonoBehaviour
         RemoveEntityFromSave();
         worldEntities.Remove(this);
           currentChunk=null;
+    }
+    public static void DestroyAllEntities()
+    {
+        for(int i=0;i<worldEntities.Count;i++ )
+        {
+            worldEntities[i].OnDestroy();
+        }
     }
     public static void ReadEntityJson(){
    gameWorldEntityDataPath=WorldManager.gameWorldDataPath;
@@ -103,7 +114,7 @@ public class EntityBeh : MonoBehaviour
             return;
     }
     public void RemoveEntityFromSave(){
-      EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID,guid);
+      EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID,guid, entityInWorldID);
         foreach(EntityData ed in entityDataReadFromDisk){
             if(ed.guid==this.guid){
                 entityDataReadFromDisk.Remove(ed);
@@ -113,7 +124,7 @@ public class EntityBeh : MonoBehaviour
     }
     public void SaveSingleEntity(){
     //    Debug.Log(this.guid);
-        EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID,guid);
+        EntityData tmpData=new EntityData(transform.position.x,transform.position.y,transform.position.z,transform.eulerAngles.x,transform.eulerAngles.y,transform.eulerAngles.z,entityTypeID, guid,entityInWorldID);
     //    tmpData.guid=this.guid;
         foreach(EntityData ed in entityDataReadFromDisk){
             if(ed.guid==this.guid){
@@ -160,7 +171,7 @@ public class EntityBeh : MonoBehaviour
       
                 switch(entityID){
                 case 0:
-                GameObject a=ObjectPools.creeperEntityPool.Get();
+                GameObject a= VoxelWorld.currentWorld.creeperEntityPool.Get();
                 a.transform.position=new Vector3(posX,posY,posZ);
          
 
@@ -171,7 +182,7 @@ public class EntityBeh : MonoBehaviour
                 return a.GetComponent<EntityBeh>();
                 break;
                 case 1:
-                GameObject b=ObjectPools.zombieEntityPool.Get();
+                GameObject b= VoxelWorld.currentWorld.zombieEntityPool.Get();
                 b.transform.position=new Vector3(posX,posY,posZ);
                 b.GetComponent<EntityBeh>().entityTypeID=entityID;
                 b.GetComponent<EntityBeh>().guid=System.Guid.NewGuid().ToString("N");
@@ -182,7 +193,7 @@ public class EntityBeh : MonoBehaviour
                  return b.GetComponent<EntityBeh>();
                 break;
                 case 2:
-                GameObject c = ObjectPools.tntEntityPool.Get();
+                GameObject c = VoxelWorld.currentWorld.tntEntityPool.Get();
                 c.transform.position = new Vector3(posX, posY, posZ);
                 c.GetComponent<Rigidbody>().position = new Vector3(posX,posY,posZ); 
                 c.GetComponent<EntityBeh>().entityTypeID = entityID;
@@ -191,7 +202,7 @@ public class EntityBeh : MonoBehaviour
                 return c.GetComponent<EntityBeh>();
                 break;
                 case 3:
-                GameObject d = ObjectPools.skeletonEntityPool.Get();
+                GameObject d =  VoxelWorld.currentWorld.skeletonEntityPool.Get();
                 d.transform.position = new Vector3(posX, posY, posZ);
              
                 d.GetComponent<EntityBeh>().entityTypeID = entityID;
@@ -200,7 +211,7 @@ public class EntityBeh : MonoBehaviour
                 return d.GetComponent<EntityBeh>();
                 break;
                 case 4:
-                GameObject e = ObjectPools.arrowEntityPool.Get();
+                GameObject e = VoxelWorld.currentWorld.arrowEntityPool.Get();
                 e.transform.position = new Vector3(posX, posY, posZ);
                 e.GetComponent<Rigidbody>().position = new Vector3(posX, posY, posZ);
                 e.GetComponent<EntityBeh>().entityTypeID = entityID;
@@ -214,10 +225,11 @@ public class EntityBeh : MonoBehaviour
     }
     public static void SpawnEntityFromFile(){
         foreach(EntityData ed in entityDataReadFromDisk){
-    //        Debug.Log(ed.guid);
-            switch(ed.entityTypeID){
+            //        Debug.Log(ed.guid);
+            if (ed.entityInWorldID == VoxelWorld.currentWorld.worldID) { switch(ed.entityTypeID){
                 case 0:
-                GameObject a=ObjectPools.creeperEntityPool.Get();
+                GameObject a= VoxelWorld.currentWorld.creeperEntityPool.Get();
+                        
                 a.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
                 a.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
                 a.GetComponent<CreeperBeh>().SendMessage("InitPos");
@@ -226,7 +238,7 @@ public class EntityBeh : MonoBehaviour
                   
                 break;
                 case 1:
-                GameObject b=ObjectPools.zombieEntityPool.Get();
+                GameObject b= VoxelWorld.currentWorld.zombieEntityPool.Get();
                 b.GetComponent<ZombieBeh>().SendMessage("InitPos");
                 b.transform.position=new Vector3(ed.posX,ed.posY,ed.posZ);
                 b.transform.rotation=Quaternion.Euler(ed.rotationX,ed.rotationY,ed.rotationZ);
@@ -235,7 +247,7 @@ public class EntityBeh : MonoBehaviour
               
                 break;
                 case 2:
-                    GameObject c = ObjectPools.tntEntityPool.Get();
+                    GameObject c = VoxelWorld.currentWorld.tntEntityPool.Get();
                     c.GetComponent<TNTBeh>().SendMessage("InitPos");
                     c.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
                     c.GetComponent<Rigidbody>().position = new Vector3(ed.posX, ed.posY, ed.posZ);
@@ -246,7 +258,7 @@ public class EntityBeh : MonoBehaviour
                     break;
 
                 case 3:
-                    GameObject d = ObjectPools.skeletonEntityPool.Get();
+                    GameObject d =  VoxelWorld.currentWorld.skeletonEntityPool.Get();
                     d.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
                     d.transform.rotation = Quaternion.Euler(ed.rotationX, ed.rotationY, ed.rotationZ);
                     d.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
@@ -256,26 +268,30 @@ public class EntityBeh : MonoBehaviour
                     break;
 
                 case 4:
-                    GameObject e = ObjectPools.arrowEntityPool.Get();
+                    GameObject e = VoxelWorld.currentWorld.arrowEntityPool.Get();
                     e.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
                     e.GetComponent<Rigidbody>().position = new Vector3(ed.posX, ed.posY, ed.posZ);
                     e.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
                     e.GetComponent<EntityBeh>().guid = ed.guid;
                     break;
-            }
+            }}
+            
 
 
         }
     }
+    
     public static void LoadEntities(){
-        worldEntityTypes.Add(0,Resources.Load<GameObject>("Prefabs/creeper"));
-        worldEntityTypes.Add(1,Resources.Load<GameObject>("Prefabs/zombie"));
-        worldEntityTypes.Add(2, Resources.Load<GameObject>("Prefabs/tnt"));
-        worldEntityTypes.Add(3, Resources.Load<GameObject>("Prefabs/skeleton"));
-        worldEntityTypes.Add(4, Resources.Load<GameObject>("Prefabs/arrow"));
+        worldEntityTypes.TryAdd(0,Resources.Load<GameObject>("Prefabs/creeper"));
+        worldEntityTypes.TryAdd(1,Resources.Load<GameObject>("Prefabs/zombie"));
+        worldEntityTypes.TryAdd(2, Resources.Load<GameObject>("Prefabs/tnt"));
+        worldEntityTypes.TryAdd(3, Resources.Load<GameObject>("Prefabs/skeleton"));
+        worldEntityTypes.TryAdd(4, Resources.Load<GameObject>("Prefabs/arrow"));
         isEntitiesLoad =true;
+       
     }
     void OnEnable(){
+        entityInWorldID = VoxelWorld.currentWorld.worldID;
         worldEntities.Add(this); 
         cc=GetComponent<CharacterController>();
     }

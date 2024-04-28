@@ -21,7 +21,7 @@ void OnDisable(){
 }
 void ReleaseGameObject(){
     if(gameObject.activeInHierarchy==true){
-    ObjectPools.particleEffectPool.Release(gameObject);    
+            VoxelWorld.currentWorld.particleEffectPool.Release(gameObject);    
     }
     
 }

@@ -158,170 +158,22 @@ public class ObjectPools : MonoBehaviour
     // public static ObjectPool<GameObject> itemEntityPool;
     public static MyItemObjectPool itemEntityPool=new MyItemObjectPool();
         public void Start(){
-            pointLightPrefab=Resources.Load<GameObject>("Prefabs/chunkpointlightprefab");
-        particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
-        itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
-        particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
+        
+      //  pointLightPrefab =Resources.Load<GameObject>("Prefabs/chunkpointlightprefab");
+       // particlePrefab=Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
+     //   itemPrefab=Resources.Load<GameObject>("Prefabs/itementity");
+        /*      particleEffectPool=new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
         creeperEntityPool=new ObjectPool<GameObject>(CreateCreeper,GetCreeper,ReleaseCreeper,DestroyCreeper,true,10,300);
         zombieEntityPool=new ObjectPool<GameObject>(CreateZombie,GetZombie,ReleaseZombie,DestroyZombie,true,10,300);
         tntEntityPool = new ObjectPool<GameObject>(CreateTNT, GetTNT, ReleaseTNT, DestroyTNT, true, 10, 300);
         skeletonEntityPool= new ObjectPool<GameObject>(CreateSkeleton, GetSkeleton, ReleaseSkeleton, DestroySkeleton, true, 10, 300);
-        arrowEntityPool = new ObjectPool<GameObject>(CreateArrow,GetArrow,ReleaseArrow,DestroyArrow,true,10,300);
+        arrowEntityPool = new ObjectPool<GameObject>(CreateArrow,GetArrow,ReleaseArrow,DestroyArrow,true,10,300);*/
         //   itemEntityPool=new ObjectPool<GameObject>(CreateItem,GetItem,ReleaseItem,DestroyItem,true,10,300);
-        chunkPrefab =Resources.Load<GameObject>("Prefabs/chunk");
-          TerrainTextureMipmapAdjusting.SetTerrainTexMipmap();
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap();
-        chunkPool.Object=chunkPrefab;
-        chunkPool.maxCount=3000;
-        chunkPool.Init();
-        itemEntityPool.Object=itemPrefab;
-        itemEntityPool.maxCount=300;
-        itemEntityPool.Init();
+      //  chunkPrefab =Resources.Load<GameObject>("Prefabs/chunk");
+       
+      
+        
     }
   
-    public GameObject CreateEffect()
-    {
-        GameObject gameObject = Instantiate(particlePrefab, transform.position, Quaternion.identity);
- 
-        return gameObject;
-    }
-    
-    void GetEffect(GameObject gameObject)
-    {
- 
-        gameObject.SetActive(true);
    
-    }
-    void ReleaseEffect(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-  
-    }
-    void DestroyEffect(GameObject gameObject)
-    {
-    
-        Destroy(gameObject);
-    }
-    
-
-
-    public GameObject CreateCreeper()
-    {
-        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[0], transform.position, Quaternion.identity);
- 
-        return gameObject;
-    }
-    
-    void GetCreeper(GameObject gameObject)
-    {
- 
-        gameObject.SetActive(true);
-   
-    }
-    void ReleaseCreeper(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-  
-    }
-    void DestroyCreeper(GameObject gameObject)
-    {
-    
-        Destroy(gameObject);
-    }
-    public GameObject CreateZombie()
-    {
-        GameObject gameObject =Instantiate(EntityBeh.worldEntityTypes[1], new Vector3(100f,0f,100f), Quaternion.identity);
- 
-        return gameObject;
-    }
-    
-    void GetZombie(GameObject gameObject)
-    {
- 
-        gameObject.SetActive(true);
-   
-    }
-    void ReleaseZombie(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-  
-    }
-    void DestroyZombie(GameObject gameObject)
-    {
-    
-        Destroy(gameObject);
-    }
-
-    public GameObject CreateTNT()
-    {
-        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[2], new Vector3(100f, 0f, 100f), Quaternion.identity);
-
-        return gameObject;
-    }
-
-    void GetTNT(GameObject gameObject)
-    {
-
-        gameObject.SetActive(true);
-
-    }
-    void ReleaseTNT(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-
-    }
-    void DestroyTNT(GameObject gameObject)
-    {
-
-        Destroy(gameObject);
-    }
-
-    public GameObject CreateSkeleton()
-    {
-        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[3], new Vector3(100f, 0f, 100f), Quaternion.identity);
-
-        return gameObject;
-    }
-
-    void GetSkeleton(GameObject gameObject)
-    {
-
-        gameObject.SetActive(true);
-
-    }
-    void ReleaseSkeleton(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-
-    }
-    void DestroySkeleton(GameObject gameObject)
-    {
-
-        Destroy(gameObject);
-    }
-
-
-    public GameObject CreateArrow()
-    {
-        GameObject gameObject = Instantiate(EntityBeh.worldEntityTypes[4], new Vector3(100f, 0f, 100f), Quaternion.identity);
-
-        return gameObject;
-    }
-
-    void GetArrow(GameObject gameObject)
-    {
-
-        gameObject.SetActive(true);
-
-    }
-    void ReleaseArrow(GameObject gameObject)
-    {
-        gameObject.SetActive(false);
-
-    }
-    void DestroyArrow(GameObject gameObject)
-    {
-
-        Destroy(gameObject);
-    }
 }

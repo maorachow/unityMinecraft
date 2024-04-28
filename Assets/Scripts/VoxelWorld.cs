@@ -1,25 +1,34 @@
 using MessagePack;
 using Priority_Queue;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
-
+using UnityEngine.Pool;
 public class VoxelWorld
 {
     public static GameObject chunkPrefab;
+    public static GameObject particlePrefab;
+    public static GameObject itemPrefab;
+    public static GameObject pointLightPrefab;
     public static MessagePackSerializerOptions lz4Options = MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
-    public static List<VoxelWorld> worlds = new List<VoxelWorld>();
+    public static List<VoxelWorld> worlds = new List<VoxelWorld> { 
+    new VoxelWorld("world.json",0,0),
+    new VoxelWorld("worldender.json",2,1)
+    };
+    public static bool isWorldChanged = false;
+    public int worldID = 0;
 
-
-    public Dictionary<Vector2Int, Chunk> chunks = new Dictionary<Vector2Int, Chunk>();
+    public ConcurrentDictionary<Vector2Int, Chunk> chunks = new ConcurrentDictionary<Vector2Int, Chunk>();
     public ConcurrentDictionary<Vector2Int, WorldData> chunkDataReadFromDisk = new ConcurrentDictionary<Vector2Int, WorldData>();
     public static string gameWorldDataPath;
     public string curWorldSaveName="default.json";
     public int worldGenType = 0;
-    public static VoxelWorld currentWorld;
+    public static VoxelWorld currentWorld=worlds[0];
 
     public SimplePriorityQueue<Vector2Int> chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
     public SimplePriorityQueue<ChunkLoadingQueueItem> chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
@@ -31,8 +40,14 @@ public class VoxelWorld
     public bool isFastChunkLoadingEnabled = false;
     public FastNoise noiseGenerator = new FastNoise();
     public FastNoise biomeNoiseGenerator = new FastNoise();
+    public FastNoise frequentNoiseGenerator = new FastNoise();
+    public Task updateAllChunkLoadersThread;
+    public Task tryReleaseChunksThread;
+    public Task tryUpdateChunksThread;
+    public Action actionOnSwitchedWorld;
     public Chunk GetChunk(Vector2Int chunkPos)
     {
+     //   Debug.Log(VoxelWorld.currentWorld.chunks.Count);
         if (chunks.ContainsKey(chunkPos))
         {
             Chunk tmp = chunks[chunkPos];
@@ -51,12 +66,15 @@ public class VoxelWorld
         while (true)
         {
             Thread.Sleep(50);
-            if (WorldManager.isGoingToQuitGame == true)
+         //   Debug.Log("run");   
+            
+            if (VoxelWorld.currentWorld.isGoingToQuitWorld == true)
             {
                 return;
             }
             foreach (var cl in allChunkLoaders)
             {
+           //     Debug.Log(cl.chunkLoadingCenter);
                 if (cl.isChunksNeedLoading == true)
                 {
                     cl.TryUpdateWorldThread();
@@ -64,6 +82,7 @@ public class VoxelWorld
 
             }
         }
+      
     }
     public void TryReleaseChunkThread()
     {
@@ -166,10 +185,11 @@ public class VoxelWorld
 
 
     int blockedDisablingCount = 0;
-   
 
-    void DisableChunks()
+
+    public void DisableChunks()
     {
+     //   Debug.Log("disable");
         //  Debug.Log(chunkUnloadingQueue.Count);
         if (chunkUnloadingQueue.Count > 0)
         {
@@ -215,7 +235,7 @@ public class VoxelWorld
 
 
 
-    void SpawnChunks()
+   public void SpawnChunks()
     {
         //  (var c in chunkSpawningQueue){
         //     await Task.Delay(20);
@@ -375,7 +395,7 @@ public class VoxelWorld
         {
             chunkDataReadFromDisk = MessagePackSerializer.Deserialize<ConcurrentDictionary<Vector2Int, WorldData>>(worldData, lz4Options);
         }
-
+        Debug.Log("saved chunks count:"+chunkDataReadFromDisk.Count);
         isJsonReadFromDisk = true;
         biomeNoiseGenerator.SetSeed(20000);
         biomeNoiseGenerator.SetFrequency(0.008f);
@@ -416,7 +436,7 @@ public class VoxelWorld
             //   File.AppendAllText(Application.dataPath+"/GameData/world.json",tmpData+"\n");
             c.Value.SaveSingleChunk(this);
         }
-        Debug.Log(chunkDataReadFromDisk.Count);
+        Debug.Log("saving chunks count:"+chunkDataReadFromDisk.Count);
         //    foreach(KeyValuePair<Vector2Int,WorldData> wd in chunkDataReadFromDisk){
         //  string tmpData=JsonSerializer.ToJsonString(wd.Value);
         //  File.AppendAllText(gameWorldDataPath+"unityMinecraftData/GameData/world.json",tmpData+"\n");
@@ -426,40 +446,273 @@ public class VoxelWorld
         isWorldDataSaved = true;
     }
 
-    public VoxelWorld(string curWorldSaveName,int worldGenType)
+    public VoxelWorld(string curWorldSaveName,int worldGenType, int worldID)
     {
         this.curWorldSaveName = curWorldSaveName;
         this.worldGenType = worldGenType;
+        this.worldID = worldID;
     }
 
     public void InitChunkLoader()
     {
         allChunkLoaders.Clear();
     }
-    public void InitWorld()
+   
+    public ObjectPool<GameObject> creeperEntityPool;
+    public ObjectPool<GameObject> zombieEntityPool;
+    public ObjectPool<GameObject> tntEntityPool;
+    public ObjectPool<GameObject> skeletonEntityPool;
+    public ObjectPool<GameObject> arrowEntityPool;
+    public ObjectPool<GameObject> particleEffectPool;
+    public MyItemObjectPool itemEntityPool = new MyItemObjectPool();
+    public static bool initObjects=InitObjects();
+    public static bool InitObjects()
     {
-
-        InitChunkLoader();
         chunkPrefab = Resources.Load<GameObject>("Prefabs/chunk");
-
+        pointLightPrefab = Resources.Load<GameObject>("Prefabs/chunkpointlightprefab");
+        particlePrefab = Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
+        itemPrefab = Resources.Load<GameObject>("Prefabs/itementity");
+        
+        return true;
+    }
+    public void InitObjectPools()
+    {
+    /*    chunkPrefab = Resources.Load<GameObject>("Prefabs/chunk");
+        pointLightPrefab = Resources.Load<GameObject>("Prefabs/chunkpointlightprefab");
+        particlePrefab = Resources.Load<GameObject>("Prefabs/blockbreakingparticle");
+        itemPrefab = Resources.Load<GameObject>("Prefabs/itementity");*/
+        
         chunkPool.Object = chunkPrefab;
+      //  Debug.Log(chunkPool.Object);
         chunkPool.maxCount = 3000;
         chunkPool.Init();
+
+        itemEntityPool.Object = itemPrefab;
+    //    Debug.Log(itemEntityPool.Object);
+        itemEntityPool.maxCount = 300;
+        itemEntityPool.Init();
+        particleEffectPool = new ObjectPool<GameObject>(CreateEffect, GetEffect, ReleaseEffect, DestroyEffect, true, 10, 300);
+        creeperEntityPool = new ObjectPool<GameObject>(CreateCreeper, GetCreeper, ReleaseCreeper, DestroyCreeper, true, 10, 300);
+        zombieEntityPool = new ObjectPool<GameObject>(CreateZombie, GetZombie, ReleaseZombie, DestroyZombie, true, 10, 300);
+        tntEntityPool = new ObjectPool<GameObject>(CreateTNT, GetTNT, ReleaseTNT, DestroyTNT, true, 10, 300);
+        skeletonEntityPool = new ObjectPool<GameObject>(CreateSkeleton, GetSkeleton, ReleaseSkeleton, DestroySkeleton, true, 10, 300);
+        arrowEntityPool = new ObjectPool<GameObject>(CreateArrow, GetArrow, ReleaseArrow, DestroyArrow, true, 10, 300);
+    }
+
+    public GameObject CreateEffect()
+    {
+        GameObject gameObject = GameObject.Instantiate(particlePrefab,new Vector3(0,100,0), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetEffect(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseEffect(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyEffect(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+
+
+
+    public GameObject CreateCreeper()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[0], new Vector3(0, 100, 0), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetCreeper(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseCreeper(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyCreeper(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+    public GameObject CreateZombie()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[1], new Vector3(100f, 0f, 100f), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetZombie(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseZombie(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyZombie(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+
+    public GameObject CreateTNT()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[2], new Vector3(100f, 0f, 100f), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetTNT(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseTNT(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyTNT(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+
+    public GameObject CreateSkeleton()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[3], new Vector3(100f, 0f, 100f), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetSkeleton(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseSkeleton(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroySkeleton(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+
+
+    public GameObject CreateArrow()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[4], new Vector3(100f, 0f, 100f), Quaternion.identity);
+
+        return gameObject;
+    }
+
+    void GetArrow(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseArrow(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyArrow(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
+
+
+    public void ReInitEntityPlayerPosition()
+    {
+        ZombieBeh.isZombiePrefabLoaded = false;
+        SkeletonBeh.isSkeletonPrefabLoaded = false;  
+        CreeperBeh.isCreeperPrefabLoaded = false;
+       
+    }
+    public void InitWorld()
+    {
+        Debug.Log("current world ID:" + worldID);
+         
+        
+        int playerInWorldID=0;
+        if (isWorldChanged == true)
+        {
+         playerInWorldID = PlayerMove.instance.ReadPlayerJson(true);
+        }
+        else
+        {
+          playerInWorldID = PlayerMove.instance.ReadPlayerJson();
+
+            if (playerInWorldID != worldID)
+            {
+
+                return;
+            }
+        }
+       
+       
+      
+        // InitChunkPool();
+       
+        ReInitEntityPlayerPosition();
         ReadJson();
         chunks.Clear();
-
+       
+        EntityBeh.ReadEntityJson();
+        EntityBeh.SpawnEntityFromFile();
+        ItemEntityBeh.ReadItemEntityJson();
+        ItemEntityBeh.SpawnItemEntityFromFile();
         chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
         chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
         chunkUnloadingQueue = new SimplePriorityQueue<Vector2Int>();
         isGoingToQuitWorld = false;
+        updateAllChunkLoadersThread = Task.Run(() => VoxelWorld.currentWorld.TryUpdateAllChunkLoadersThread());
+         
+        //   t2.Start();
+        tryReleaseChunksThread = Task.Run(() => VoxelWorld.currentWorld.TryReleaseChunkThread());
+        //   t3.Start();
+        tryUpdateChunksThread = Task.Run(() => VoxelWorld.currentWorld.TryUpdateChunkThread());
+        if(actionOnSwitchedWorld != null)
+        {
+        actionOnSwitchedWorld();
+            actionOnSwitchedWorld=null;
+        }
+        
 
     }
 
     public void DestroyAllChunks()
     {
-        foreach (var cKvp in Chunk.Chunks)
+        
+        foreach (var cKvp in chunks)
         {
             var c = cKvp.Value;
+            lock(c.taskLock)
+            {
             c.leftChunk = null;
             c.rightChunk = null;
             c.frontChunk = null;
@@ -468,16 +721,39 @@ public class VoxelWorld
             c.backRightChunk = null;
             c.frontLeftChunk = null;
             c.frontRightChunk = null;
-            c = null;
+       //     GameObject.Destroy(c.gameObject); 
+                c = null;
+            }
+            
+         
+           
+          
         }
         chunks.Clear();
+    }
+    public static void SwitchToWorldWithoutSaving(int worldIndex)
+    {
+        if (worldIndex >= worlds.Count)
+        {
+            Debug.Log("invalid index");
+            return;
+        }
+        isWorldChanged = true;
+        currentWorld = worlds[worldIndex];
     }
     public void SaveAndQuitWorld()
     {
 
+       // PlayerMove player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMove>();
+        PlayerMove.instance.SavePlayerData();
+      
+        EntityBeh.SaveWorldEntityData();
+        ItemEntityBeh.SaveWorldItemEntityData();
         SaveWorldData();
         DestroyAllChunks();
-   //     chunks.Clear();
+      
+        //     chunks.Clear();
+        isGoingToQuitWorld = true;
 
     }
     public static void SwitchToWorld(int worldIndex)
@@ -487,8 +763,11 @@ public class VoxelWorld
             Debug.Log("invalid index");
             return;
         }
+      
+        isWorldChanged =true;
         currentWorld.SaveAndQuitWorld();
+        
         currentWorld = worlds[worldIndex];
-        currentWorld.InitWorld();
+    //    currentWorld.InitWorld();
     }
 }

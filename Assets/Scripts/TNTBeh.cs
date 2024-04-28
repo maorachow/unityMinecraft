@@ -36,7 +36,7 @@ public class TNTBeh : MonoBehaviour
         if (fuseTime < 0)
         {
             Explode();
-            ObjectPools.tntEntityPool.Release(gameObject);
+            VoxelWorld.currentWorld.tntEntityPool.Release(gameObject);
         }
     }
     private void OnDisable()

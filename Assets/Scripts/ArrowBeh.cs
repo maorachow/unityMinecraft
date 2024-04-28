@@ -57,7 +57,7 @@ public class ArrowBeh : MonoBehaviour
        
          lifeTime += Time.deltaTime;
         if(lifeTime > 20f) {
-            ObjectPools.arrowEntityPool.Release(this.gameObject);
+            VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
         }
     }
    
@@ -113,7 +113,7 @@ public class ArrowBeh : MonoBehaviour
         }
         if(c.gameObject.layer!=0&&c.gameObject.layer!=8)
         {
-        ObjectPools.arrowEntityPool.Release(this.gameObject);
+            VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
         }
        
     }

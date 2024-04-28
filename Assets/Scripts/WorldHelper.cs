@@ -202,7 +202,7 @@ public class WorldHelper:IWorldHelper{
             chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
     }
     public void BreakBlockAtPoint(Vector3 blockPoint){
-            GameObject a=ObjectPools.particleEffectPool.Get();
+            GameObject a= VoxelWorld.currentWorld.particleEffectPool.Get();
             a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
             a.GetComponent<particleAndEffectBeh>().blockID=WorldHelper.instance.GetBlock(blockPoint);
             a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
@@ -237,6 +237,9 @@ public class WorldHelper:IWorldHelper{
 
     public static int PreCalculateChunkMaxHeight(Vector2Int chunkPos)
     {
+        switch (VoxelWorld.currentWorld.worldGenType)
+        {
+            case 0:
         float[,] chunkRawHeight =Chunk. GetRawChunkHeightmap(chunkPos);
         float maxValue = 0f;
         foreach(float x in chunkRawHeight)
@@ -244,5 +247,13 @@ public class WorldHelper:IWorldHelper{
             if (x > maxValue) { maxValue = x; }
         }
         return (int)maxValue;
+                break;
+                case 1:
+
+                return Chunk.chunkSeaLevel;
+                break;
+                default: return Chunk.chunkSeaLevel;
+        }
+       
     }
 }

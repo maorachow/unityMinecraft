@@ -9,7 +9,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     
     public int curFootBlockID;
     public int prevFootBlockID;
-    public Transform playerPosition;
+    public static Transform playerPosition;
     public AudioSource AS;
     public static AudioClip creeperHurtClip;
     public static GameObject diedCreeperPrefab;
@@ -46,12 +46,14 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         entityHealth=20f;
         isCreeperDied=false;
         if(isCreeperPrefabLoaded==false){
-            creeperHurtClip=Resources.Load<AudioClip>("Audios/Creeper_say2");
+            isCreeperPrefabLoaded = true;
+            creeperHurtClip =Resources.Load<AudioClip>("Audios/Creeper_say2");
                 diedCreeperPrefab=Resources.Load<GameObject>("Prefabs/diedcreeper");
                 explosionPrefab=Resources.Load<GameObject>("Prefabs/creeperexploeffect");
-                isCreeperPrefabLoaded=true;
+            playerPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+              
         }
-        playerPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+       
         headTransform=transform.GetChild(1);
         entityFacingPos=transform.rotation.eulerAngles;
     
@@ -118,7 +120,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         GameObject a=Instantiate(explosionPrefab,new Vector3(transform.position.x,transform.position.y+0.5f,transform.position.z),transform.rotation);
         Destroy(a,2f);
         cc.enabled=false;
-           ObjectPools.creeperEntityPool.Release(gameObject);
+           VoxelWorld.currentWorld.creeperEntityPool.Release(gameObject);
     }
     public void DieWithKnockback(Vector3 knockback){
          AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
@@ -148,7 +150,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         //     cc.enabled=true;
         Destroy(diedCreeperTrans.gameObject, 30f);
         ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 155, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
-        ObjectPools.creeperEntityPool.Release(gameObject);
+         VoxelWorld.currentWorld.creeperEntityPool.Release(gameObject);
        
     }
 
@@ -395,7 +397,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
       
    //      seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
         if(position.y<-40f){
-           ObjectPools.creeperEntityPool.Release(gameObject);
+            VoxelWorld.currentWorld.creeperEntityPool.Release(gameObject);
         }
             
       

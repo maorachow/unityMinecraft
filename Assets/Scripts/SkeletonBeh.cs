@@ -18,7 +18,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     public Animator am;
     public Transform headTransform;
     public EntityBeh entity;
-    public bool isSkeletonPrefabLoaded=false;
+    public static bool isSkeletonPrefabLoaded=false;
     public CharacterController cc;
     public bool isSkeletonDied = false;
     public Transform currentTrans;
@@ -96,7 +96,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         cc.enabled = true;
         Destroy(diedSkeletonTrans.gameObject, 30f);
      
-        ObjectPools.skeletonEntityPool.Release(gameObject);
+         VoxelWorld.currentWorld.skeletonEntityPool.Release(gameObject);
 
     }
 
@@ -150,6 +150,10 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             am.SetBool("attack", true);
             attackCD =2f;
             await UniTask.Delay(200);
+            if (headTransform == null)
+            {
+                return;
+            }
             Vector3 arrowPos = headTransform.position + headTransform.forward*1.3f;
             EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
@@ -304,7 +308,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
         if (currentTrans.position.y < -40f)
         {
-            ObjectPools.zombieEntityPool.Release(gameObject);
+             VoxelWorld.currentWorld.skeletonEntityPool.Release(gameObject);
         }
         if (attackCD > 0f)
         {
