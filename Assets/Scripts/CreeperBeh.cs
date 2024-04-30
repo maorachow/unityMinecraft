@@ -99,18 +99,10 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         Collider[] collider = Physics.OverlapSphere(transform.position, 6f);
         foreach(Collider c in collider){
             if(c.gameObject.tag=="Player"||c.gameObject.tag=="Entity"){
-                if(c.GetComponent<PlayerMove>()!=null){
-                    c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
-                }
-                if(c.GetComponent<CreeperBeh>()!=null){
-                    c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
-                }
-                if(c.GetComponent<ZombieBeh>()!=null){
-                    c.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
-                }
-                if (c.GetComponent<SkeletonBeh>() != null)
+                if (c.GetComponent(typeof(ILivingEntity)) != null)
                 {
-                    c.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
+                    ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
+                    livingEntity.ApplyDamageAndKnockback(10 + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
                 if (c.GetComponent<ItemEntityBeh>()!=null){
                     c.GetComponent<Rigidbody>().velocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);

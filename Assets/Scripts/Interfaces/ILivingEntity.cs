@@ -12,4 +12,5 @@ public interface ILivingEntity
     public void MoveToTarget(CharacterController cc,Vector3 pos,float dt);
     public void ApplyGravity(CharacterController cc,float gravity,float dt);
     public void EntityGroundSinkPrevent(CharacterController cc,int blockID,float dt);
+    public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback);
 }   

@@ -116,25 +116,44 @@ public class WorldManager : MonoBehaviour
         VoxelWorld.currentWorld.SpawnChunks();
         VoxelWorld.currentWorld.BuildAllChunks();
         VoxelWorld.currentWorld.DisableChunks();
-    
-  //   }
-        if(Random.Range(0f,100f)>99.7f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
+
+        //   }
+        if (VoxelWorld.currentWorld.worldID == 0)
+        {
+        if(Random.Range(0f,100f)>99.8f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
 
           EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,0);  
         }
-        if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+        if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
         {
             Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
             EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y,1);
         }
-        if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+        if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
         {
             Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
             EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y, 3);
         }
+            if (Random.Range(0f, 100f) > 99.85f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+            {
+                Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
+
+                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 1, randomSpawnPos.y, 5);
+            }
+        }
+        else if (VoxelWorld.currentWorld.worldID == 1)
+        {
+            if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+            {
+                Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
+
+                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y)+1, randomSpawnPos.y, 5);
+            }
+        }
+        
     }
    /* int blockedDisablingCount=0;
     void DisableChunks(){
@@ -357,7 +376,7 @@ void OnApplicationQuit(){
    //   }
        
   
-               if(Input.GetKeyDown(KeyCode.H)){
+   /*            if(Input.GetKeyDown(KeyCode.H)){
 
                        EntityBeh.SpawnNewEntity(0,100,0,0);
 
@@ -369,8 +388,8 @@ void OnApplicationQuit(){
 
             EntityBeh.SpawnNewEntity(0, 100, 0, 3);
       //      ItemEntityBeh.SpawnNewItem(0, 100, 0, 157, new Vector3(0, 0, 0));
-        }
-        if(Input.GetKeyDown(KeyCode.J))
+        }*/
+ /*       if(Input.GetKeyDown(KeyCode.J))
         {
             
             SceneManagementHelper. SwitchToWorldWithSceneChanged(1, 2);
@@ -393,7 +412,7 @@ void OnApplicationQuit(){
                 PlayerMove.instance.cc.enabled = true;
                 Debug.Log("action executed world 0");
             };
-        }
+        }*/
         // foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){
         //   i.AddForceInvoke(Vector3.up*10f);
         //  }

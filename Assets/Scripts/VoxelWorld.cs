@@ -462,6 +462,7 @@ public class VoxelWorld
     public ObjectPool<GameObject> zombieEntityPool;
     public ObjectPool<GameObject> tntEntityPool;
     public ObjectPool<GameObject> skeletonEntityPool;
+    public ObjectPool<GameObject> endermanEntityPool;
     public ObjectPool<GameObject> arrowEntityPool;
     public ObjectPool<GameObject> particleEffectPool;
     public MyItemObjectPool itemEntityPool = new MyItemObjectPool();
@@ -497,6 +498,7 @@ public class VoxelWorld
         tntEntityPool = new ObjectPool<GameObject>(CreateTNT, GetTNT, ReleaseTNT, DestroyTNT, true, 10, 300);
         skeletonEntityPool = new ObjectPool<GameObject>(CreateSkeleton, GetSkeleton, ReleaseSkeleton, DestroySkeleton, true, 10, 300);
         arrowEntityPool = new ObjectPool<GameObject>(CreateArrow, GetArrow, ReleaseArrow, DestroyArrow, true, 10, 300);
+        endermanEntityPool = new ObjectPool<GameObject>(CreateEnderman,GetEnderman,ReleaseEnderman,DestroyEnderman,true,10,300);
     }
 
     public GameObject CreateEffect()
@@ -645,12 +647,35 @@ public class VoxelWorld
         GameObject.Destroy(gameObject);
     }
 
+    public GameObject CreateEnderman()
+    {
+        GameObject gameObject = GameObject.Instantiate(EntityBeh.worldEntityTypes[5], new Vector3(100f, 0f, 100f), Quaternion.identity);
 
+        return gameObject;
+    }
+
+    void GetEnderman(GameObject gameObject)
+    {
+
+        gameObject.SetActive(true);
+
+    }
+    void ReleaseEnderman(GameObject gameObject)
+    {
+        gameObject.SetActive(false);
+
+    }
+    void DestroyEnderman(GameObject gameObject)
+    {
+
+        GameObject.Destroy(gameObject);
+    }
     public void ReInitEntityPlayerPosition()
     {
         ZombieBeh.isZombiePrefabLoaded = false;
         SkeletonBeh.isSkeletonPrefabLoaded = false;  
         CreeperBeh.isCreeperPrefabLoaded = false;
+        EndermanBeh.isEndermanPrefabLoaded = false;
        
     }
     public void InitWorld()

@@ -252,6 +252,7 @@ public class Chunk : MonoBehaviour
         blockAudioDic.TryAdd(10,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(11,Resources.Load<AudioClip>("Audios/Sand_dig1"));
         blockAudioDic.TryAdd(12, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(13, Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(100,Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(101,Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockAudioDic.TryAdd(102,Resources.Load<AudioClip>("Audios/Wood_dig1"));
@@ -270,6 +271,7 @@ public class Chunk : MonoBehaviour
         blockInfo.TryAdd(10,new List<Vector2>{new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f),new Vector2(0.5625f,0f)});
         blockInfo.TryAdd(11,new List<Vector2>{new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f)});
         blockInfo.TryAdd(12, new List<Vector2> { new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f) });
+        blockInfo.TryAdd(13, new List<Vector2> { new Vector2(0.75f, 0f), new Vector2(0.75f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.8125f, 0f), new Vector2(0.75f, 0f), new Vector2(0.75f, 0f) });
         itemBlockInfo.Clear();
         itemBlockInfo.TryAdd(1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)});
         itemBlockInfo.TryAdd(2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)});
@@ -283,6 +285,7 @@ public class Chunk : MonoBehaviour
         itemBlockInfo.TryAdd(8,new List<Vector2>{new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.5f,0f),new Vector2(0.25f,0f),new Vector2(0.25f,0f)});
         itemBlockInfo.TryAdd(11,new List<Vector2>{new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f),new Vector2(0.625f,0f)});
         itemBlockInfo.TryAdd(12, new List<Vector2> { new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f) });
+        itemBlockInfo.TryAdd(13, new List<Vector2> { new Vector2(0.75f, 0f), new Vector2(0.75f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.8125f, 0f), new Vector2(0.75f, 0f), new Vector2(0.75f, 0f) });
         itemBlockInfo.TryAdd(9,new List<Vector2>{new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f),new Vector2(0.4375f,0f)});
         itemBlockInfo.TryAdd(156, new List<Vector2> { new Vector2(320f/1024f, 128f/1024f), new Vector2(320f / 1024f, 128f / 1024f), new Vector2(448f / 1024f, 128f / 1024f), new Vector2(384f / 1024f, 128f / 1024f), new Vector2(320f / 1024f, 128f / 1024f), new Vector2(320f / 1024f, 128f / 1024f) });
         isBlockInfoAdded =true;

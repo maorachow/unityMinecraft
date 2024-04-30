@@ -57,7 +57,7 @@ public class EntityBeh : MonoBehaviour
 {
     public Chunk currentChunk;
     public static Dictionary<int,GameObject> worldEntityTypes=new Dictionary<int,GameObject>(); 
-    //0Creeper 1zombie 2tnt 3skeleton 4arrow
+    //0Creeper 1zombie 2tnt 3skeleton 4arrow 5enderman
     public CharacterController cc;
     public static bool isEntitiesLoad=false;
     public static string gameWorldEntityDataPath;
@@ -219,6 +219,15 @@ public class EntityBeh : MonoBehaviour
 
              //   e.GetComponent<ArrowBeh>().isPosInited = true;
                 return e.GetComponent<EntityBeh>();
+                case 5:
+                GameObject f = VoxelWorld.currentWorld.endermanEntityPool.Get();
+                f.transform.position = new Vector3(posX, posY, posZ);
+              
+                f.GetComponent<EntityBeh>().entityTypeID = entityID;
+                f.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                f.GetComponent<EndermanBeh>().SendMessage("InitPos");
+                //   e.GetComponent<ArrowBeh>().isPosInited = true;
+                return f.GetComponent<EntityBeh>();
             default: return null;
         }
         
@@ -274,7 +283,19 @@ public class EntityBeh : MonoBehaviour
                     e.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID;
                     e.GetComponent<EntityBeh>().guid = ed.guid;
                     break;
-            }}
+
+                    case 5:
+                        GameObject f = VoxelWorld.currentWorld.endermanEntityPool.Get();
+                        f.transform.position = new Vector3(ed.posX, ed.posY, ed.posZ);
+                        f.transform.rotation = Quaternion.Euler(ed.rotationX, ed.rotationY, ed.rotationZ);
+                        f.GetComponent<EntityBeh>().entityTypeID = ed.entityTypeID ;
+                        f.GetComponent<EntityBeh>().guid = ed.guid;
+                        f.GetComponent<EndermanBeh>().SendMessage("InitPos");
+                     
+                        break;
+                        
+                }
+            }
             
 
 
@@ -287,6 +308,7 @@ public class EntityBeh : MonoBehaviour
         worldEntityTypes.TryAdd(2, Resources.Load<GameObject>("Prefabs/tnt"));
         worldEntityTypes.TryAdd(3, Resources.Load<GameObject>("Prefabs/skeleton"));
         worldEntityTypes.TryAdd(4, Resources.Load<GameObject>("Prefabs/arrow"));
+        worldEntityTypes.TryAdd(5, Resources.Load<GameObject>("Prefabs/enderman"));
         isEntitiesLoad =true;
        
     }

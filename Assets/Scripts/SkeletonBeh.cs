@@ -94,6 +94,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         diedSkeletonTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
         diedSkeletonTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
         cc.enabled = true;
+       
         Destroy(diedSkeletonTrans.gameObject, 30f);
      
          VoxelWorld.currentWorld.skeletonEntityPool.Release(gameObject);

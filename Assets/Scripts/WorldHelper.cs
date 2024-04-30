@@ -142,13 +142,14 @@ public class WorldHelper:IWorldHelper{
         Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
         chunkSpacePos.x=Mathf.Clamp(chunkSpacePos.x,0,chunkWidth-1);
         chunkSpacePos.y=Mathf.Clamp(chunkSpacePos.y,0,chunkWidth-1);
-  
+        int landingPointHeight = 100;
         for(int i=chunkHeight-2;i>1;i--){
             if(locChunk.map[chunkSpacePos.x,i-1,chunkSpacePos.y]!=0){
-                return i;
+                landingPointHeight = i; break;
             }
         }
-        return 100;
+   //     Debug.Log("chunk landing point height:" + landingPointHeight);
+        return landingPointHeight;
     }
   
     public short GetBlock(Vector3 pos){
@@ -250,9 +251,9 @@ public class WorldHelper:IWorldHelper{
                 break;
                 case 1:
 
-                return Chunk.chunkSeaLevel;
+                return 150;
                 break;
-                default: return Chunk.chunkSeaLevel;
+                default: return 150;
         }
        
     }

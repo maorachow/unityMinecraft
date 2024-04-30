@@ -95,11 +95,16 @@ public class ArrowBeh : MonoBehaviour
         {
             return;
         }
+        if (c.GetComponent(typeof(ILivingEntity)) != null)
+        {
+            ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
+            livingEntity.ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+        }
         if (c.GetComponent<PlayerMove>() != null)
         {
             c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
         }
-        if (c.GetComponent<CreeperBeh>() != null)
+  /*      if (c.GetComponent<CreeperBeh>() != null)
         {
             c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
         }
@@ -111,7 +116,11 @@ public class ArrowBeh : MonoBehaviour
         {
             c.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
         }
-        if(c.gameObject.layer!=0&&c.gameObject.layer!=8)
+        if (c.GetComponent<EndermanBeh>() != null)
+        {
+            c.GetComponent<EndermanBeh>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+        }*/
+        if (c.gameObject.layer!=0&&c.gameObject.layer!=8)
         {
             VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
         }

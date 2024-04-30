@@ -49,6 +49,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(9, "Leaves");
         blockNameDic.Add(11, "Sand");
         blockNameDic.Add(12, "End Stone");
+        blockNameDic.Add(13, "Enderworld Portal");
         blockNameDic.Add(100, "Water");
         blockNameDic.Add(101, "Grass Crop");
         blockNameDic.Add(102, "Torch");
@@ -61,11 +62,15 @@ public class GameUIBeh : MonoBehaviour
         //     isBlockNameDicAdded=true;
         //     }
     }
-    void Start(){
-        if (instance == null)
+    private void Awake()
+    {
+         if (instance == null)
         {
         instance=this;
         }
+    }
+    void Start(){
+       
      
     
     //    DontDestroyOnLoad(gameObject);
@@ -89,6 +94,7 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/leaves"));
     blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/sand"));
         blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/end_stone"));
+        blockImageDic.TryAdd(13, Resources.Load<Sprite>("Textures/endframe_top"));
         blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
     blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));

@@ -13,6 +13,8 @@ using Unity.Burst;
 using Cysharp.Threading.Tasks;
 using System;
 using Random=UnityEngine.Random;
+ 
+
 [MessagePackObject]
 public class PlayerData{
     [Key(0)]
@@ -50,6 +52,7 @@ public class PlayerMove : MonoBehaviour
     public static AudioClip playerEatClip;
     public static AudioClip playerDropItemClip;
     public static AudioClip playerSweepAttackClip;
+    public static AudioClip playerEnterPortalClip;
     public AudioSource AS;
     public float playerCameraZShakeValue;
     public float playerCameraZShakeLerpValue;
@@ -101,6 +104,8 @@ public class PlayerMove : MonoBehaviour
     public int curHeadBlockID;
     public int prevHeadBlockID;
     public int curFootBlockID;
+    public int curUnderFootBlockID;
+    public int prevUnderFootBlockID;
     public int prevFootBlockID;
     public float playerMoveDrag=0f;
     public bool isPlayerInGround=false;
@@ -111,6 +116,7 @@ public class PlayerMove : MonoBehaviour
     public SimpleAxisAlignedBB playerBound;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> blocksAround;
     public static PlayerMove instance;
+    public float playerTeleportingCD = 0f;
     public Dictionary<Vector3Int,SimpleAxisAlignedBB> GetBlocksAround(SimpleAxisAlignedBB aabb){
       
             int minX = floorFloat(aabb.getMinX()-0.1f);
@@ -248,6 +254,7 @@ public class PlayerMove : MonoBehaviour
         playerSinkClip2=Resources.Load<AudioClip>("Audios/Exiting_water");
         playerHandItem=transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject.GetComponent<ItemOnHandBeh>();
         playerSweepAttackClip=Resources.Load<AudioClip>("Audios/Sweep_attack1");
+        playerEnterPortalClip = Resources.Load<AudioClip>("Audios/Nether_Portal_trigger");
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
         blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
@@ -263,7 +270,7 @@ public class PlayerMove : MonoBehaviour
         transform.GetChild(0).localPosition=new Vector3(0f,0f,0f);
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
         //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
-       
+        GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
     }
 
 
@@ -559,6 +566,10 @@ public class PlayerMove : MonoBehaviour
             collidingBlockOutline.transform.position=new Vector3(WorldHelper.instance.Vec3ToBlockPos(blockPoint2).x+0.5f,WorldHelper.instance.Vec3ToBlockPos(blockPoint2).y+0.5f,WorldHelper.instance.Vec3ToBlockPos(blockPoint2).z+0.5f);
             blockOutline.GetComponent<MeshRenderer>().enabled=false;
             collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
+            if (info.collider.GetComponent<EndermanBeh>() != null)
+            {
+                info.collider.GetComponent<EndermanBeh>().isTargetingPlayer = true;
+            }
         }else{
              blockOutline.GetComponent<MeshRenderer>().enabled=false;
             collidingBlockOutline.GetComponent<MeshRenderer>().enabled=false;
@@ -809,7 +820,10 @@ public class PlayerMove : MonoBehaviour
         }
    // Debug.Log(finalMoveVec);
    curFootBlockID=WorldHelper.instance.GetBlock(transform.position+new Vector3(0f,-0.2f,0f),curChunk);
-   curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position,curChunk);
+   curUnderFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f, -1.2f, 0f), curChunk);
+   curHeadBlockID =WorldHelper.instance.GetBlock(cameraPos.position,curChunk);
+   //     Debug.Log("block ID:"+ curUnderFootBlockID);
+     //   Debug.Log(curChunk.ToString());
    if(curHeadBlockID!=prevHeadBlockID){
 
         GlobalVolumeWaterEffectBeh.instance.SwitchEffects(curHeadBlockID==100);
@@ -828,12 +842,34 @@ public class PlayerMove : MonoBehaviour
             gravity=-9.8f;
             playerMoveDrag=0f;
         }
+           
     }
+    if(curUnderFootBlockID!=prevUnderFootBlockID)
+        {
+        if (curUnderFootBlockID == 13)
+            {
+                AudioSource.PlayClipAtPoint(playerEnterPortalClip,transform.position);
+            }
+        }
    prevFootBlockID=curFootBlockID;
-  //      TryStrongLoadChunkThread();
-     playerChunkLoadingPos=new Vector2(transform.position.x,transform.position.z);
+        prevUnderFootBlockID = curUnderFootBlockID;
+     //      TryStrongLoadChunkThread();
+     playerChunkLoadingPos =new Vector2(transform.position.x,transform.position.z);
          UpdateInventory();
-        
+
+        if (curUnderFootBlockID == 13)
+        {
+            
+            PlayerTryTeleportToEnderWorld();
+        }
+        else
+        {
+            if (playerTeleportingCD > 0f)
+            {
+            playerTeleportingCD -=Time.deltaTime;
+            }
+          
+        }
         
     }
     public void DropItemButtonOnClick(){
@@ -869,6 +905,51 @@ public class PlayerMove : MonoBehaviour
             }
         
        }
+    }
+    public void PlayerTryTeleportToEnderWorld()
+    {
+
+        if (playerTeleportingCD >= 4f)
+        {
+            switch (VoxelWorld.currentWorld.worldID)
+            {
+                case 0:
+                SceneManagementHelper.SwitchToWorldWithSceneChanged(1,2);
+            VoxelWorld.worlds[1].actionOnSwitchedWorld = delegate () {
+
+                PlayerMove.instance.cc.enabled = false;
+                PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
+                PlayerMove.instance.cc.enabled = true;
+                Debug.Log("action executed");
+            };
+                    break;
+                    case 1:
+                    SceneManagementHelper.SwitchToWorldWithSceneChanged(0, 1);
+                    VoxelWorld.worlds[0].actionOnSwitchedWorld = delegate () {
+
+                        PlayerMove.instance.cc.enabled = false;
+                        PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
+                        PlayerMove.instance.cc.enabled = true;
+                        Debug.Log("action executed world 0");
+                    };
+                    break;
+                    default:
+                    SceneManagementHelper.SwitchToWorldWithSceneChanged(0, 1);
+                    VoxelWorld.worlds[0].actionOnSwitchedWorld = delegate () {
+
+                        PlayerMove.instance.cc.enabled = false;
+                        PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
+                        PlayerMove.instance.cc.enabled = true;
+                        Debug.Log("action executed world 0");
+                    };
+                    break;
+            }
+            playerTeleportingCD = 0f;
+        }
+        else
+        {
+            playerTeleportingCD += Time.deltaTime;
+        }
     }
    /*public void TryUpdateWorldThread(){
         while(true){
@@ -1068,6 +1149,23 @@ public class PlayerMove : MonoBehaviour
             {
                 go.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
             }
+        }
+
+        if (go.GetComponent<EndermanBeh>() != null)
+        {
+            if (inventoryDic[currentSelectedHotbar - 1] == 152)
+            {
+                go.GetComponent<EndermanBeh>().ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
+            }
+            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
+            {
+                go.GetComponent<EndermanBeh>().ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
+            }
+            else
+            {
+                go.GetComponent<EndermanBeh>().ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
+            }
+            go.GetComponent<EndermanBeh>().isTargetingPlayer = true;
         }
     }
    async void LeftClick(){
@@ -1298,6 +1396,7 @@ public class PlayerMove : MonoBehaviour
             inventoryItemNumberDic = new int[9];
 
         }
+      
         return pd.playerInWorldID;
     }
 
