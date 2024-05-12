@@ -13,7 +13,10 @@ using Unity.Burst;
 using Cysharp.Threading.Tasks;
 using System;
 using Random=UnityEngine.Random;
- 
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
+using UnityEngine.Events;
+
 
 [MessagePackObject]
 public class PlayerData{
@@ -56,7 +59,7 @@ public class PlayerMove : MonoBehaviour
     public AudioSource AS;
     public float playerCameraZShakeValue;
     public float playerCameraZShakeLerpValue;
-    public PlayerInput pi; 
+     
     public float playerHealth=20f;
     public float playerMaxHealth=20f;
     public Chunk curChunk;
@@ -85,7 +88,7 @@ public class PlayerMove : MonoBehaviour
     public static float gravity=-9.8f;
     public float playerY=0f;
     public float jumpHeight=2;
-    public static float mouseSens=1f;
+ 
     public static float cameraFOV=90f;
     public float currentSpeed;
     public Vector3 playerVec;
@@ -212,7 +215,7 @@ public class PlayerMove : MonoBehaviour
         curChunk=null;
     }
     public void SetHotbarNum(int num){
-        
+        Debug.Log(num);
         currentSelectedHotbar=num;
         if(blockOnHandText==null){
             blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
@@ -243,8 +246,8 @@ public class PlayerMove : MonoBehaviour
         curChunkLoader=GetComponent<ChunkLoaderBase>();
         curChunkLoader.AddChunkLoaderToList();
         
-        pi=new PlayerInput();
-        pi.Enable();
+    //    pi=new PlayerInput();
+    //    pi.Enable();
          Input.multiTouchEnabled = true;
         AS=GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
@@ -271,6 +274,16 @@ public class PlayerMove : MonoBehaviour
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
         //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        PlayerInputBeh.instance.switchCameraPosAction = SwitchCameraPosAction;
+        PlayerInputBeh.instance.pauseOrResumeAction = PauseOrResume;
+        PlayerInputBeh.instance.dropItemButtonAction = DropItemButtonOnClick;
+        PlayerInputBeh.instance.selectHotbarButtonAction = SetHotbarNum;
+        PlayerInputBeh.instance.openInventoryButtonAction = OpenOrCloseCraftingUI;
+        PlayerInputBeh.instance.playerLeftClickActions.Add(MouseLock);
+        PlayerInputBeh.instance.playerLeftClickActions.Add(BreakBlockButtonPress);
+
+        PlayerInputBeh.instance.playerRightClickActions.Add(PlaceBlockButtonPress);
+        PlayerInputBeh.instance.AddButtonActions();
     }
 
 
@@ -281,12 +294,16 @@ public class PlayerMove : MonoBehaviour
   //  }
     void MouseLock()
     {
+        if (WorldManager.platform == RuntimePlatform.Android || WorldManager.platform == RuntimePlatform.IPhonePlayer || MobileButtonHideBeh.isHidingButton == false)
+        {
+            return;
+        }
         if(isPlayerKilled==true||GameUIBeh.isPaused==true||GameUIBeh.instance.isCraftingMenuOpened==true){
             return;
         }
-        if(pi.Player.LeftClick.ReadValue<float>()>0.5f){
+        
          Cursor.lockState = CursorLockMode.Locked;   
-        }
+         
     
     }
 
@@ -489,24 +506,32 @@ public class PlayerMove : MonoBehaviour
             GameUIBeh.instance.OpenCraftingUI();  
             }
     }
+    public void SwitchCameraPosAction()
+    {
+        cameraPosMode++;
+        if (cameraPosMode >= 3)
+        {
+            cameraPosMode = 0;
+        }
+    }
     void Update()
     {     
       
-          if(Input.GetKeyDown(KeyCode.Escape)){
+      /*    if(Input.GetKeyDown(KeyCode.Escape)){
             PauseOrResume();
-          }
+          }*/
         
         if(GameUIBeh.isPaused==true){
             return;
         }
-        if(Input.GetKeyDown(KeyCode.E)){
+   /*     if(Input.GetKeyDown(KeyCode.E)){
           
             OpenOrCloseCraftingUI();
-          }
+          }*/
         playerCameraZShakeLerpValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
        playerCameraZShakeValue=Mathf.Lerp(playerCameraZShakeLerpValue,0f,15f*Time.deltaTime);
 
-        MouseLock();
+     
         if(currentSelectedHotbar-1>=0&&currentSelectedHotbar-1<inventoryDic.Length){
         playerHandItem.blockID=inventoryDic[currentSelectedHotbar-1];    
         }
@@ -539,7 +564,7 @@ public class PlayerMove : MonoBehaviour
  //       if(Input.GetKeyDown(KeyCode.U)){
     //            Chunk.SaveWorldData();
    //     }
-        if(pi.Player.SpeedUp.ReadValue<float>()>=0.5f){
+        if(PlayerInputBeh.instance.isPlayerSpeededUp==true){
             moveSpeed=10f;
         }else{
             moveSpeed=5f;
@@ -581,12 +606,11 @@ public class PlayerMove : MonoBehaviour
            // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
        //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
        
-            pi.Player.SwitchItemSlot.performed+=ctx=>{ 
-                lerpItemSlotAxis=pi.Player.SwitchItemSlot.ReadValue<Vector2>().y*0.5f;
-            lerpItemSlotAxis=Mathf.Lerp(lerpItemSlotAxis,1.5f,Time.deltaTime);
+         
+           
             
-                if(Mathf.Abs(pi.Player.SwitchItemSlot.ReadValue<Vector2>().y)>0f){
-                currentSelectedHotbar-=(int)pi.Player.SwitchItemSlot.ReadValue<Vector2>().y;
+                
+                currentSelectedHotbar+=(int)PlayerInputBeh.instance.switchItemSlotAxis;
                 currentSelectedHotbar=Mathf.Clamp(currentSelectedHotbar,1,9);
                 if(blockOnHandText==null){
                 blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
@@ -598,14 +622,14 @@ public class PlayerMove : MonoBehaviour
                 }
                 
         
-          } };
+          
            
-          pi.Player.SwitchCameraPos.performed+=ctx=>{
+     /*     pi.Player.SwitchCameraPos.performed+=ctx=>{
             cameraPosMode++;
             if(cameraPosMode>=3){
                 cameraPosMode=0;
             }
-          };
+          };*/
           Ray playerHeadForwardRay=new Ray(headPos.position,headPos.position+headPos.forward*5f);
             Ray playerHeadBackRay=new Ray(headPos.position,headPos.position+headPos.forward*-5f);
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
@@ -661,7 +685,7 @@ public class PlayerMove : MonoBehaviour
         
       
       
-        if((cc.isGrounded==true||curFootBlockID==100||isPlayerGrounded==true)&&pi.Player.Jump.ReadValue<float>()>=1f){
+        if((cc.isGrounded==true||curFootBlockID==100||isPlayerGrounded==true)&&PlayerInputBeh.instance.isJumping==true){
             if(curFootBlockID==100){
                 playerY=jumpHeight/2f;
             }else{
@@ -673,25 +697,9 @@ public class PlayerMove : MonoBehaviour
             playerY=Mathf.Clamp(playerY,-1f,5f);
         }
 
-         float mouseX=0f;
-        float mouseY=0f;
-        if(!GameUIBeh.instance.isCraftingMenuOpened){
-                 if(WorldManager.platform==RuntimePlatform.Android||WorldManager.platform==RuntimePlatform.IPhonePlayer){
-            for(int i=0;i<Input.touches.Length;i++){
-             EventSystem eventSystem = EventSystem.current;
-            PointerEventData pointerEventData = new PointerEventData(eventSystem);
-            pointerEventData.position = Input.touches[i].rawPosition;
-            //射线检测ui
-            List<RaycastResult> uiRaycastResultCache = new List<RaycastResult>();
-            eventSystem.RaycastAll(pointerEventData, uiRaycastResultCache);
-            if (uiRaycastResultCache.Count == 0){
-                 mouseX=Input.touches[i].deltaPosition.x*mouseSens;mouseY=Input.touches[i].deltaPosition.y*mouseSens;
-            }
-        }
-        }else{
-            mouseX=pi.Player.MouseDrag.ReadValue<Vector2>().x*mouseSens;mouseY=pi.Player.MouseDrag.ReadValue<Vector2>().y*mouseSens;
-        }
-        }
+         float mouseX=PlayerInputBeh.instance.mouseDelta.x;
+        float mouseY= PlayerInputBeh.instance.mouseDelta.y;
+ 
    
         
      
@@ -701,9 +709,9 @@ public class PlayerMove : MonoBehaviour
         mouseY=Mathf.Clamp(mouseY,-90f,90f);
         cameraX-=mouseY;
         cameraX=Mathf.Clamp(cameraX,-90f,90f);
-
-          if(pi.Player.Move.ReadValue<Vector2>()!=Vector2.zero&&GameUIBeh.instance.isCraftingMenuOpened==false){
-           playerVec=new Vector3(pi.Player.Move.ReadValue<Vector2>().y,0f,pi.Player.Move.ReadValue<Vector2>().x); 
+       
+          if (PlayerInputBeh.instance.playerMoveVec!=Vector2.zero && GameUIBeh.instance.isCraftingMenuOpened==false){
+           playerVec=new Vector3(PlayerInputBeh.instance.playerMoveVec.y,0f, PlayerInputBeh.instance.playerMoveVec.x); 
         
            lerpPlayerVec=Vector3.Lerp(lerpPlayerVec,playerVec,7f*Time.deltaTime);
           }else{
@@ -734,14 +742,16 @@ public class PlayerMove : MonoBehaviour
         critAttackCD-=Time.deltaTime;    
         }
         
-        pi.Player.DropItem.performed+=ctx=>{
+     /*   pi.Player.DropItem.performed+=ctx=>{
             
             PlayerDropItem(currentSelectedHotbar-1);
          //    playerHandItem.BuildItemModel(inventoryDic[currentSelectedHotbar-1]);  
-        };
-    if (!EventSystem.current.IsPointerOverGameObject())
-    {
-          if(Input.touches.Length==1){
+        };*/
+        // if (!EventSystem.current.IsPointerOverGameObject())
+        // {
+      //  Debug.Log(Input.touches.Length);
+        
+      /*  if (Input.touches.Length==1){
             pi.Player.LeftClick.performed+=ctx=>{ if(breakBlockCD<=0f){
             LeftClick();
             breakBlockCD=0.3f;}};
@@ -753,11 +763,12 @@ public class PlayerMove : MonoBehaviour
 
 
           }else{
-            if(pi.Player.LeftClick.ReadValue<float>()>=1f&&breakBlockCD<=0f){
+            
+            if(pi.Player.LeftClick.ReadValue<float>()>=0.5f&&breakBlockCD<=0f){
             LeftClick();
             breakBlockCD=0.3f;
         }
-        if(pi.Player.RightClick.ReadValue<float>()>=1f&&breakBlockCD<=0f){
+        if(pi.Player.RightClick.ReadValue<float>()>=0.5f&&breakBlockCD<=0f){
             RightClick();
             breakBlockCD=0.3f;
         }
@@ -765,9 +776,9 @@ public class PlayerMove : MonoBehaviour
      //       PlaceBlock();
       //      breakBlockCD=0.3f;
      //   }
-          }
+          }*/
        
-    }
+   // }
        
     }
 

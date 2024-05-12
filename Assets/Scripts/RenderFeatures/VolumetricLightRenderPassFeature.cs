@@ -54,6 +54,7 @@ public class VolumetricLightSettings
     [Range(16, 256)] public int stepCount;
     [Range(0f, 1f)] public float intensity;
     [ColorUsage(true, true)] public Color fogColor;
+    public bool isUsingHalfRes=true;
  }
 public class VolumetricLightRenderPass : ScriptableRenderPass
 {
@@ -85,17 +86,31 @@ public class VolumetricLightRenderPass : ScriptableRenderPass
        RenderTextureDescriptor cameraTextureDescriptor)
     {
         // Set the blur texture size to be the same as the camera target size.
-        volumetricLightDescriptor.width = cameraTextureDescriptor.width;
-        volumetricLightDescriptor.height = cameraTextureDescriptor.height;
+        if(defaultSettings.isUsingHalfRes==true)
+        {
+        volumetricLightDescriptor.width = cameraTextureDescriptor.width/2;
+        volumetricLightDescriptor.height = cameraTextureDescriptor.height/2;
+        }
+        else
+        {
+            volumetricLightDescriptor.width = cameraTextureDescriptor.width;
+            volumetricLightDescriptor.height = cameraTextureDescriptor.height;
+        }
+       
 
         // Check if the descriptor has changed, and reallocate the RTHandle if necessary
         RenderingUtils.ReAllocateIfNeeded(ref volumetricLightHandle, volumetricLightDescriptor);
     }
     public void UpdateSettings()
     {
-        material.SetInt(stepCountID, defaultSettings.stepCount);
-        material.SetFloat(intensityID, defaultSettings.intensity);
-        material.SetColor(fogColorID, defaultSettings.fogColor);
+        var volumeComponent =
+      VolumeManager.instance.stack.GetComponent<VolumetricLightingVolumeComponent>();
+        int stepCount = volumeComponent.stepCount.overrideState ? volumeComponent.stepCount.value : defaultSettings.stepCount;
+        float intensity = volumeComponent.intensity.overrideState ? volumeComponent.intensity.value : defaultSettings.intensity;
+        Color fogColor = volumeComponent.fogColor.overrideState ? volumeComponent.fogColor.value : defaultSettings.fogColor;
+        material.SetInt(stepCountID, stepCount);
+        material.SetFloat(intensityID, intensity);
+        material.SetColor(fogColorID, fogColor);
     }
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {

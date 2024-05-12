@@ -206,9 +206,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 6020590144067672305}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: PlayerMove, Assembly-CSharp
-        m_MethodName: DropItemButtonOnClick
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1906,6 +1906,7 @@ GameObject:
   - component: {fileID: 283718101}
   - component: {fileID: 283718100}
   - component: {fileID: 283718103}
+  - component: {fileID: 283718104}
   m_Layer: 5
   m_Name: openinventorybutton
   m_TagString: Untagged
@@ -1976,9 +1977,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 312650283}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameUIBeh, Assembly-CSharp
-        m_MethodName: OpenCraftingUI
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2038,6 +2039,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45346d9cd8ef24449a18b0d8e4aee393, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &283718104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 283718098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d54531977ecb194c95e2d3aa7a5d72a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ControlPath: <Keyboard>/e
 --- !u!1 &301017512
 GameObject:
   m_ObjectHideFlags: 0
@@ -3970,7 +3984,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1720877777}
   m_HandleRect: {fileID: 1720877776}
   m_Direction: 0
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -6413,6 +6427,7 @@ GameObject:
   - component: {fileID: 899113442}
   - component: {fileID: 899113443}
   - component: {fileID: 899113444}
+  - component: {fileID: 899113445}
   m_Layer: 0
   m_Name: gamemanager
   m_TagString: Untagged
@@ -6502,6 +6517,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioAB: {fileID: 0}
   textureAB: {fileID: 0}
+--- !u!114 &899113445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 899113436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c532d51fb1087b04e8f902fabbe5a37a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mouseDelta: {x: 0, y: 0}
+  playerMoveVec: {x: 0, y: 0}
+  isJumping: 0
+  isPlayerSpeededUp: 0
+  breakBlockButton: {fileID: 0}
+  placeBlockButton: {fileID: 0}
+  dropItemButton: {fileID: 0}
+  openInventoryButton: {fileID: 0}
+  selectHotbarButtons: []
+  switchItemSlotAxis: 0
+  playerMoveAction:
+    m_Name: Player Move
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 8ed62c3f-a326-4d9e-8afc-28e60a06ba62
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
 --- !u!1 &903531983
 GameObject:
   m_ObjectHideFlags: 0
@@ -7723,8 +7769,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 115116083}
   m_HandleRect: {fileID: 115116082}
   m_Direction: 2
-  m_Value: 0.9999999
-  m_Size: 0.48299998
+  m_Value: 1
+  m_Size: 0.483
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -8235,6 +8281,7 @@ GameObject:
   - component: {fileID: 1271315099}
   - component: {fileID: 1271315098}
   - component: {fileID: 1271315100}
+  - component: {fileID: 1271315101}
   m_Layer: 0
   m_Name: Global Volume
   m_TagString: Untagged
@@ -8288,6 +8335,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vigConfig: {fileID: 0}
   colorAdjustmentsConfig: {fileID: 0}
+--- !u!114 &1271315101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1271315097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdd3ffe1295a87441a7d7f12e2e2af89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  globalVolume: {fileID: 0}
+  volumetricLightingVolumeComponent: {fileID: 0}
+  mainLightTrans: {fileID: 0}
+  dayFogColor: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
+  nightFogColor: {r: 0, g: 0.27369875, b: 0.5283019, a: 0}
 --- !u!1 &1337423220
 GameObject:
   m_ObjectHideFlags: 0
@@ -17570,12 +17634,15 @@ MonoBehaviour:
   curHeadBlockID: 0
   prevHeadBlockID: 0
   curFootBlockID: 0
+  curUnderFootBlockID: 0
+  prevUnderFootBlockID: 0
   prevFootBlockID: 0
   playerMoveDrag: 0
   isPlayerInGround: 0
   isPlayerGrounded: 0
   isUsingCC: 1
   curChunkLoader: {fileID: 0}
+  playerTeleportingCD: 0
   isPlayerWieldingItem: 0
 --- !u!4 &6095466469615324927
 Transform:

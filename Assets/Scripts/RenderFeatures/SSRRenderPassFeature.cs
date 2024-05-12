@@ -63,9 +63,10 @@ public class SSRRenderFeature : ScriptableRendererFeature
 public class SSRSettings
 {
     [Range(16, 256)] public int stepCount;
-    [Range(0.05f, 0.4f)] public float strideSize;
-    [Range(0.1f, 1f)] public float thickness;
+    [Range(0.05f, 1.5f)] public float strideSize;
+    [Range(0.01f, 1f)] public float thickness;
     [Range(0.1f, 200f)] public float fadeDistance;
+    [Range(-2f, 2f)] public float SSRBias;
     public bool isUsingHalfResolusion = false;
 }
 
@@ -196,7 +197,8 @@ public class SSRRenderPass : ScriptableRenderPass
                 stepCountID = Shader.PropertyToID("StepCount"),
                 strideSizeID = Shader.PropertyToID("StrideSize"),
                 thicknessID = Shader.PropertyToID("SSRThickness"),
-         fadeDistanceID = Shader.PropertyToID("FadeDistance");
+         fadeDistanceID = Shader.PropertyToID("FadeDistance"),
+        biasID = Shader.PropertyToID("SSRBias");
 
 
     private SSRSettings defaultSettings;
@@ -284,10 +286,12 @@ public class SSRRenderPass : ScriptableRenderPass
         float strideSize = defaultSettings.strideSize;
         float thickness = defaultSettings.thickness;
         float fadeDistance = defaultSettings.fadeDistance;
+        float bias=defaultSettings.SSRBias;
         material.SetInt(stepCountID, stepCount);
         material.SetFloat(strideSizeID, strideSize);
         material.SetFloat(thicknessID, thickness);
         material.SetFloat(fadeDistanceID, fadeDistance);
+        material.SetFloat(biasID, bias);
     }
 
 

@@ -73,6 +73,7 @@ MonoBehaviour:
   - {fileID: -6882456318191431541}
   - {fileID: 7377680085057948694}
   - {fileID: 7898941259684256733}
+  - {fileID: 7528243485579185220}
 --- !u!114 &7377680085057948694
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -98,6 +99,28 @@ MonoBehaviour:
   clamp:
     m_OverrideState: 1
     m_Value: 0.05
+--- !u!114 &7528243485579185220
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af59b1856b3464644a585c88a9634869, type: 3}
+  m_Name: VolumetricLightingVolumeComponent
+  m_EditorClassIdentifier: 
+  active: 1
+  stepCount:
+    m_OverrideState: 1
+    m_Value: 32
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.002
+  fogColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
 --- !u!114 &7898941259684256733
 MonoBehaviour:
   m_ObjectHideFlags: 3

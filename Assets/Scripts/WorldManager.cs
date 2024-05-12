@@ -371,6 +371,8 @@ void OnApplicationQuit(){
     void Update(){
       Chunk.playerPosVec=playerPos.position;
       lightSource.transform.Rotate(new Vector3(Time.deltaTime,0f,0f));
+        Vector3 lightSourceDir= lightSource.transform.forward.normalized;
+        
    //   if(isChunkFastLoadingEnabled==true){
     //  BuildAllChunksAsync();  
    //   }

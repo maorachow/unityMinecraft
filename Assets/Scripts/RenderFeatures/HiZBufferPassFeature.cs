@@ -5,10 +5,11 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System;
 using UnityEditor;
+using System.Linq;
 public class HiZBufferPassFeature : ScriptableRendererFeature
 {
     [SerializeField] private Shader hiZShader;
-    [SerializeField] private int hiZMipCount;
+    [SerializeField] private int hiZMipCount = 8;
     private Material hiZBufferMaterial;
     public HiZBufferPass hiZBufferPass;
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -22,10 +23,10 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
         hiZBufferPass = new HiZBufferPass(hiZMipCount, hiZBufferMaterial);
         hiZBufferPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
     }
-
+ 
     public class HiZBufferPass : ScriptableRenderPass
     {
-        public int hiZMipCount = 6;
+        public int hiZMipCount = 8;
         public RTHandle[] HiZBufferTextures;
         public RenderTextureDescriptor[] HiZBufferTextureDescriptors;
         public RTHandle HiZBufferTexture;
@@ -39,7 +40,7 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
 
         public HiZBufferPass(int hiZMipCount, Material hiZMaterial)
         {
-            this.hiZMipCount = hiZMipCount;
+            this.hiZMipCount=hiZMipCount;
             this.hiZBufferMaterial = hiZMaterial;
             HiZBufferTextures = new RTHandle[hiZMipCount];
             HiZBufferTextureDescriptors = new RenderTextureDescriptor[hiZMipCount];
@@ -50,11 +51,13 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
 
 
 
+            
 
 
-
-           // Debug.Log("setup");
+            // Debug.Log("setup");
             // 分配RTHandle
+
+
             var desc = renderingData.cameraData.cameraTargetDescriptor;
             // 把高和宽变换为2的整次幂 然后除以2
             var width = Math.Max((int)Math.Ceiling(Mathf.Log(desc.width, 2) - 1.0f), 1);
@@ -62,7 +65,7 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
             width = 1 << width;
             height = 1 << height;
 
-            HiZBufferTextureDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.RFloat, 0, hiZMipCount);
+            HiZBufferTextureDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.RFloat, 0, hiZMipCount+1);
             HiZBufferTextureDescriptor.msaaSamples = 1;
             HiZBufferTextureDescriptor.useMipMap = true;
             HiZBufferTextureDescriptor.sRGB = false;// linear
@@ -79,10 +82,19 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
             }
 
         }
+ 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-
-
+        /*    if (HiZBufferTexture != null){
+                HiZBufferTexture.Release();
+            }
+            if( HiZBufferTextures != null)
+            {
+                for (int i = 0;  i < HiZBufferTextures.Length; i++)
+                {
+                    if (HiZBufferTextures[i] != null) HiZBufferTextures[i].Release();
+                }
+            }*/
             base.OnCameraCleanup(cmd);
         }
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -90,7 +102,7 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
 
             var cmd = CommandBufferPool.Get();
 
-            var mCameraColorTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
+         
             var mCameraDepthTexture = renderingData.cameraData.renderer.cameraDepthTargetHandle;
             Blit(cmd, mCameraDepthTexture, HiZBufferTextures[0]);
             cmd.CopyTexture(HiZBufferTextures[0], 0, 0, HiZBufferTexture, 0, 0);
@@ -102,7 +114,7 @@ public class HiZBufferPassFeature : ScriptableRendererFeature
                 Blit(cmd, HiZBufferTextures[i - 1], HiZBufferTextures[i], material: hiZBufferMaterial, passIndex: 0);
                 cmd.CopyTexture(HiZBufferTextures[i], 0, 0, HiZBufferTexture, 0, i);
             }
-            cmd.SetGlobalFloat(MaxHiZBufferTextureMipLevelID, hiZMipCount - 1);
+            cmd.SetGlobalFloat(MaxHiZBufferTextureMipLevelID, hiZMipCount -1);
             cmd.SetGlobalTexture(HiZBufferTextureID, HiZBufferTexture);
             // cmd.Blit(HiZBufferTextures[4], mCameraColorTexture);
             context.ExecuteCommandBuffer(cmd);

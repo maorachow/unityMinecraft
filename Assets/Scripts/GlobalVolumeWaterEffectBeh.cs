@@ -8,11 +8,12 @@ public class GlobalVolumeWaterEffectBeh : MonoBehaviour
     public static GlobalVolumeWaterEffectBeh instance;
     public VolumeComponent vigConfig;
     public VolumeComponent colorAdjustmentsConfig;
-  
+    
     void Start()
     {
         instance=this;
         globalVolume=GetComponent<Volume>();
+       
         vigConfig=globalVolume.profile.components[0];
         colorAdjustmentsConfig=globalVolume.profile.components[1];
         vigConfig.active=false;

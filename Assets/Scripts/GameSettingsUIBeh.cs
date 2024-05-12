@@ -34,7 +34,7 @@ public class GameSettingsUIBeh : MonoBehaviour
     gameFOVText.text=gameFOVSlider.value.ToString();
   }
   void ControlSensSliderOnValueChanged(float f){
-     PlayerMove.mouseSens=controlSensSlider.value;
+     PlayerInputBeh.mouseSens=controlSensSlider.value;
     controlSensText.text=controlSensSlider.value.ToString();
   }
   void GameSoundVolumeSliderOnValueChanged(float f){

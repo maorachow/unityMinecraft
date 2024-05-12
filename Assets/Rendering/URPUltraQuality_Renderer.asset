@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   hiZShader: {fileID: 4800000, guid: ce8bb165d71db0d438e68b95634a0b47, type: 3}
-  hiZMipCount: 6
+  hiZMipCount: 5
 --- !u!114 &-5737242305006816815
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33,6 +33,7 @@ MonoBehaviour:
     strideSize: 0
     thickness: 0
     fadeDistance: 0
+    SSRBias: 0
     isUsingHalfResolusion: 0
   shader: {fileID: 0}
 --- !u!114 &-5177011848809515823
@@ -80,6 +81,7 @@ MonoBehaviour:
     stepCount: 64
     intensity: 0.002
     fogColor: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
+    isUsingHalfRes: 1
 --- !u!114 &-435272401445118997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,12 +122,12 @@ MonoBehaviour:
   - {fileID: 7720631892302898836}
   - {fileID: -5177011848809515823}
   - {fileID: -3687317512885311871}
+  - {fileID: -5978071585418487888}
   - {fileID: 1917834307435849357}
   - {fileID: -435272401445118997}
-  - {fileID: -5978071585418487888}
   - {fileID: -4511575169167659615}
   - {fileID: 4178059339579496572}
-  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4cc8d66c53824849d1aeb1b559b0e9af5f9b05746f5909f09ada1ed497849aa63c17c982342d572fb39
+  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4ccb05746f5909f09ad8d66c53824849d1aeb1b559b0e9af5f9a1ed497849aa63c17c982342d572fb39
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -178,10 +180,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    stepCount: 128
-    strideSize: 0.2
-    thickness: 0.1
+    stepCount: 64
+    strideSize: 1.5
+    thickness: 0.068
     fadeDistance: 22
+    SSRBias: 0
     isUsingHalfResolusion: 1
   shader: {fileID: 4800000, guid: af919127830936149acd88fa445218df, type: 3}
 --- !u!114 &4178059339579496572

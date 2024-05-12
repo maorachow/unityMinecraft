@@ -104,6 +104,11 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
                     ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
                     livingEntity.ApplyDamageAndKnockback(10 + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
+                if (c.GetComponent(typeof(PlayerMove)) != null)
+                {
+                    PlayerMove livingEntity = (PlayerMove)c.GetComponent(typeof(PlayerMove));
+                    livingEntity.ApplyDamageAndKnockback(10 + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
+                }
                 if (c.GetComponent<ItemEntityBeh>()!=null){
                     c.GetComponent<Rigidbody>().velocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);
                 }

@@ -20,12 +20,12 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.33962262, g: 0.33962262, b: 0.33962262, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 3
-  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SubtractiveShadowColor: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: b490f265b65629e458dab8542dcb37ba, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
@@ -2490,6 +2490,7 @@ GameObject:
   - component: {fileID: 261710815}
   - component: {fileID: 261710814}
   - component: {fileID: 261710813}
+  - component: {fileID: 261710818}
   m_Layer: 0
   m_Name: gamemanager
   m_TagString: Untagged
@@ -2579,6 +2580,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &261710818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 261710811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c532d51fb1087b04e8f902fabbe5a37a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mouseDelta: {x: 0, y: 0}
+  playerMoveVec: {x: 0, y: 0}
+  isJumping: 0
+  isPlayerSpeededUp: 0
+  breakBlockButton: {fileID: 0}
+  placeBlockButton: {fileID: 0}
+  dropItemButton: {fileID: 0}
+  openInventoryButton: {fileID: 0}
+  selectHotbarButtons: []
+  switchItemSlotAxis: 0
+  playerMoveAction:
+    m_Name: Player Move
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: a42cf554-73ae-4159-b469-4fc8d94f21b0
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
 --- !u!1 &263608484
 GameObject:
   m_ObjectHideFlags: 0
@@ -3762,6 +3794,7 @@ GameObject:
   - component: {fileID: 538008630}
   - component: {fileID: 538008629}
   - component: {fileID: 538008628}
+  - component: {fileID: 538008632}
   m_Layer: 5
   m_Name: openinventorybutton
   m_TagString: Untagged
@@ -3844,9 +3877,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 340284440}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameUIBeh, Assembly-CSharp
-        m_MethodName: OpenCraftingUI
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3894,6 +3927,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 538008626}
   m_CullTransparentMesh: 1
+--- !u!114 &538008632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538008626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d54531977ecb194c95e2d3aa7a5d72a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ControlPath: <Keyboard>/e
 --- !u!1 &543543500
 GameObject:
   m_ObjectHideFlags: 0
@@ -4341,6 +4387,7 @@ GameObject:
   - component: {fileID: 571341122}
   - component: {fileID: 571341121}
   - component: {fileID: 571341120}
+  - component: {fileID: 571341123}
   m_Layer: 0
   m_Name: Global Volume
   m_TagString: Untagged
@@ -4394,6 +4441,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &571341123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 571341119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdd3ffe1295a87441a7d7f12e2e2af89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  globalVolume: {fileID: 0}
+  volumetricLightingVolumeComponent: {fileID: 0}
+  mainLightTrans: {fileID: 0}
+  dayFogColor: {r: 1, g: 1, b: 1, a: 1}
+  nightFogColor: {r: 0.6037736, g: 0.6037736, b: 0.6037736, a: 1}
 --- !u!1 &596923590
 GameObject:
   m_ObjectHideFlags: 0
@@ -5058,8 +5122,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 962502804}
   m_HandleRect: {fileID: 962502803}
   m_Direction: 2
-  m_Value: 1.0000001
-  m_Size: 0.48300004
+  m_Value: 1
+  m_Size: 0.483
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5756,6 +5820,7 @@ GameObject:
   - component: {fileID: 879486887}
   - component: {fileID: 879486886}
   - component: {fileID: 879486885}
+  - component: {fileID: 879486889}
   m_Layer: 5
   m_Name: pausebutton
   m_TagString: Untagged
@@ -5888,6 +5953,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 879486883}
   m_CullTransparentMesh: 1
+--- !u!114 &879486889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879486883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d54531977ecb194c95e2d3aa7a5d72a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ControlPath: <Keyboard>/escape
 --- !u!1 &897897062
 GameObject:
   m_ObjectHideFlags: 0
@@ -6226,7 +6304,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 0.990566, g: 0.98455274, b: 0.7139551, a: 1}
+  m_Color: {r: 0.99215686, g: 0.9843137, b: 0.7137255, a: 1}
   m_Intensity: 1.3
   m_Range: 10
   m_SpotAngle: 30
@@ -6856,12 +6934,15 @@ MonoBehaviour:
   curHeadBlockID: 0
   prevHeadBlockID: 0
   curFootBlockID: 0
+  curUnderFootBlockID: 0
+  prevUnderFootBlockID: 0
   prevFootBlockID: 0
   playerMoveDrag: 0
   isPlayerInGround: 0
   isPlayerGrounded: 0
   isUsingCC: 1
   curChunkLoader: {fileID: 0}
+  playerTeleportingCD: 0
   isPlayerWieldingItem: 0
 --- !u!114 &980904077
 MonoBehaviour:
@@ -11505,7 +11586,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1938251532}
   m_HandleRect: {fileID: 1938251531}
   m_Direction: 0
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

@@ -45,8 +45,10 @@ public class StartingUIBeh : MonoBehaviour
       }else{
         gameWorldDataPath=Application.persistentDataPath;
       }
-         
-         if (!Directory.Exists(gameWorldDataPath+"unityMinecraftData")){
+         foreach(var world in VoxelWorld.worlds)
+        {
+            Debug.Log(world.curWorldSaveName);
+        if (!Directory.Exists(gameWorldDataPath+"unityMinecraftData")){
                 Directory.CreateDirectory(gameWorldDataPath+"unityMinecraftData");
                
             }
@@ -55,9 +57,11 @@ public class StartingUIBeh : MonoBehaviour
                 }
        
     
-              FileStream fs=File.Create(gameWorldDataPath+"unityMinecraftData"+"/GameData/world.json");
-        fs.Close();
+              FileStream fs=File.Create(gameWorldDataPath+"unityMinecraftData"+"/GameData/"+ world.curWorldSaveName);
+            fs.Close();
 
+        }
+         
 
     if(platform==RuntimePlatform.WindowsPlayer||platform==RuntimePlatform.WindowsEditor){
         gameWorldPlayerDataPath="C:/";
