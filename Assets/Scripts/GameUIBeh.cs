@@ -12,6 +12,7 @@ public class GameUIBeh : MonoBehaviour
     public static bool isPaused=false;
    public RectTransform selectedHotbarTransform;
    public Slider playerHealthSlider;
+    public Slider playerArmorPointsSlider;
    public Image playerHealthbarBackgroundImage;
    public Sprite playerHealthbarBlack;
    public Sprite playerHealthbarWhite;
@@ -59,6 +60,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(154, "Rotten Flesh");
         blockNameDic.Add(155, "Gunpowder");
         blockNameDic.Add(156, "TNT");
+        blockNameDic.Add(158, "Armor Upgrader");
         //     isBlockNameDicAdded=true;
         //     }
     }
@@ -93,9 +95,9 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(8,Resources.Load<Sprite>("Textures/log_oak"));
     blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/leaves"));
     blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/sand"));
-        blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/end_stone"));
-        blockImageDic.TryAdd(13, Resources.Load<Sprite>("Textures/endframe_top"));
-        blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
+    blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/end_stone"));
+    blockImageDic.TryAdd(13, Resources.Load<Sprite>("Textures/endframe_top"));
+    blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
     blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
     blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));
     blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
@@ -104,6 +106,7 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/rotten_flesh"));
     blockImageDic.TryAdd(155, Resources.Load<Sprite>("Textures/gunpowder"));
     blockImageDic.TryAdd(156, Resources.Load<Sprite>("Textures/tnt_side"));
+    blockImageDic.TryAdd(158, Resources.Load<Sprite>("Textures/netherite_upgrade_smithing_template"));
         hotbarImageDic.Clear();
     hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
@@ -118,17 +121,26 @@ public class GameUIBeh : MonoBehaviour
         playerHealthbarBlack=Resources.Load<Sprite>("Textures/heartbarbackground");
         playerHealthbarWhite=Resources.Load<Sprite>("Textures/playerheartbarbackgroundflash");
         playerHealthSlider=GameObject.Find("healthbar").GetComponent<Slider>();
+        playerArmorPointsSlider = GameObject.Find("armorbar").GetComponent<Slider>();
         playerHealthSlider.onValueChanged.AddListener(PlayerHealthSliderOnValueChanged);
-        playerHealthbarBackgroundImage=GameObject.Find("healthbar").GetComponent<Image>();
+        playerArmorPointsSlider.onValueChanged.AddListener(PlayerArmorPointsSliderOnValueChanged);
+        playerHealthbarBackgroundImage =GameObject.Find("healthbar").GetComponent<Image>();
         
         selectedHotbarTransform=GameObject.Find("selectedhotbar").GetComponent<RectTransform>();
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(player.playerHealth);
-       
+       GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(player.playerArmorPoints);
     }
     public void PlayerHealthSliderOnValueChanged(float f){
         playerHealthSlider.value=player.playerHealth;
         playerHealthbarBackgroundImage.sprite=playerHealthbarWhite;
         Invoke("PlayerHealthSliderInvokeChangeSprite",0.2f);
+
+    }
+    public void PlayerArmorPointsSliderOnValueChanged(float f)
+    {
+        playerArmorPointsSlider.value = player.playerArmorPoints;
+       
+     
 
     }
     void PlayerHealthSliderInvokeChangeSprite(){

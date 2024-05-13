@@ -573,7 +573,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
 
      public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
     public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
-    //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh 155gun powder 156tnt
+    //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh 155gun powder 156tnt 157bow 158armor upgrade
     public static Texture2D itemTextureInfo;
 //    public List<Vector3> verts=new List<Vector3>();
   //  public List<Vector2> uvs=new List<Vector2>();
@@ -591,10 +591,12 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.125f));
         itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.125f));
         itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.125f));
+        itemMaterialInfo.TryAdd(158, new Vector2(0.5625f, 0.125f));
         itemTexturePosInfo.TryAdd(154,new Vector2Int(192,128));
         itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 128));
         itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 128));
         itemTexturePosInfo.TryAdd(157, new Vector2Int(512, 128));
+        itemTexturePosInfo.TryAdd(158, new Vector2Int(576, 128));
         itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
         itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
         itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));

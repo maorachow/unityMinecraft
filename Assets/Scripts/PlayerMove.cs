@@ -16,6 +16,7 @@ using Random=UnityEngine.Random;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 
 
 [MessagePackObject]
@@ -34,7 +35,9 @@ public class PlayerData{
     public int[] inventoryItemNumberDic;
     [Key(6)]
     public int playerInWorldID;
-    public PlayerData(float playerHealth,float posX,float posY,float posZ,int[] inventoryDic,int[] inventoryItemNumberDic, int playerInWorldID)
+    [Key(7)]
+    public float playerArmorPoints;
+    public PlayerData(float playerHealth,float posX,float posY,float posZ,int[] inventoryDic,int[] inventoryItemNumberDic, int playerInWorldID,float playerArmorPoints)
     {
         this.playerHealth=playerHealth;
         this.posX=posX;
@@ -43,6 +46,7 @@ public class PlayerData{
         this.inventoryDic=inventoryDic;
         this.inventoryItemNumberDic=inventoryItemNumberDic;
         this.playerInWorldID=playerInWorldID;
+        this.playerArmorPoints=playerArmorPoints;
     }
 }
 public class PlayerMove : MonoBehaviour
@@ -56,12 +60,15 @@ public class PlayerMove : MonoBehaviour
     public static AudioClip playerDropItemClip;
     public static AudioClip playerSweepAttackClip;
     public static AudioClip playerEnterPortalClip;
+    public static AudioClip playerEquipArmorClip;
     public AudioSource AS;
     public float playerCameraZShakeValue;
     public float playerCameraZShakeLerpValue;
      
     public float playerHealth=20f;
     public float playerMaxHealth=20f;
+    public float playerArmorPoints = 0f;
+    public float playerMaxArmorPoints = 20f;
     public Chunk curChunk;
     public Animator am;
   
@@ -260,7 +267,8 @@ public class PlayerMove : MonoBehaviour
         playerEnterPortalClip = Resources.Load<AudioClip>("Audios/Nether_Portal_trigger");
         playerDropItemClip=Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline=Resources.Load<GameObject>("Prefabs/blockoutline");
-        blockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
+        playerEquipArmorClip = Resources.Load<AudioClip>("Audios/Equip_diamond2");
+        blockOutline =Instantiate(prefabBlockOutline,transform.position,transform.rotation);
         collidingBlockOutline=Instantiate(prefabBlockOutline,transform.position,transform.rotation);
 
         blockOnHandText=GameObject.Find("blockonhandIDtext").GetComponent<Text>();
@@ -274,6 +282,7 @@ public class PlayerMove : MonoBehaviour
         playerSweepParticlePrefab=Resources.Load<GameObject>("Prefabs/playersweepparticle");
         //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);    
         PlayerInputBeh.instance.switchCameraPosAction = SwitchCameraPosAction;
         PlayerInputBeh.instance.pauseOrResumeAction = PauseOrResume;
         PlayerInputBeh.instance.dropItemButtonAction = DropItemButtonOnClick;
@@ -375,8 +384,11 @@ public class PlayerMove : MonoBehaviour
         AS.Play();
         //GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         playerCameraZShakeLerpValue=Random.Range(-15f,15f);
-        playerHealth-=damageAmount;
+        float reducedDamage = Mathf.Max((1f - (playerArmorPoints * 4f / 100f)) * damageAmount,0f);
+        playerHealth -= reducedDamage;
+        playerArmorPoints -= damageAmount * 0.1f;
          GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
         playerMotionVec=knockback;
         transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<MeshRenderer>().material.color=Color.red;
             transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
@@ -391,6 +403,8 @@ public class PlayerMove : MonoBehaviour
            playerCameraZShakeLerpValue=0f;
             playerCameraZShakeValue=0f;
           GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
+        playerArmorPoints = 0f;
+        GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
       //   transform.position=new Vector3(0f,150f,0f);
         for(int i=0;i<inventoryDic.Length;i++){
                    while(inventoryItemNumberDic[i]>0){
@@ -454,8 +468,22 @@ public class PlayerMove : MonoBehaviour
             }
 
         }
-        
-        
+        else if (exchangeID == 4)
+        {
+            if (GetItemFromSlot(153) == -1)
+            {
+                return;
+            }
+            else
+            {
+
+                inventoryItemNumberDic[GetItemFromSlot(153)]--;
+                AddItem(158, 1);
+            }
+
+        }
+
+
     }
     public int GetItemFromSlot(int itemID){
         for(int i=0;i<inventoryDic.Length;i++){
@@ -1271,6 +1299,19 @@ public class PlayerMove : MonoBehaviour
         AttackAnimate();
         Invoke("cancelAttackInvoke", 0.16f);
     }
+    public void UpgradeArmor()
+    {
+        if (playerArmorPoints >= playerMaxArmorPoints)
+        {
+            return;
+        }
+        playerArmorPoints= Mathf.Min(playerArmorPoints + 2f,playerMaxArmorPoints);
+        AudioSource.PlayClipAtPoint(playerEquipArmorClip, transform.position + new Vector3(0f, 0.5f, 0f), 1f);
+        GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
+        inventoryItemNumberDic[currentSelectedHotbar - 1]--;
+        AttackAnimate();
+        Invoke("cancelAttackInvoke", 0.16f);
+    }
     void RightClick(){
         if(cameraPosMode==1){
             return;
@@ -1287,6 +1328,11 @@ public class PlayerMove : MonoBehaviour
         if (inventoryDic[currentSelectedHotbar - 1] == 156)
         {
             ThrowTNT();
+            return;
+        }
+        if (inventoryDic[currentSelectedHotbar - 1] == 158)
+        {
+            UpgradeArmor();
             return;
         }
         if (Physics.Raycast(ray,out info,5f)&&info.collider.gameObject.tag=="Entity"&&critAttackCD<=0f){
@@ -1358,7 +1404,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            pd = new PlayerData(20f, 0f, 150f, 0f, new int[9], new int[9], 0);
+            pd = new PlayerData(20f, 0f, 150f, 0f, new int[9], new int[9], 0,0f);
             //    return;
         }
         Debug.Log("player in world ID" + pd.playerInWorldID);
@@ -1397,6 +1443,7 @@ public class PlayerMove : MonoBehaviour
             playerHealth = pd.playerHealth;
             inventoryDic = pd.inventoryDic;
             inventoryItemNumberDic = pd.inventoryItemNumberDic;
+            playerArmorPoints = pd.playerArmorPoints;
         }
         else
         {
@@ -1405,7 +1452,7 @@ public class PlayerMove : MonoBehaviour
             cc.enabled = true;
             inventoryDic = new int[9];
             inventoryItemNumberDic = new int[9];
-
+            playerArmorPoints = 0f;
         }
       
         return pd.playerInWorldID;
@@ -1415,7 +1462,7 @@ public class PlayerMove : MonoBehaviour
 
     
     public void SavePlayerData(){
-        PlayerData pd=new PlayerData(playerHealth,transform.position.x,transform.position.y,transform.position.z,inventoryDic,inventoryItemNumberDic, VoxelWorld.currentWorld.worldID);
+        PlayerData pd=new PlayerData(playerHealth,transform.position.x,transform.position.y,transform.position.z,inventoryDic,inventoryItemNumberDic, VoxelWorld.currentWorld.worldID,playerArmorPoints);
    
         FileStream fs;
         if (File.Exists(gameWorldPlayerDataPath+"unityMinecraftData/GameData/playerdata.json"))

@@ -139,7 +139,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         cc.enabled = true;
         Destroy(diedEndermanTrans.gameObject, 30f);
         ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 13, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
-        VoxelWorld.currentWorld.zombieEntityPool.Release(gameObject);
+        VoxelWorld.currentWorld.endermanEntityPool.Release(gameObject);
 
     }
 
@@ -351,7 +351,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
 
         if (currentTrans.position.y < -40f)
         {
-            VoxelWorld.currentWorld.zombieEntityPool.Release(gameObject);
+            VoxelWorld.currentWorld.endermanEntityPool.Release(gameObject);
         }
         if (attackCD > 0f)
         {

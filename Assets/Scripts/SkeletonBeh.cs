@@ -158,7 +158,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             Vector3 arrowPos = headTransform.position + headTransform.forward*1.3f;
             EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
-            System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+            arrow.GetComponent<Rigidbody>().rotation=Quaternion.LookRotation(headTransform.forward);
+          //  System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
          //   sw.Start();
             
             await UniTask.WaitUntil(()=>arrow.GetComponent<ArrowBeh>().isPosInited==true);

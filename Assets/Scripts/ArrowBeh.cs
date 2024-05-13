@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 public class ArrowBeh : MonoBehaviour
 {
     //public static GameObject arrowPrefab;
-    public Rigidbody rigidbody;
+    public Rigidbody arrowRigidbody;
     public EntityBeh entity;
     public Transform arrowTrans;
     public float lifeTime = 0f;
@@ -18,25 +18,25 @@ public class ArrowBeh : MonoBehaviour
      void Start()
     {
         entity= GetComponent<EntityBeh>();
-        rigidbody = GetComponent<Rigidbody>();  
+        arrowRigidbody = GetComponent<Rigidbody>();  
         arrowTrans=transform.GetChild(0);
        
     }
     public void OnEnable()
     {
         entity = GetComponent<EntityBeh>();
-        rigidbody = GetComponent<Rigidbody>();
-        rigidbody.constraints = RigidbodyConstraints.None;
+        arrowRigidbody = GetComponent<Rigidbody>();
+        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
         isPosInited = true;
         entity.isInUnloadedChunks = false;
     }
     public void OnDisable()
     {
         lifeTime = 0f;
-        rigidbody.velocity= Vector3.zero;
+        arrowRigidbody.velocity= Vector3.zero;
         isPosInited = false;
         entity.isInUnloadedChunks = false;
-        rigidbody.constraints = RigidbodyConstraints.None;
+        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
     }
     // Update is called once per frame
     public float deltaTimeFromPrevFixedUpdate = 0f;
@@ -63,17 +63,17 @@ public class ArrowBeh : MonoBehaviour
    
     private void FixedUpdate()
     {
-        velocityPrev1 = rigidbody.velocity;
+        velocityPrev1 = arrowRigidbody.velocity;
       
         deltaTimeFromPrevFixedUpdate = 0f;
         if (entity.isInUnloadedChunks)
         {
-            rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+            arrowRigidbody.constraints = RigidbodyConstraints.FreezeAll;
 ;
         }
         else
         {
-            rigidbody.constraints = RigidbodyConstraints.None;
+            arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
         }
        
     }
@@ -83,7 +83,7 @@ public class ArrowBeh : MonoBehaviour
         if(sourceTrans == null) {
             return;
         }
-        if (rigidbody.velocity.magnitude < 5f)
+        if (arrowRigidbody.velocity.magnitude < 5f)
         {
             return;
         }
