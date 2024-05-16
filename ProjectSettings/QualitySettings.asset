@@ -85,9 +85,9 @@ QualitySettings:
     useLegacyDetailDistribution: 0
     vSyncCount: 0
     realtimeGICPUUsage: 25
-    lodBias: 0.4
+    lodBias: 1
     maximumLODLevel: 0
-    enableLODCrossFade: 0
+    enableLODCrossFade: 1
     streamingMipmapsActive: 0
     streamingMipmapsAddAllCameras: 1
     streamingMipmapsMemoryBudget: 512
@@ -137,7 +137,7 @@ QualitySettings:
     useLegacyDetailDistribution: 0
     vSyncCount: 0
     realtimeGICPUUsage: 25
-    lodBias: 0.7
+    lodBias: 1
     maximumLODLevel: 0
     enableLODCrossFade: 1
     streamingMipmapsActive: 0
@@ -293,7 +293,7 @@ QualitySettings:
     useLegacyDetailDistribution: 0
     vSyncCount: 0
     realtimeGICPUUsage: 100
-    lodBias: 1
+    lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 1
     streamingMipmapsActive: 0

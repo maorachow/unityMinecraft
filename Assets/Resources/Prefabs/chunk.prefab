@@ -83,6 +83,89 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &699553410550986156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3300591980725464450}
+  - component: {fileID: 4027543561040430135}
+  - component: {fileID: 5392881570973191187}
+  m_Layer: 0
+  m_Name: lodlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3300591980725464450
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 699553410550986156}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1091075538507500359}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &4027543561040430135
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 699553410550986156}
+  m_Mesh: {fileID: 0}
+--- !u!23 &5392881570973191187
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 699553410550986156}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 748b75276705e2f46908ce5893944bdb, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5794209503194521021
 GameObject:
   m_ObjectHideFlags: 0
@@ -179,6 +262,7 @@ GameObject:
   - component: {fileID: 5654374960131498989}
   - component: {fileID: 726163377117669277}
   - component: {fileID: 4527141361843899130}
+  - component: {fileID: 564798857543253001}
   m_Layer: 0
   m_Name: chunk
   m_TagString: Untagged
@@ -201,6 +285,7 @@ Transform:
   m_Children:
   - {fileID: 943342251314489419}
   - {fileID: 7885015106352090757}
+  - {fileID: 3300591980725464450}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5783054551674895859
@@ -294,6 +379,7 @@ MonoBehaviour:
   isModifiedInGame: 0
   isChunkPosInited: 0
   chunkMesh: {fileID: 0}
+  chunkMeshLOD: {fileID: 0}
   chunkWaterMesh: {fileID: 0}
   chunkNonSolidMesh: {fileID: 0}
   meshRenderer: {fileID: 0}
@@ -303,6 +389,9 @@ MonoBehaviour:
   meshFilterNS: {fileID: 0}
   meshRendererWT: {fileID: 0}
   meshFilterWT: {fileID: 0}
+  meshFilterLOD: {fileID: 0}
+  meshRendererLOD: {fileID: 0}
+  lodGroup: {fileID: 0}
   frontChunk: {fileID: 0}
   backChunk: {fileID: 0}
   leftChunk: {fileID: 0}
@@ -322,4 +411,31 @@ MonoBehaviour:
   lightPoints: []
   pointLightGameObjects: []
   isStrongLoaded: 0
+  isRightChunkUnloaded: 0
+  isFrontChunkUnloaded: 0
+  isLeftChunkUnloaded: 0
+  isBackChunkUnloaded: 0
   isTaskCompleted: 0
+--- !u!205 &564798857543253001
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8898208128959863545}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 1
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.05
+    fadeTransitionWidth: 0.1
+    renderers:
+    - renderer: {fileID: 5654374960131498989}
+  - screenRelativeHeight: 0.001
+    fadeTransitionWidth: 0.1
+    renderers:
+    - renderer: {fileID: 5392881570973191187}
+  m_Enabled: 1
