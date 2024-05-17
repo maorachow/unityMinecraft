@@ -876,7 +876,7 @@ public class PlayerMove : MonoBehaviour
             gravity=-1f;
             playerMoveDrag=0.3f;
          AudioSource.PlayClipAtPoint(playerSinkClip,transform.position,1f);
-         WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
         }else{
             gravity=-9.8f;
             playerMoveDrag=0f;
@@ -888,6 +888,7 @@ public class PlayerMove : MonoBehaviour
         if (curUnderFootBlockID == 13)
             {
                 AudioSource.PlayClipAtPoint(playerEnterPortalClip,transform.position);
+                ParticleEffectManagerBeh.instance.EmitEndermanParticleAtPosition(transform.position);
             }
         }
    prevFootBlockID=curFootBlockID;
@@ -1120,19 +1121,21 @@ public class PlayerMove : MonoBehaviour
         }else{
              attackEffectPoint=headPos.position+headPos.forward*4f;
         }
-         GameObject a=Instantiate(playerSweepParticlePrefab,attackEffectPoint,Quaternion.identity);
+        /* GameObject a=Instantiate(playerSweepParticlePrefab,attackEffectPoint,Quaternion.identity);
          a.GetComponent<ParticleSystem>().Emit(1);
-         Destroy(a,2f);
+         Destroy(a,2f);*/
+       ParticleEffectManagerBeh.instance.EmitPlayerSweepParticleAtPosition(attackEffectPoint);
         AudioSource.PlayClipAtPoint(playerSweepAttackClip,headPos.position,1f);
           Collider[] colliders = Physics.OverlapSphere(transform.position, 4f);
           foreach(var c in colliders){
               if(c.gameObject.tag=="Entity"){
-                if(c.GetComponent<CreeperBeh>()!=null){
-                    c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
+
+                if (c.GetComponent(typeof(ILivingEntity)) != null)
+                {
+                    ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
+                    livingEntity.ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
-                if(c.GetComponent<ZombieBeh>()!=null){
-                    c.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(10f+Random.Range(-5f,5f),(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f));
-                }
+             
                 if(c.GetComponent<ItemEntityBeh>()!=null){
                     c.GetComponent<Rigidbody>().velocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);
                 }

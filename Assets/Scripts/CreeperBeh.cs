@@ -12,8 +12,9 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     public static Transform playerPosition;
     public AudioSource AS;
     public static AudioClip creeperHurtClip;
+    public static AudioClip explosionClip;
     public static GameObject diedCreeperPrefab;
-    public static GameObject explosionPrefab;
+ 
     public static bool isCreeperPrefabLoaded=false;
     public bool isCreeperDied=false;
     private CharacterController cc;
@@ -49,9 +50,9 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
             isCreeperPrefabLoaded = true;
             creeperHurtClip =Resources.Load<AudioClip>("Audios/Creeper_say2");
                 diedCreeperPrefab=Resources.Load<GameObject>("Prefabs/diedcreeper");
-                explosionPrefab=Resources.Load<GameObject>("Prefabs/creeperexploeffect");
+               // explosionPrefab=Resources.Load<GameObject>("Prefabs/creeperexploeffect");
             playerPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-              
+            explosionClip = Resources.Load<AudioClip>("Audios/Explosion4");
         }
        
         headTransform=transform.GetChild(1);
@@ -114,8 +115,8 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
                 }
             }
         }
-        GameObject a=Instantiate(explosionPrefab,new Vector3(transform.position.x,transform.position.y+0.5f,transform.position.z),transform.rotation);
-        Destroy(a,2f);
+        ParticleEffectManagerBeh.instance.EmitExplodeParticleAtPosition(new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z));
+        AudioSource.PlayClipAtPoint(explosionClip,transform.position,5f);
         cc.enabled=false;
            VoxelWorld.currentWorld.creeperEntityPool.Release(gameObject);
     }
@@ -204,7 +205,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         gravity=-0.1f;
         entityMoveDrag=0.6f;
          AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
-         WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
         } 
 
             if (curFootBlockID == 0 && prevFootBlockID == 100)
@@ -212,7 +213,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
                 entityMoveDrag = 0f;
                 gravity = -9.8f;
                       AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
-         WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
     }
 

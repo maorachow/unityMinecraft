@@ -542,7 +542,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
             if(curBlockOnItemID==100){
             rb.drag=2f;   
              AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
-             WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }else{
                 rb.drag=0f;
             }

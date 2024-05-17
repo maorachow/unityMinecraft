@@ -179,7 +179,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
             if(curBlockOnFootID==100){
              gravity=-1f;
              AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
-             WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+             ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }else{
                gravity=-9.8f;
             }

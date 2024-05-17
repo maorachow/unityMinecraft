@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: endermanparticleatlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: DefaultTexturePlatform
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: -1
+      m_TextureCompression: 0
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 0
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 425114109, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: 484567028, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: 150782198, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: -1072042324, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: 1795813685, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: -886627460, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: -1259866104, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    - {fileID: -2142182216, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 2c855fb8247081a448749b3902a2b98b: 150782198
+    - 2c855fb8247081a448749b3902a2b98b: -1072042324
+    - 2c855fb8247081a448749b3902a2b98b: 425114109
+    - 2c855fb8247081a448749b3902a2b98b: 484567028
+    - 2c855fb8247081a448749b3902a2b98b: -1259866104
+    - 2c855fb8247081a448749b3902a2b98b: -2142182216
+    - 2c855fb8247081a448749b3902a2b98b: 1795813685
+    - 2c855fb8247081a448749b3902a2b98b: -886627460
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 150782198, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: -1072042324, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: 425114109, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: 484567028, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: -1259866104, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: -2142182216, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: 1795813685, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  - {fileID: -886627460, guid: 2c855fb8247081a448749b3902a2b98b, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - endermanparticle_2
+  - endermanparticle_3
+  - endermanparticle_0
+  - endermanparticle_1
+  - endermanparticle_6
+  - endermanparticle_7
+  - endermanparticle_4
+  - endermanparticle_5
+  m_RenderDataMap: {}
+  m_Tag: endermanparticleatlas
+  m_IsVariant: 0

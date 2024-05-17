@@ -30,10 +30,10 @@ public class ContactShadowRenderFeature : ScriptableRendererFeature
 [Serializable]
 public class ContactShadowSettings
 {
-    [Range(10, 1000)] public  int sampleCount;
+    [Range(10, 256)] public  int sampleCount;
     [Range(0f, 1f)] public float edgeWidth;
-    [Range(0f, 100f)] public float shadowWeight;
-    [Range(0.1f, 5f)] public float length;
+    [Range(0f, 1f)] public float shadowWeight;
+    [Range(0.1f, 8f)] public float stepLength;
     [Range(0f, 0.1f)] public float shadowBias;
     [Range(0f,30f)] public float fadeDistance;
 }
@@ -48,7 +48,7 @@ public class ContactShadowRenderPass : ScriptableRenderPass
               sampleCountID = Shader.PropertyToID("SampleCount"),
               edgeWidthID = Shader.PropertyToID("EdgeWidth"),
               shadowWeightID = Shader.PropertyToID("ShadowWeight"),
-                lengthID = Shader.PropertyToID("Length"),
+                stepLengthID = Shader.PropertyToID("StepLength"),
                 shadowBiasID = Shader.PropertyToID("ContactShadowBias"),
         fadeDistanceID=Shader.PropertyToID("FadeDistance");
     public ContactShadowRenderPass(Material mat,ContactShadowSettings settings)
@@ -74,7 +74,7 @@ public class ContactShadowRenderPass : ScriptableRenderPass
         material.SetInt(sampleCountID, settings.sampleCount);
         material.SetFloat(edgeWidthID, settings.edgeWidth);
         material.SetFloat(shadowWeightID, settings.shadowWeight);
-        material.SetFloat(lengthID, settings.length);
+        material.SetFloat(stepLengthID, settings.stepLength);
         material.SetFloat(shadowBiasID,settings.shadowBias);
         material.SetFloat(fadeDistanceID, settings.fadeDistance);
     }

@@ -10,8 +10,8 @@ public class TNTBeh : MonoBehaviour
     public MeshRenderer meshRenderer;
     public bool isPosInited;
     public EntityBeh entityBeh;
-   
-    public GameObject exploPrefab { get { return CreeperBeh.explosionPrefab; } }
+   public static AudioClip explosionClip { get { return CreeperBeh.explosionClip; } } 
+ 
     public float fuseTime = 4f;
     void Start()
     {
@@ -90,17 +90,10 @@ public class TNTBeh : MonoBehaviour
                 {
                     c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
-                if (c.GetComponent<CreeperBeh>() != null)
+                if (c.GetComponent(typeof(ILivingEntity)) != null)
                 {
-                    c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
-                }
-                if (c.GetComponent<ZombieBeh>() != null)
-                {
-                    c.GetComponent<ZombieBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
-                }
-                if (c.GetComponent<SkeletonBeh>() != null)
-                {
-                    c.GetComponent<SkeletonBeh>().ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
+                    ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
+                    livingEntity.ApplyDamageAndKnockback(10 + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
                 if (c.GetComponent<ItemEntityBeh>() != null)
                 {
@@ -112,8 +105,8 @@ public class TNTBeh : MonoBehaviour
                 }
             }
         }
-        GameObject a = Instantiate(exploPrefab, new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z), transform.rotation);
-        Destroy(a, 2f);
+        ParticleEffectManagerBeh.instance.EmitExplodeParticleAtPosition(new Vector3(transform.position.x, transform.position.y, transform.position.z));
+        AudioSource.PlayClipAtPoint(explosionClip, transform.position, 5f);
     }
     public void AddForce(Vector3 force)
     {

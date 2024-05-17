@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class particleAndEffectBeh : MonoBehaviour
+public class BreakBlockParticleBeh : MonoBehaviour
 {
 
 public int blockID;
@@ -109,7 +109,8 @@ public void EmitParticle(){
         particleMesh.triangles = tris.ToArray();
         particleMesh.RecalculateBounds();
         particleMesh.RecalculateNormals();
-       psr.mesh=particleMesh;
+        particleMesh.RecalculateTangents();
+        psr.mesh=particleMesh;
        ps.Play();
        Invoke("ReleaseGameObject",1.5f);
 }

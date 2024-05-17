@@ -369,7 +369,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             {
                 gravity = -1f;
                 AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
-                WaterSplashParticleBeh.instance.EmitParticleAtPosition(transform.position);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
             else
             {

@@ -203,10 +203,7 @@ public class WorldHelper:IWorldHelper{
             chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
     }
     public void BreakBlockAtPoint(Vector3 blockPoint){
-            GameObject a= VoxelWorld.currentWorld.particleEffectPool.Get();
-            a.transform.position=new Vector3(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f);
-            a.GetComponent<particleAndEffectBeh>().blockID=WorldHelper.instance.GetBlock(blockPoint);
-            a.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");
+        ParticleEffectManagerBeh.instance.EmitBreakBlockParticleAtPosition(new Vector3(Vector3Int.FloorToInt(blockPoint).x + 0.5f, Vector3Int.FloorToInt(blockPoint).y + 0.5f, Vector3Int.FloorToInt(blockPoint).z + 0.5f), WorldHelper.instance.GetBlock(blockPoint));
             ItemEntityBeh.SpawnNewItem(Vector3Int.FloorToInt(blockPoint).x+0.5f,Vector3Int.FloorToInt(blockPoint).y+0.5f,Vector3Int.FloorToInt(blockPoint).z+0.5f,ItemIDToBlockID.blockIDToItemIDDic[WorldHelper.instance.GetBlock(blockPoint)],new Vector3(UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f),UnityEngine.Random.Range(-3f,3f)));
             WorldHelper.instance.SetBlockByHand(blockPoint,0);
           //  UpdateChunkMeshCollider(blockPoint);

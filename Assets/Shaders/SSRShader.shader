@@ -194,7 +194,7 @@ static half dither[16] = {
                    float3 endView = startView + rDir * magnitude;  
                   float4 startHScreen = TransformViewToHScreen(startView, _ScreenParams.xy);  
                     float4 endHScreen = TransformViewToHScreen(endView, _ScreenParams.xy);  
-
+                    
 
                     float startK = 1.0 / startHScreen.w;  
                     float endK = 1.0 / endHScreen.w;  
@@ -211,7 +211,7 @@ static half dither[16] = {
 
 
 
-                                      bool permute = false;  
+                   bool permute = false;  
                     if (abs(diff.x) < abs(diff.y)) {  
                         permute = true;  
 
@@ -247,9 +247,9 @@ static half dither[16] = {
 
                     float2 hitUV = 0.0;
                   //  return float4(nDotV.xxx,1);
-                  float2 ditherUV = fmod(P, 4);  
-                        float jitter = (Random2DTo1D(input.texcoord)*0.5+0.5);  
-                        dp*=jitter;  
+               
+                     float jitter = (Random2DTo1D(input.texcoord)*0.5+0.5);  
+                     dp*=jitter;  
                      dq*=jitter;  
                      dk*=jitter;
 
