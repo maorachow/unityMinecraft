@@ -322,10 +322,10 @@ public class EntityBeh : MonoBehaviour
    // }
     void FixedUpdate(){
          if(currentChunk==null){
-         currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
+         currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));   
          }
         if(WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)==false){
-             currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));   
+             currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));   
         }
         if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
             if (cc != null)

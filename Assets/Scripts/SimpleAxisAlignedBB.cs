@@ -11,6 +11,7 @@ public class SimpleAxisAlignedBB : AxisAlignedBB {
     public float maxY;
     public float maxZ;*/
 
+    public SimpleAxisAlignedBB(){}
     public SimpleAxisAlignedBB(Vector3 pos1, Vector3 pos2) {
         this.minX =  Mathf.Min(pos1.x, pos2.x);
         this.minY =  Mathf.Min(pos1.y, pos2.y);

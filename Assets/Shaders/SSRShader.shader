@@ -168,10 +168,13 @@ static half dither[16] = {
 	            );
             }
             float4 SSRPassFragment1(Varyings input):SV_Target{
+
+            
+   
                      float rawDepth = SampleSceneDepth(input.texcoord).r;  
                       float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
                       float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-                   
+                   return float4(vpos.xyz,1);
                       float3 normal = SampleSceneNormals(input.texcoord);  
                        float nDotV = max(dot(normal,normalize(-vpos) ), -1.0);
                        vpos=vpos+ normal * (length(vpos) / _ProjectionParams.z * 4.2) ;
@@ -319,7 +322,7 @@ static half dither[16] = {
             }
             float4 SSRPassFragment(Varyings input) : SV_Target {  
 
-         
+       
                 float rawDepth = SampleSceneDepth(input.texcoord).r;  
                 
                 float rawDepth1=SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture,sampler_linear_clamp,input.texcoord,0);

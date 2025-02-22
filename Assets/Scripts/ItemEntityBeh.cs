@@ -474,7 +474,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         await UniTask.WaitUntil(()=>rb.constraints== RigidbodyConstraints.None);
         if (rb != null)
         {
-    rb.velocity=f;
+    rb.linearVelocity=f;
         }
      
     }
@@ -518,11 +518,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     }
     void FixedUpdate(){
         if(currentChunk==null){
-         currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));     
+         currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));     
         }
         
         if(!WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)){
-             currentChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(transform.position));    
+             currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));    
         }
           
         PlayerEatItem();
@@ -540,11 +540,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
         if(prevBlockOnItemID!=curBlockOnItemID){
             if(curBlockOnItemID==100){
-            rb.drag=2f;   
+            rb.linearDamping=2f;   
              AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }else{
-                rb.drag=0f;
+                rb.linearDamping=0f;
             }
              
         }

@@ -111,7 +111,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
                     livingEntity.ApplyDamageAndKnockback(10 + Random.Range(-5f, 5f), (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
                 }
                 if (c.GetComponent<ItemEntityBeh>()!=null){
-                    c.GetComponent<Rigidbody>().velocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);
+                    c.GetComponent<Rigidbody>().linearVelocity=(transform.position-c.transform.position).normalized*Random.Range(-20f,-30f);
                 }
             }
         }
@@ -139,12 +139,12 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
            diedCreeperTrans.GetChild(5).GetChild(0).rotation=transform.GetChild(5).GetChild(0).rotation;
 
 
-           diedCreeperTrans.GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-            diedCreeperTrans.GetChild(1).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-            diedCreeperTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-           diedCreeperTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-           diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity=knockback;
-           diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity= knockback;
+           diedCreeperTrans.GetChild(0).GetComponent<Rigidbody>().linearVelocity=knockback;
+            diedCreeperTrans.GetChild(1).GetChild(0).GetComponent<Rigidbody>().linearVelocity=knockback;
+            diedCreeperTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().linearVelocity=knockback;
+           diedCreeperTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().linearVelocity=knockback;
+           diedCreeperTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().linearVelocity=knockback;
+           diedCreeperTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().linearVelocity= knockback;
         //     cc.enabled=true;
         Destroy(diedCreeperTrans.gameObject, 30f);
         ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 155, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));

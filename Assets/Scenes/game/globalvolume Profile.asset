@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af59b1856b3464644a585c88a9634869, type: 3}
   m_Name: VolumetricLightingVolumeComponent
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   stepCount:
     m_OverrideState: 1
     m_Value: 32

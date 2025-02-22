@@ -192,7 +192,12 @@ public class PlayerInputBeh : MonoBehaviour
         playerMoveVec=playerInputs.PlayerInput.Move.ReadValue<Vector2>();
         isJumping = playerInputs.PlayerInput.Jump.IsInProgress();
         isPlayerSpeededUp=playerInputs.PlayerInput.SpeedUp.IsInProgress();
-        switchItemSlotAxis= playerInputs.PlayerInput.SwitchItemSlot.ReadValue<float>()/120f;
+        switchItemSlotAxis= playerInputs.PlayerInput.SwitchItemSlot.ReadValue<float>();
        
+    }
+
+    void OnDestroy()
+    {
+        playerInputs.Disable();
     }
 }

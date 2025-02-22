@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c481ac0d4c96d584bac24c92bc751e75, type: 3}
   m_Name: HiZBufferPassFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   hiZShader: {fileID: 4800000, guid: ce8bb165d71db0d438e68b95634a0b47, type: 3}
   hiZMipCount: 5
 --- !u!114 &-5737242305006816815
@@ -36,6 +36,27 @@ MonoBehaviour:
     SSRBias: 0
     isUsingHalfResolusion: 0
   shader: {fileID: 0}
+--- !u!114 &-5727774163349722344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0640dbd6e55a0ab4fa265a1fa4084cba, type: 3}
+  m_Name: RealtimeRaytracingRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  shader: {fileID: 4807578003741378534, guid: b247f6700132d0943a08f058d77a0094, type: 3}
+  settings:
+    directionalLightConeTheta: 0.005
+    globalPointLightRadius: 0.12
+    skyboxTexture: {fileID: 8900000, guid: 56bfd9484426ee9429ea7f21f95608bb, type: 3}
+    maxRayRecursiveDepth: 4
+    maxAccumFrameCount: 4253
+    blendingMethod: 0
 --- !u!114 &-5177011848809515823
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48,7 +69,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e73eceae63a947f4192fea618f6680f5, type: 3}
   m_Name: DepthNormalsFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   NormalTexture: 0
 --- !u!114 &-4511575169167659615
 MonoBehaviour:
@@ -62,7 +83,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d76d5bde2df8844ea95b630d445a645, type: 3}
   m_Name: CameraFrustumRayRenderPassFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
 --- !u!114 &-3687317512885311871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c546754510c6a94787b140f09195994, type: 3}
   m_Name: VolumetricLightRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   shader: {fileID: 4800000, guid: 1c96a14175505404c99cbf8bcb55bd05, type: 3}
   settings:
     stepCount: 64
@@ -100,7 +121,7 @@ MonoBehaviour:
     sampleCount: 356
     edgeWidth: 0.355
     shadowWeight: 100
-    length: 0.83
+    stepLength: 0
     shadowBias: 0
     fadeDistance: 30
 --- !u!114 &11400000
@@ -118,6 +139,15 @@ MonoBehaviour:
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 53626a513ea68ce47b59dc1299fe3959, type: 3}
+  probeVolumeResources:
+    probeVolumeDebugShader: {fileID: 0}
+    probeVolumeFragmentationDebugShader: {fileID: 0}
+    probeVolumeOffsetDebugShader: {fileID: 0}
+    probeVolumeSamplingDebugShader: {fileID: 0}
+    probeSamplingDebugMesh: {fileID: 0}
+    probeSamplingDebugTexture: {fileID: 0}
+    probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: 7720631892302898836}
   - {fileID: -5177011848809515823}
@@ -127,25 +157,11 @@ MonoBehaviour:
   - {fileID: -435272401445118997}
   - {fileID: -4511575169167659615}
   - {fileID: 4178059339579496572}
-  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4ccb05746f5909f09ad8d66c53824849d1aeb1b559b0e9af5f9a1ed497849aa63c17c982342d572fb39
+  - {fileID: -5727774163349722344}
+  m_RendererFeatureMap: 942644e6cc31256bd174b809278f27b881e6641e4204d4ccb05746f5909f09ad8d66c53824849d1aeb1b559b0e9af5f9a1ed497849aa63c17c982342d572fb39182be1d7bedb82b0
   m_UseNativeRenderPass: 0
+  xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
-  xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
-  shaders:
-    blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
-    copyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
-    screenSpaceShadowPS: {fileID: 0}
-    samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-    stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
-    fallbackErrorPS: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
-    fallbackLoadingPS: {fileID: 4800000, guid: 7f888aff2ac86494babad1c2c5daeee2, type: 3}
-    materialErrorPS: {fileID: 4800000, guid: 5fd9a8feb75a4b5894c241777f519d4e, type: 3}
-    coreBlitPS: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
-    coreBlitColorAndDepthPS: {fileID: 4800000, guid: d104b2fc1ca6445babb8e90b0758136b, type: 3}
-    blitHDROverlay: {fileID: 4800000, guid: a89bee29cffa951418fc1e2da94d1959, type: 3}
-    cameraMotionVector: {fileID: 4800000, guid: c56b7e0d4c7cb484e959caeeedae9bbf, type: 3}
-    objectMotionVector: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486, type: 3}
-    dataDrivenLensFlare: {fileID: 4800000, guid: 6cda457ac28612740adb23da5d39ea92, type: 3}
   m_AssetVersion: 2
   m_OpaqueLayerMask:
     serializedVersion: 2
@@ -164,6 +180,8 @@ MonoBehaviour:
   m_RenderingMode: 1
   m_DepthPrimingMode: 1
   m_CopyDepthMode: 1
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
 --- !u!114 &1917834307435849357
@@ -178,7 +196,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99fe01b3dcac223468d7dd2deee562c0, type: 3}
   m_Name: SSRRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
     stepCount: 64
     strideSize: 1.5
@@ -199,7 +217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8638c0c23e0cdc84296741bb4f39abdc, type: 3}
   m_Name: SSIDRenderPassFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   noiseTex: {fileID: 2800000, guid: 05b36263bcb1a554b94f8c0813466d23, type: 3}
   shader: {fileID: 4800000, guid: 167190c7834942640b55795c038c1400, type: 3}
   settings:
@@ -223,7 +241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
   m_Name: ScreenSpaceAmbientOcclusion
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     AOMethod: 0
     Downsample: 0

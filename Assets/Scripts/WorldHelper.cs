@@ -4,21 +4,17 @@ using UnityEngine;
 
 
 public class WorldHelper:IWorldHelper{
-    public int chunkWidth=16;
-    public int chunkHeight=256;
+    
     public static WorldHelper instance=new WorldHelper();
     public Vector3 cameraPos;
-     public Vector3Int Vec3ToBlockPos(Vector3 pos){
-        Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        return intPos;
-    }
+   
     public bool CheckIsPosInChunk(Vector3 pos,Chunk c){
         if(c==null){
             return false;
         }
           Vector3Int intPos=Vector3Int.FloorToInt(pos);
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(new Vector3(c.chunkPos.x,0,c.chunkPos.y));
-        if(chunkSpacePos.x>=0&&chunkSpacePos.x<chunkWidth&&chunkSpacePos.z>=0&&chunkSpacePos.z<chunkWidth){
+        if(chunkSpacePos.x>=0&&chunkSpacePos.x<Chunk.chunkWidth&&chunkSpacePos.z>=0&&chunkSpacePos.z< Chunk.chunkWidth){
             return true;
         }else{
             return false;
@@ -29,17 +25,17 @@ public class WorldHelper:IWorldHelper{
             return;
         }
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+         if(chunkSpacePos.y<0||chunkSpacePos.y>= Chunk.chunkHeight){
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
        
           chunkNeededUpdate.isChunkMapUpdated=true;
  
-        if(chunkSpacePos.z>=chunkWidth-1){
+        if(chunkSpacePos.z>= Chunk.chunkWidth -1){
          if(chunkNeededUpdate.frontChunk!=null){
            chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
          
@@ -59,7 +55,7 @@ public class WorldHelper:IWorldHelper{
         }   
         }
        
-        if(chunkSpacePos.x>=chunkWidth-1){
+        if(chunkSpacePos.x>= Chunk.chunkWidth -1){
             if(chunkNeededUpdate.rightChunk!=null){
       
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
@@ -74,10 +70,10 @@ public class WorldHelper:IWorldHelper{
             return;
         }
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
 
         Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
-         if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+         if(chunkSpacePos.y<0||chunkSpacePos.y>= Chunk.chunkHeight){
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
@@ -89,19 +85,19 @@ public class WorldHelper:IWorldHelper{
             return;
         }
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(pos));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
         if (chunkNeededUpdate == null)
         {
             return;
         }
         Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
-        if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+        if(chunkSpacePos.y<0||chunkSpacePos.y>= Chunk.chunkHeight){
             return;
         }
         chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z]=blockID;
         chunkNeededUpdate.isChunkMapUpdated=true;
      
-        if(chunkSpacePos.z>=chunkWidth-1){
+        if(chunkSpacePos.z>= Chunk.chunkWidth -1){
          if(chunkNeededUpdate.frontChunk!=null){
            chunkNeededUpdate.frontChunk.isChunkMapUpdated=true;
           
@@ -122,7 +118,7 @@ public class WorldHelper:IWorldHelper{
         }   
         }
        
-        if(chunkSpacePos.x>=chunkWidth-1){
+        if(chunkSpacePos.x>= Chunk.chunkWidth -1){
             if(chunkNeededUpdate.rightChunk!=null){
       
             chunkNeededUpdate.rightChunk.isChunkMapUpdated=true;
@@ -131,19 +127,77 @@ public class WorldHelper:IWorldHelper{
         }
        
     }
+
+    public void SetBlockDataByHand(Vector3 pos, BlockData blockID)
+    {
+        if (blockID == -1)
+        {
+            return;
+        }
+        Vector3Int intPos = Vector3Int.FloorToInt(pos);
+        Chunk chunkNeededUpdate = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
+        if (chunkNeededUpdate == null)
+        {
+            return;
+        }
+        Vector3Int chunkSpacePos = intPos - Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        if (chunkSpacePos.y < 0 || chunkSpacePos.y >= Chunk.chunkHeight)
+        {
+            return;
+        }
+        chunkNeededUpdate.map[chunkSpacePos.x, chunkSpacePos.y, chunkSpacePos.z] = blockID;
+        chunkNeededUpdate.isChunkMapUpdated = true;
+
+        if (chunkSpacePos.z >= Chunk.chunkWidth - 1)
+        {
+            if (chunkNeededUpdate.frontChunk != null)
+            {
+                chunkNeededUpdate.frontChunk.isChunkMapUpdated = true;
+
+            }
+        }
+        if (chunkSpacePos.z <= 0)
+        {
+            if (chunkNeededUpdate.backChunk != null)
+            {
+
+                chunkNeededUpdate.backChunk.isChunkMapUpdated = true;
+
+            }
+        }
+        if (chunkSpacePos.x <= 0)
+        {
+            if (chunkNeededUpdate.leftChunk != null)
+            {
+
+                chunkNeededUpdate.leftChunk.isChunkMapUpdated = true;
+
+            }
+        }
+
+        if (chunkSpacePos.x >= Chunk.chunkWidth - 1)
+        {
+            if (chunkNeededUpdate.rightChunk != null)
+            {
+
+                chunkNeededUpdate.rightChunk.isChunkMapUpdated = true;
+
+            }
+        }
+    }
      
     public int GetChunkLandingPoint(float x, float z){
        Vector2Int intPos=new Vector2Int((int)x,(int)z); 
 
-        Chunk locChunk=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(new Vector3(x,0f,z)));
+        Chunk locChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(new Vector3(x,0f,z)));
         if(locChunk==null){
             return 100;
         }
         Vector2Int chunkSpacePos=intPos-locChunk.chunkPos;
-        chunkSpacePos.x=Mathf.Clamp(chunkSpacePos.x,0,chunkWidth-1);
-        chunkSpacePos.y=Mathf.Clamp(chunkSpacePos.y,0,chunkWidth-1);
+        chunkSpacePos.x=Mathf.Clamp(chunkSpacePos.x,0, Chunk.chunkWidth -1);
+        chunkSpacePos.y=Mathf.Clamp(chunkSpacePos.y,0, Chunk.chunkWidth -1);
         int landingPointHeight = 100;
-        for(int i=chunkHeight-2;i>1;i--){
+        for(int i= Chunk.chunkHeight -2;i>1;i--){
             if(locChunk.map[chunkSpacePos.x,i-1,chunkSpacePos.y]!=0){
                 landingPointHeight = i; break;
             }
@@ -154,15 +208,31 @@ public class WorldHelper:IWorldHelper{
   
     public short GetBlock(Vector3 pos){
         Vector3Int intPos=Vector3Int.FloorToInt(pos);
-        Chunk chunkNeededUpdate=Chunk.GetChunk(Vec3ToChunkPos(pos));
+        Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
         if(chunkNeededUpdate==null){
             return 0;
         }
         Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
-       if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+       if(chunkSpacePos.y<0||chunkSpacePos.y>= Chunk.chunkHeight){
             return 0;
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
+    }
+
+    public BlockData GetBlockData(Vector3 pos)
+    {
+        Vector3Int intPos = Vector3Int.FloorToInt(pos);
+        Chunk chunkNeededUpdate = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
+        if (chunkNeededUpdate == null)
+        {
+            return 0;
+        }
+        Vector3Int chunkSpacePos = intPos - new Vector3Int(chunkNeededUpdate.chunkPos.x, 0, chunkNeededUpdate.chunkPos.y);
+        if (chunkSpacePos.y < 0 || chunkSpacePos.y >= Chunk.chunkHeight)
+        {
+            return 0;
+        }
+        return chunkNeededUpdate.map[chunkSpacePos.x, chunkSpacePos.y, chunkSpacePos.z];
     }
     public short GetBlock(Vector3 pos,Chunk chunkNeededUpdate){
 
@@ -172,10 +242,10 @@ public class WorldHelper:IWorldHelper{
             return 0;
         }
         Vector3Int chunkSpacePos=intPos-new Vector3Int(chunkNeededUpdate.chunkPos.x,0,chunkNeededUpdate.chunkPos.y);
-       if(chunkSpacePos.y<0||chunkSpacePos.y>=chunkHeight){
+       if(chunkSpacePos.y<0||chunkSpacePos.y>= Chunk.chunkHeight){
             return 0;
         }
-        if(chunkSpacePos.x<0||chunkSpacePos.x>=chunkWidth||chunkSpacePos.z<0||chunkSpacePos.z>=chunkWidth){
+        if(chunkSpacePos.x<0||chunkSpacePos.x>= Chunk.chunkWidth ||chunkSpacePos.z<0||chunkSpacePos.z>= Chunk.chunkWidth){
             return GetBlock(pos);
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
@@ -183,22 +253,22 @@ public class WorldHelper:IWorldHelper{
 
     public short GetBlockInSingleChunk(Vector3 chunkSpacePos,Chunk chunkNeededUpdate){
         Vector3Int intPos=Vector3Int.FloorToInt(chunkSpacePos);
-       if(intPos.y<0||intPos.y>=chunkHeight){
+       if(intPos.y<0||intPos.y>= Chunk.chunkHeight){
             return 0;
         }
         return chunkNeededUpdate.map[intPos.x,intPos.y,intPos.z];
     }
 
-    public Vector2Int Vec3ToChunkPos(Vector3 pos){
+ /*   public Vector2Int Vec3ToChunkPos(Vector3 pos){
         Vector3 tmp=pos;
         tmp.x = Mathf.Floor(tmp.x / (float)chunkWidth) * chunkWidth;
         tmp.z = Mathf.Floor(tmp.z / (float)chunkWidth) * chunkWidth;
         Vector2Int value=new Vector2Int((int)tmp.x,(int)tmp.z);
         return value;
-    }
+    }*/
     public void StartUpdateAtPoint(Vector3 blockPoint){
            Vector3Int intPos=new Vector3Int(WorldHelper.instance.FloatToInt(blockPoint.x),WorldHelper.instance.FloatToInt(blockPoint.y),WorldHelper.instance.FloatToInt(blockPoint.z));
-            Chunk chunkNeededUpdate=Chunk.GetChunk(WorldHelper.instance.Vec3ToChunkPos(blockPoint));
+            Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(blockPoint));
             Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
             chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
     }
@@ -238,7 +308,7 @@ public class WorldHelper:IWorldHelper{
         switch (VoxelWorld.currentWorld.worldGenType)
         {
             case 0:
-        float[,] chunkRawHeight =Chunk. GetRawChunkHeightmap(chunkPos);
+        float[,] chunkRawHeight =Chunk. GenerateChunkHeightmap(chunkPos);
         float maxValue = 0f;
         foreach(float x in chunkRawHeight)
         {

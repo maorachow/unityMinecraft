@@ -33,7 +33,7 @@ public class ArrowBeh : MonoBehaviour
     public void OnDisable()
     {
         lifeTime = 0f;
-        arrowRigidbody.velocity= Vector3.zero;
+        arrowRigidbody.linearVelocity= Vector3.zero;
         isPosInited = false;
         entity.isInUnloadedChunks = false;
         arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
@@ -63,7 +63,7 @@ public class ArrowBeh : MonoBehaviour
    
     private void FixedUpdate()
     {
-        velocityPrev1 = arrowRigidbody.velocity;
+        velocityPrev1 = arrowRigidbody.linearVelocity;
       
         deltaTimeFromPrevFixedUpdate = 0f;
         if (entity.isInUnloadedChunks)
@@ -83,7 +83,7 @@ public class ArrowBeh : MonoBehaviour
         if(sourceTrans == null) {
             return;
         }
-        if (arrowRigidbody.velocity.magnitude < 5f)
+        if (arrowRigidbody.linearVelocity.magnitude < 5f)
         {
             return;
         }

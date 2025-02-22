@@ -22,6 +22,8 @@ public class GameUIBeh : MonoBehaviour
    public static Dictionary<int,TMP_Text> hotbarTextDic=new Dictionary<int,TMP_Text>();
     public static Dictionary<int, string> blockNameDic = new Dictionary<int, string>();
     public int selectedHotbar=1;
+
+    public Text blockOnHandText;
     /* blockNameDic.Add(0,"None");
          blockNameDic.Add(1,"Stone");
          blockNameDic.Add(2,"Grass");
@@ -80,7 +82,10 @@ public class GameUIBeh : MonoBehaviour
     //if(pauseMenu==null){
              pauseMenu=transform.Find("pausemenuUI").gameObject;
              pauseMenu.SetActive(true);
-  //      }
+
+            blockOnHandText = GameObject.Find("blockonhandIDtext").GetComponent<Text>();
+
+        //      }
         AddBlockNameInfo();
     blockImageDic.Clear();
     blockImageDic.TryAdd(-1,Sprite.Create(new Texture2D(16,16),new Rect(0,0,16,16),new Vector2(0.5f,0.5f)));
@@ -185,6 +190,26 @@ public class GameUIBeh : MonoBehaviour
         pauseMenu.SetActive(false);
     }
 
+    public void UpdateBlockOnHandText()
+    {
+
+        if (player != null)
+        {
+            if (blockOnHandText == null)
+            {
+                blockOnHandText = GameObject.Find("blockonhandIDtext").GetComponent<Text>();
+            }
+            if (GameUIBeh.blockNameDic.ContainsKey(player.inventoryDic[player.currentSelectedHotbar - 1]))
+            {
+                blockOnHandText.text = GameUIBeh.blockNameDic[player.inventoryDic[player.currentSelectedHotbar - 1]];
+            }
+            else
+            {
+                blockOnHandText.text = "Unknown Block Name,ID:" + player.inventoryDic[player.currentSelectedHotbar - 1];
+            }
+        }
+   
+    }
     void FixedUpdate(){
         if(player!=null&&blockImageDic!=null){
 

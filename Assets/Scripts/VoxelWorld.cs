@@ -24,7 +24,7 @@ public class VoxelWorld
     public int worldID = 0;
 
     public ConcurrentDictionary<Vector2Int, Chunk> chunks = new ConcurrentDictionary<Vector2Int, Chunk>();
-    public ConcurrentDictionary<Vector2Int, WorldData> chunkDataReadFromDisk = new ConcurrentDictionary<Vector2Int, WorldData>();
+    public ConcurrentDictionary<Vector2Int, ChunkData> chunkDataReadFromDisk = new ConcurrentDictionary<Vector2Int, ChunkData>();
     public static string gameWorldDataPath;
     public string curWorldSaveName="default.json";
     public int worldGenType = 0;
@@ -393,7 +393,7 @@ public class VoxelWorld
          }*/
         if (worldData.Length > 0)
         {
-            chunkDataReadFromDisk = MessagePackSerializer.Deserialize<ConcurrentDictionary<Vector2Int, WorldData>>(worldData, lz4Options);
+            chunkDataReadFromDisk = MessagePackSerializer.Deserialize<ConcurrentDictionary<Vector2Int, ChunkData>>(worldData, lz4Options);
         }
         Debug.Log("saved chunks count:"+chunkDataReadFromDisk.Count);
         isJsonReadFromDisk = true;
@@ -416,7 +416,7 @@ public class VoxelWorld
         FileStream fs;
         if (File.Exists(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName))
         {
-            fs = new FileStream(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName, FileMode.Truncate, FileAccess.Write);//TruncateÄ£Ê½´ò¿ªÎÄ¼ş¿ÉÒÔÇå¿Õ¡£
+            fs = new FileStream(gameWorldDataPath + "unityMinecraftData/GameData/" + curWorldSaveName, FileMode.Truncate, FileAccess.Write);//Truncateæ¨¡å¼æ‰“å¼€æ–‡ä»¶å¯ä»¥æ¸…ç©ºã€‚
         }
         else
         {

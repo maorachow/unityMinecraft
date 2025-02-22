@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ItemIDToBlockID 
 {
-    public static Dictionary<int,int> blockIDToItemIDDic=new Dictionary<int,int>();
-    public static Dictionary<int,int> ItemIDToBlockIDDic=new Dictionary<int,int>();
+    public static Dictionary<BlockData,int> blockIDToItemIDDic=new Dictionary<BlockData, int>();
+    public static Dictionary<int, BlockData> ItemIDToBlockIDDic=new Dictionary<int, BlockData>();
     public static void InitDic(){
         blockIDToItemIDDic.Clear();
         blockIDToItemIDDic.TryAdd(0,-1);

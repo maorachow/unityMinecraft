@@ -260,4 +260,20 @@ public class AxisAlignedBB {
     public float maxX;
     public float maxY;
     public float maxZ;
+
+    public Vector3 Max
+    {
+        get
+        {
+            return new Vector3(maxX, maxY, maxZ);
+        }
+    }
+
+    public Vector3 Min
+    {
+        get
+        {
+            return new Vector3(minX, minY, minZ);
+        }
+    }
 }

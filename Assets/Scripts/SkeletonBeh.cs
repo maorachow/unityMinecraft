@@ -87,12 +87,12 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
 
 
-        diedSkeletonTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
         cc.enabled = true;
        
         Destroy(diedSkeletonTrans.gameObject, 30f);

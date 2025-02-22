@@ -129,13 +129,13 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
 
 
 
-        diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
-        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
+        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
         cc.enabled = true;
         Destroy(diedEndermanTrans.gameObject, 30f);
         ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 13, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));

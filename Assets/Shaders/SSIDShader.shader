@@ -75,7 +75,7 @@ Shader "CustomEffects/SSIDEffect"
                 #if UNITY_REVERSED_Z
                     rawDepth = SampleSceneDepth(uv);
                 #else
-                    //  µ˜’˚ Z “‘∆•≈‰ OpenGL µƒ NDC ([-1, 1])
+                    //  Ë∞ÉÊï¥ Z ‰ª•ÂåπÈÖç OpenGL ÁöÑ NDC ([-1, 1])
                     rawDepth= lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv));
                 #endif
                 float3 worldPos = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
@@ -106,7 +106,7 @@ Shader "CustomEffects/SSIDEffect"
               #if UNITY_REVERSED_Z
                     depth = SampleSceneDepth(vTexCoord);
                 #else
-                    //  µ˜’˚ Z “‘∆•≈‰ OpenGL µƒ NDC ([-1, 1])
+                    //  Ë∞ÉÊï¥ Z ‰ª•ÂåπÈÖç OpenGL ÁöÑ NDC ([-1, 1])
                     depth= lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(vTexCoord));
                 #endif
                 float3 worldPos = ComputeWorldSpacePosition(vTexCoord, depth, UNITY_MATRIX_I_VP);
@@ -221,7 +221,7 @@ Shader "CustomEffects/SSIDEffect"
             
                 UNITY_LOOP
                 for(int i = 0; i < SSIDStepCount; i++){
-                    curPos += rDir*strideLen;// ≤ΩΩ¸
+                    curPos += rDir*strideLen;// Ê≠•Ëøë
                          float2 uv1=0;
                      float resultDepth=0;
                     ReconstructUVAndDepthMatrix(curPos,uv1,resultDepth);
@@ -364,7 +364,7 @@ Shader "CustomEffects/SSIDEffect"
        uniform float BlurStrength;
         
     
-        float4 _BlitTexture_TexelSize;
+    //    float4 _BlitTexture_TexelSize;
     
         float4 BlurVertical (Varyings input) : SV_Target
         {
