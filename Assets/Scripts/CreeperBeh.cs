@@ -98,7 +98,30 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
     }
     void CreeperExplode(){
         Collider[] collider = Physics.OverlapSphere(transform.position, 6f);
-        foreach(Collider c in collider){
+
+        Vector3 exploCenter=transform.position;
+
+        for (int x = -2; x < 3; x++)
+        {
+            for (int y = -2; y < 3; y++)
+            {
+                for (int z = -2; z < 3; z++)
+                {
+                    Vector3 blockPoint = exploCenter + new Vector3(x, y, z);
+
+                    if ((blockPoint - transform.position).magnitude < 2.5f)
+                    {
+                        if (WorldHelper.instance.GetBlock(blockPoint) != 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(blockPoint);
+                        }
+
+                    }
+                }
+            }
+
+        }
+        foreach (Collider c in collider){
             if(c.gameObject.tag=="Player"||c.gameObject.tag=="Entity"){
                 if (c.GetComponent(typeof(ILivingEntity)) != null)
                 {

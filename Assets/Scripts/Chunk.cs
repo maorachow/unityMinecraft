@@ -734,6 +734,21 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                     new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
                 }, BlockShape.SolidTransparent)
         },
+        {
+            156,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(320f / 1024f, 256f / 1024f), new Vector2(320f / 1024f, 256f / 1024f),
+                    new Vector2(448f / 1024f, 256f / 1024f), new Vector2(384f / 1024f, 256f / 1024f),
+                    new Vector2(320f / 1024f, 256f / 1024f), new Vector2(320f / 1024f, 256f / 1024f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
     };
 
     public Mesh chunkMesh;
@@ -741,7 +756,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public Mesh chunkMeshLOD2;
     public Mesh chunkWaterMesh;
     public Mesh chunkNonSolidMesh;
-
+    public Mesh chunkSolidTransparentMesh;
     public static int worldGenType = 0;
 
     //0Inf 1Superflat
@@ -766,6 +781,11 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public MeshFilter meshFilterNS;
     public MeshRenderer meshRendererWT;
     public MeshFilter meshFilterWT;
+
+
+    public MeshRenderer meshRendererTS;
+    public MeshFilter meshFilterTS;
+    public MeshCollider meshColliderTS;
     public MeshFilter meshFilterLOD1;
     public MeshRenderer meshRendererLOD1;
     public MeshFilter meshFilterLOD2;
@@ -834,6 +854,14 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         blockAudioDic.TryAdd(100, Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(101, Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockAudioDic.TryAdd(102, Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockAudioDic.TryAdd(103, Resources.Load<AudioClip>("Audios/Wood_dig1"));
+
+     
+        blockAudioDic.TryAdd(107, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(108, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(109, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(110, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+        blockAudioDic.TryAdd(111, Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockInfo.Clear();
         blockInfo.TryAdd(1,
             new List<Vector2>
@@ -1008,7 +1036,528 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 new Vector2(320f / 1024f, 128f / 1024f), new Vector2(320f / 1024f, 128f / 1024f)
             });
 
- 
+        blockInfosNew = new Dictionary<int, BlockInfo>
+    {
+        {
+            1,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                    new Vector2(0f, 0f), new Vector2(0f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            2,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0f), new Vector2(0.0625f, 0f), new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0f), new Vector2(0.0625f, 0f), new Vector2(0.0625f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            3,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.125f, 0f), new Vector2(0.125f, 0f), new Vector2(0.125f, 0f), new Vector2(0.125f, 0f),
+                    new Vector2(0.125f, 0f), new Vector2(0.125f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            4,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.1875f, 0f), new Vector2(0.1875f, 0f), new Vector2(0.125f, 0f),
+                    new Vector2(0.0625f, 0f), new Vector2(0.1875f, 0f), new Vector2(0.1875f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            5,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.375f, 0f), new Vector2(0.375f, 0f), new Vector2(0.375f, 0f), new Vector2(0.375f, 0f),
+                    new Vector2(0.375f, 0f), new Vector2(0.375f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            6,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.25f, 0f), new Vector2(0.25f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            7,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.3125f, 0f), new Vector2(0.3125f, 0f), new Vector2(0.25f, 0f), new Vector2(0.25f, 0f),
+                    new Vector2(0.3125f, 0f), new Vector2(0.3125f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            8,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                    new Vector2(0.25f, 0f), new Vector2(0.25f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            9,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.4375f, 0f), new Vector2(0.4375f, 0f), new Vector2(0.4375f, 0f),
+                    new Vector2(0.4375f, 0f), new Vector2(0.4375f, 0f), new Vector2(0.4375f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            10,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.5625f, 0f), new Vector2(0.5625f, 0f), new Vector2(0.5625f, 0f),
+                    new Vector2(0.5625f, 0f), new Vector2(0.5625f, 0f), new Vector2(0.5625f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+
+
+        {
+            11,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.625f, 0f), new Vector2(0.625f, 0f), new Vector2(0.625f, 0f), new Vector2(0.625f, 0f),
+                    new Vector2(0.625f, 0f), new Vector2(0.625f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            12,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f),
+                    new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.6875f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            13,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.75f, 0f), new Vector2(0.75f, 0f), new Vector2(0.6875f, 0f), new Vector2(0.8125f, 0f),
+                    new Vector2(0.75f, 0f), new Vector2(0.75f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            14,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.1875f, 0.0625f), new Vector2(0.1875f, 0.0625f), new Vector2(0.1875f, 0.0625f),
+                    new Vector2(0.1875f, 0.0625f), new Vector2(0.1875f, 0.0625f), new Vector2(0.1875f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            15,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.875f, 0f), new Vector2(0.875f, 0f), new Vector2(0.875f, 0f), new Vector2(0.875f, 0f),
+                    new Vector2(0.875f, 0f), new Vector2(0.875f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            16,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.9375f, 0f), new Vector2(0.9375f, 0f), new Vector2(0.9375f, 0f),
+                    new Vector2(0.9375f, 0f), new Vector2(0.9375f, 0f), new Vector2(0.9375f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            17,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f),
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            18,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.3125f, 0.0625f), new Vector2(0.3125f, 0.0625f), new Vector2(0.3125f, 0.0625f),
+                    new Vector2(0.3125f, 0.0625f), new Vector2(0.3125f, 0.0625f), new Vector2(0.3125f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            19,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.375f, 0.0625f), new Vector2(0.375f, 0.0625f), new Vector2(0.375f, 0.0625f),
+                    new Vector2(0.375f, 0.0625f), new Vector2(0.375f, 0.0625f), new Vector2(0.375f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            20,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.4375f, 0.0625f), new Vector2(0.4375f, 0.0625f), new Vector2(0.4375f, 0.0625f),
+                    new Vector2(0.4375f, 0.0625f), new Vector2(0.4375f, 0.0625f), new Vector2(0.4375f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+
+
+        {
+            23,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.5f, 0.0625f), new Vector2(0.5f, 0.0625f), new Vector2(0.5f, 0.0625f),
+                    new Vector2(0.5f, 0.0625f), new Vector2(0.5f, 0.0625f), new Vector2(0.5f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+
+
+        {
+            22,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.5625f, 0.0625f), new Vector2(0.5625f, 0.0625f), new Vector2(0.5625f, 0.0625f),
+                    new Vector2(0.5625f, 0.0625f), new Vector2(0.5625f, 0.0625f), new Vector2(0.5625f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+        {
+            21,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f),
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Slabs)
+        },
+        {
+            100,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0f, 0.0625f), new Vector2(0f, 0.0625f), new Vector2(0f, 0.0625f),
+                    new Vector2(0f, 0.0625f), new Vector2(0f, 0.0625f), new Vector2(0f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Water)
+        },
+
+        {
+            101,
+            new BlockInfo(new List<Vector2> { new Vector2(0.0625f, 0.0625f) },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.CrossModel)
+        },
+        {
+            102, new BlockInfo(new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f) + new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f) + new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f) + new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0.03125f) + new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f) + new Vector2(0.0625f, 0f),
+                    new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f) + new Vector2(0.0625f, 0f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0078125f, 0.0390625f),
+                    new Vector2(0.0078125f, 0.0390625f),
+                    new Vector2(0.0078125f, 0.0078125f),
+                    new Vector2(0.0078125f, 0.0078125f),
+                    new Vector2(0.0078125f, 0.0390625f),
+                    new Vector2(0.0078125f, 0.0390625f)
+                }, BlockShape.Torch)
+        },
+        {
+            103,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f),
+                    new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f), new Vector2(0.25f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Fence)
+        },
+        {
+            104,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.9375f, 0.125f), new Vector2(0.9375f, 0.125f), new Vector2(0.9375f, 0.125f),
+                    new Vector2(0.9375f, 0.125f), new Vector2(0.9375f, 0.125f), new Vector2(0.9375f, 0.125f),
+                    new Vector2(0.9375f, 0.0625f), new Vector2(0.9375f, 0.0625f), new Vector2(0.9375f, 0.0625f),
+                    new Vector2(0.9375f, 0.0625f), new Vector2(0.9375f, 0.0625f), new Vector2(0.9375f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.01171875f, 0.0625f),
+                    new Vector2(0.01171875f, 0.0625f), new Vector2(0.01171875f, 0.0625f),
+                    new Vector2(0.01171875f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.01171875f, 0.0625f),
+                    new Vector2(0.01171875f, 0.0625f), new Vector2(0.01171875f, 0.0625f),
+                    new Vector2(0.01171875f, 0.0625f)
+                }, BlockShape.Door)
+        },
+        {
+            105,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.875f, 0.0625f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.WallAttachment)
+        },
+        {
+            106,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0f, 0.125f), new Vector2(0f, 0.125f), new Vector2(0f, 0.125f),
+                    new Vector2(0f, 0.125f), new Vector2(0f, 0.125f), new Vector2(0f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+
+        {
+            107,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.125f), new Vector2(0.0625f, 0.125f), new Vector2(0.0625f, 0.125f),
+                    new Vector2(0.0625f, 0.125f), new Vector2(0.0625f, 0.125f), new Vector2(0.0625f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+        {
+            108,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.125f, 0.125f), new Vector2(0.125f, 0.125f), new Vector2(0.125f, 0.125f),
+                    new Vector2(0.125f, 0.125f), new Vector2(0.125f, 0.125f), new Vector2(0.125f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+
+        {
+            109,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.1875f, 0.125f), new Vector2(0.1875f, 0.125f), new Vector2(0.1875f, 0.125f),
+                    new Vector2(0.1875f, 0.125f), new Vector2(0.1875f, 0.125f), new Vector2(0.1875f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+        {
+            110,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.25f, 0.125f), new Vector2(0.25f, 0.125f), new Vector2(0.25f, 0.125f),
+                    new Vector2(0.25f, 0.125f), new Vector2(0.25f, 0.125f), new Vector2(0.25f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+        {
+            111,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(0.3125f, 0.125f), new Vector2(0.3125f, 0.125f), new Vector2(0.3125f, 0.125f),
+                    new Vector2(0.3125f, 0.125f), new Vector2(0.3125f, 0.125f), new Vector2(0.3125f, 0.125f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.SolidTransparent)
+        },
+        {
+            156,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                    new Vector2(320f / 1024f, 256f / 1024f), new Vector2(320f / 1024f, 256f / 1024f),
+                    new Vector2(448f / 1024f, 256f / 1024f), new Vector2(384f / 1024f, 256f / 1024f),
+                    new Vector2(320f / 1024f, 256f / 1024f), new Vector2(320f / 1024f, 256f / 1024f)
+                },
+                new List<Vector2>
+                {
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                    new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+                }, BlockShape.Solid)
+        },
+    };
         isBlockInfoAdded = true;
     }
     /*   public static void ReadJson(){
@@ -1241,6 +1790,11 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         meshRendererLOD1 = transform.GetChild(2).GetComponent<MeshRenderer>();
         meshFilterLOD2 = transform.GetChild(3).GetComponent<MeshFilter>();
         meshRendererLOD2 = transform.GetChild(3).GetComponent<MeshRenderer>();
+
+
+        meshRendererTS = transform.GetChild(4).GetComponent<MeshRenderer>();
+        meshColliderTS = transform.GetChild(4).GetComponent<MeshCollider>();
+        meshFilterTS = transform.GetChild(4).GetComponent<MeshFilter>();
         lodGroup = GetComponent<LODGroup>();
     }
 
@@ -1702,7 +2256,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public bool isBackChunkUnloaded = false;
 
     void InitMap(Vector2Int pos, Mesh.MeshDataArray mda, Mesh.MeshDataArray mdaNS, Mesh.MeshDataArray mdaWT,
-        Mesh.MeshDataArray mdaLOD1, Mesh.MeshDataArray mdaLOD2)
+        Mesh.MeshDataArray mdaLOD1, Mesh.MeshDataArray mdaLOD2,Mesh.MeshDataArray mdaTS)
     {
         lock (taskLock)
         {
@@ -1815,6 +2369,10 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             List<Vector2> WTUVsNL = new List<Vector2>();
             List<int> WTTrisNL = new List<int>();
 
+            List<Vector3> TSVertsNL = new List<Vector3>();
+            List<Vector3> TSNormsNL = new List<Vector3>();
+            List<Vector2> TSUVsNL = new List<Vector2>();
+            List<int> TSTrisNL = new List<int>();
 
             List<Vector3> opqVertsLOD = new List<Vector3>();
             List<Vector3> opqNormsLOD = new List<Vector3>();
@@ -1834,7 +2392,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
 
                 GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL);
+                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL,mdaTS,TSVertsNL,TSUVsNL,TSTrisNL,TSNormsNL);
 
                 return;
             }
@@ -1866,7 +2424,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
 
                 GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL);
+                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, mdaTS, TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL);
 
                 return;
             }
@@ -1882,7 +2440,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
 
             GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL);
+                NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, mdaTS, TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL);
         }
 
 
@@ -2691,7 +3249,10 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public void GenerateMesh(List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS,
         List<Vector2> uvsNS, List<int> trisNS, Mesh.MeshDataArray mda, Mesh.MeshDataArray mdaNS, List<Vector3> norms,
         List<Vector3> normsNS, Mesh.MeshDataArray mdaWT, List<Vector3> vertsWT, List<Vector2> uvsWT, List<int> trisWT,
-        List<Vector3> normsWT)
+        List<Vector3> normsWT,
+        Mesh.MeshDataArray mdaTS, List<Vector3> vertsTS, List<Vector2> uvsTS, List<int> trisTS,
+        List<Vector3> normsTS
+        )
     {
         //   Thread.Sleep(10);
         //     TmpCheckFace tmp=new TmpCheckFace(CheckNeedBuildFace);
@@ -2728,7 +3289,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                     {
                         return;
                     }
-                    BlockMeshBuildingHelper.BuildSingleBlock(this, x, y, z, this.map[x, y, z], ref verts, ref uvs, ref tris, ref norms, ref vertsNS, ref uvsNS, ref trisNS, ref normsNS, ref vertsWT, ref uvsWT, ref trisWT, ref normsWT);
+                    BlockMeshBuildingHelper.BuildSingleBlock(this, x, y, z, this.map[x, y, z], ref verts, ref uvs, ref tris, ref norms, ref vertsNS, ref uvsNS, ref trisNS, ref normsNS, ref vertsWT, ref uvsWT, ref trisWT, ref normsWT,ref vertsTS, ref uvsTS, ref trisTS,ref normsTS);
                     continue;
 
 /*
@@ -3065,6 +3626,34 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         dataWT.SetSubMesh(0, new SubMeshDescriptor(0, ibWT.Length, MeshTopology.Triangles));
         posWT.Dispose();
         ibWT.Dispose();
+
+
+
+        var dataTS = mdaTS[0];
+        dataTS.SetVertexBufferParams(vertsTS.Count, vertexAttributesDes);
+        NativeArray<Vertex> posTS = dataTS.GetVertexData<Vertex>();
+
+        for (int i = 0; i < vertsTS.Count; i++)
+        {
+            /*    if(posWT==null){
+                    Debug.Log("null");
+                    return;
+                }*/
+            posTS[i] = new Vertex(vertsTS[i], normsTS[i], uvsTS[i]);
+        }
+
+        dataTS.SetIndexBufferParams((int)(posTS.Length / 2 * 3), IndexFormat.UInt32);
+        var ibTS = dataTS.GetIndexData<int>();
+        for (int i = 0; i < ibTS.Length; ++i)
+        {
+            ibTS[i] = trisTS[i];
+        }
+
+
+        dataTS.subMeshCount = 1;
+        dataTS.SetSubMesh(0, new SubMeshDescriptor(0, ibTS.Length, MeshTopology.Triangles));
+        posTS.Dispose();
+        ibTS.Dispose();
         vertexAttributesDes.Dispose();
         /*  var data=mda[0];
              // Tetrahedron vertices with positions and normals.
@@ -3138,6 +3727,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             Mesh.MeshDataArray mbjMeshData = Mesh.AllocateWritableMeshData(1);
             Mesh.MeshDataArray mbjMeshDataNS = Mesh.AllocateWritableMeshData(1);
             Mesh.MeshDataArray mbjMeshDataWT = Mesh.AllocateWritableMeshData(1);
+            Mesh.MeshDataArray mbjMeshDataTS = Mesh.AllocateWritableMeshData(1);
             Mesh.MeshDataArray mbjMeshDataLOD1 = Mesh.AllocateWritableMeshData(1);
             Mesh.MeshDataArray mbjMeshDataLOD2 = Mesh.AllocateWritableMeshData(1);
             /*    NativeArray<VertexAttributeDescriptor> vertexAttributesDes=new NativeArray<VertexAttributeDescriptor>(new VertexAttributeDescriptor[]{new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
@@ -3149,7 +3739,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             {
                 //  isTaskShouldAbort=false;
                 await Task.Run(() => InitMap(chunkPos, mbjMeshData, mbjMeshDataNS, mbjMeshDataWT, mbjMeshDataLOD1,
-                    mbjMeshDataLOD2));
+                    mbjMeshDataLOD2, mbjMeshDataTS));
             }
             else
             {
@@ -3177,7 +3767,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
             chunkWaterMesh = new Mesh();
 
-
+            chunkSolidTransparentMesh=new Mesh();
             //     frontChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z+chunkWidth));
             //  backChunk=GetChunk(new Vector2Int((int)transform.position.x,(int)transform.position.z-chunkWidth));
             //  leftChunk=GetChunk(new Vector2Int((int)transform.position.x-chunkWidth,(int)transform.position.z));
@@ -3204,6 +3794,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                JobHandle.CompleteAll(ref jh,ref jhNS);*/
 
             Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData, chunkMesh);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataTS, chunkSolidTransparentMesh);
             Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD1, chunkMeshLOD1);
             Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD2, chunkMeshLOD2);
             Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS, chunkNonSolidMesh);
@@ -3211,10 +3802,14 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
             chunkMesh.RecalculateBounds();
             chunkMesh.RecalculateTangents();
-
+            chunkSolidTransparentMesh.RecalculateBounds();
+            chunkSolidTransparentMesh.RecalculateTangents();
             JobHandle jh = new BakeJob { meshID = chunkMesh.GetInstanceID() }.Schedule();
+
+            JobHandle jh1 = new BakeJob { meshID = chunkSolidTransparentMesh.GetInstanceID() }.Schedule();
             chunkNonSolidMesh.RecalculateBounds();
-            chunkWaterMesh.RecalculateBounds();
+            chunkWaterMesh.RecalculateBounds(); 
+          
 
             chunkMeshLOD1.RecalculateBounds();
             chunkMeshLOD1.RecalculateTangents();
@@ -3249,6 +3844,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             //  WorldMeshManager.OnAllChunkMeshesChanged();
 
             meshFilter.mesh = chunkMesh;
+            meshFilterTS.mesh = chunkSolidTransparentMesh;
             meshFilterNS.mesh = chunkNonSolidMesh;
             meshFilterWT.mesh = chunkWaterMesh;
             meshFilterLOD1.mesh = chunkMeshLOD1;
@@ -3273,6 +3869,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
               opqTrisNL.Dispose();*/
             //     a.Dispose();
             meshRenderer.enabled = true;
+            meshRendererTS.enabled = true;
             meshRendererNS.enabled = true;
             meshRendererWT.enabled = true;
             meshRendererLOD1.enabled = true;
@@ -3309,6 +3906,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
 
             jh.Complete();
+            jh1.Complete();
             if (chunkMesh.vertexCount > 0)
             {
                 meshCollider.sharedMesh = chunkMesh;
@@ -3317,7 +3915,14 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             {
                 meshCollider.sharedMesh = null;
             }
-
+            if (chunkSolidTransparentMesh.vertexCount > 0)
+            {
+                meshColliderTS.sharedMesh = chunkSolidTransparentMesh;
+            }
+            else
+            {
+                meshColliderTS.sharedMesh = null;
+            }
             isStrongLoaded = true;
 
 
@@ -4261,44 +4866,105 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
         }
 
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 102)
+        if (blockInfosNew.ContainsKey(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))))
         {
-            BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-            switch (curBlockData.optionalDataValue)
+            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape == BlockShape.Torch)
             {
-                case 0:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 1:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x+1, y, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 2:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 3:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z+1)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 4:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x , y, chunkPos.y + z-1)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
+                BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                switch (curBlockData.optionalDataValue)
+                {
+                    case 0:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 1:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 2:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 3:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 4:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                }
+
+                //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+            }else if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape ==
+                      BlockShape.Fence)
+            {
+
+                BlockShape? shapeThis =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
+                if (shapeThis is not BlockShape.Fence)
+                {
+                    return;
+                }
+                BlockShape? shapeRight =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
+                BlockShape? shapeLeft =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
+                BlockShape? shapeFront =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
+                BlockShape? shapeBack =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
+                bool[] shapes = new[] { false, false, false, false, false, false, false, false };
+                if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
+                {
+                    shapes[7] = true;
+                }
+                else
+                {
+                    shapes[7] = false;
+                }
+
+                if (shapeRight != null && (shapeRight.Value == BlockShape.Fence || shapeRight.Value == BlockShape.Solid))
+                {
+                    shapes[6] = true;
+                }
+                else
+                {
+                    shapes[6] = false;
+                }
+
+                if (shapeBack != null && (shapeBack.Value == BlockShape.Fence || shapeBack.Value == BlockShape.Solid))
+                {
+                    shapes[5] = true;
+                }
+                else
+                {
+                    shapes[5] = false;
+                }
+
+                if (shapeFront != null && (shapeFront.Value == BlockShape.Fence || shapeFront.Value == BlockShape.Solid))
+                {
+                    shapes[4] = true;
+                }
+                else
+                {
+                    shapes[4] = false;
+                }
+                //     Debug.WriteLine("from::"+updateFromPoint);
+                WorldHelper.instance.SetBlockOptionalDataWithoutUpdate(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z), MathUtility.GetByte(shapes));
+
             }
-            
-            //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+
         }
 
         if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
@@ -4343,45 +5009,115 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         {
             WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
         }
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 102)
+
+        if (blockInfosNew.ContainsKey(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))))
         {
-            BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-            switch (curBlockData.optionalDataValue)
+            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape==BlockShape.Torch)
             {
-                case 0:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 1:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 2:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 3:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
-                case 4:
-                    if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
-                    {
-                        WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                    }
-                    break;
+                BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                switch (curBlockData.optionalDataValue)
+                {
+                    case 0:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 1:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 2:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 3:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                    case 4:
+                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
+                        {
+                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        }
+                        break;
+                }
+
+                //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
             }
 
-            //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+
+            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape ==
+                BlockShape.Fence)
+            {
+
+                BlockShape? shapeThis =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
+                if (shapeThis is not BlockShape.Fence)
+                {
+                    return;
+                }
+                BlockShape? shapeRight =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
+                BlockShape? shapeLeft =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
+                BlockShape? shapeFront =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
+                BlockShape? shapeBack =
+                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
+                bool[] shapes = new[] { false, false, false, false, false, false, false, false };
+                if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
+                {
+                    shapes[7] = true;
+                }
+                else
+                {
+                    shapes[7] = false;
+                }
+
+                if (shapeRight != null && (shapeRight.Value == BlockShape.Fence || shapeRight.Value == BlockShape.Solid))
+                {
+                    shapes[6] = true;
+                }
+                else
+                {
+                    shapes[6] = false;
+                }
+
+                if (shapeBack != null && (shapeBack.Value == BlockShape.Fence || shapeBack.Value == BlockShape.Solid))
+                {
+                    shapes[5] = true;
+                }
+                else
+                {
+                    shapes[5] = false;
+                }
+
+                if (shapeFront != null && (shapeFront.Value == BlockShape.Fence || shapeFront.Value == BlockShape.Solid))
+                {
+                    shapes[4] = true;
+                }
+                else
+                {
+                    shapes[4] = false;
+                }
+                //     Debug.WriteLine("from::"+updateFromPoint);
+                WorldHelper.instance.SetBlockOptionalDataWithoutUpdate(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z), MathUtility.GetByte(shapes));
+
+            }
+
         }
+       
+       
+
+
+
 
         if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
             WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)

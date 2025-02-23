@@ -12,11 +12,12 @@ public class ItemOnHandBeh : MonoBehaviour
     public static int textureYSize{get{return ItemEntityBeh.textureYSize;}}
     public static Dictionary<int,Vector2> itemMaterialInfo{get{return ItemEntityBeh.itemMaterialInfo;}}
     public static Dictionary<int,Vector2Int> itemTexturePosInfo{get{return ItemEntityBeh.itemTexturePosInfo;}}
-    public static Texture2D itemTextureInfo{get{return ItemEntityBeh.itemTextureInfo;}}
+    public static Texture2D itemTextureInfo{get{return ItemEntityBeh.itemTexture;}}
     public MeshFilter mf;
       List<Vector3> verts=new List<Vector3>();
     List<Vector2> uvs=new List<Vector2>();
     List<int> tris=new List<int>();
+    List<Vector3> norms = new List<Vector3>();
     public int blockID;
     public int prevBlockID;
     void Start()
@@ -54,7 +55,15 @@ public class ItemOnHandBeh : MonoBehaviour
     verts=new List<Vector3>();
     uvs=new List<Vector2>();
     tris=new List<int>();
-    if(itemID>150&&itemID<=200&&itemID!=156){
+    norms = new List<Vector3>();
+    
+   
+    
+        ItemEntityMeshBuildingHelper.BuildItemMesh(itemID, ref verts, ref uvs, ref tris, ref norms,1,4f);
+
+      
+        /*
+        if (itemID>150&&itemID<=200&&itemID!=156){
         BuildFlatItemModel(itemID);
     }
     if(itemID==0){
@@ -158,6 +167,7 @@ public class ItemOnHandBeh : MonoBehaviour
                 }
             }
         }
+        */
 
         itemMesh.vertices = verts.ToArray();
         itemMesh.uv = uvs.ToArray();
@@ -166,9 +176,26 @@ public class ItemOnHandBeh : MonoBehaviour
         itemMesh.RecalculateNormals();
         mf.mesh=itemMesh;
 
-}
+        if (ItemEntityMeshBuildingHelper.IsItemBlockShaped(itemID) == false)
+        {
+            t.localPosition = new Vector3(0.1f, -0.2f, -0.25f);
+            t.localEulerAngles = new Vector3(-70f, 0f, -90f);
 
+            if (itemID == 157)
+            {
+                t.localPosition = new Vector3(0.2f, 0.1f, -0.5f);
+                t.localEulerAngles = new Vector3(-45f, 0f, -90f);
+            }
+        }
+        else
+        {
+            t.localPosition = new Vector3(0f, 0f, 0.1f);
+            t.localEulerAngles = new Vector3(45f, 45f, 45f);
+        }
 
+    }
+
+/*
  public void BuildFlatItemModel(int itemID)
     {
         t.localPosition=new Vector3(-0.01f,-0.2f,-0.25f);
@@ -332,6 +359,6 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
             
         }
     
-    }
+    }*/
 }
 

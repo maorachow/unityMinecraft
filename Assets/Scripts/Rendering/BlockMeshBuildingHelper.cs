@@ -22,7 +22,12 @@ public static partial class BlockMeshBuildingHelper
         ref List<Vector3> WTVerts,
         ref List<Vector2> WTUVs,
         ref List<int> WTTris,
-        ref List<Vector3> WTNorms
+        ref List<Vector3> WTNorms,
+
+        ref List<Vector3> TSVerts,
+        ref List<Vector2> TSUVs,
+        ref List<int> TSTris,
+        ref List<Vector3> TSNorms
 
         )
     {
@@ -182,7 +187,7 @@ public static partial class BlockMeshBuildingHelper
                 //datavalues: 0ground 1left 2right 3front 4back
                 if (curChunk is Chunk)
                 {
-                    (curChunk as Chunk).lightPoints.Add(new Vector3(x, y, z) + new Vector3(0.5f, 0.725f, 0.5f) + new Vector3(curChunk.chunkPos.x, 0, curChunk.chunkPos.y));
+                    (curChunk as Chunk).lightPoints.Add(new Vector3(x, y, z) + new Vector3(0.5f, 0.725f, 0.5f));
                 }
 
                 if (Chunk.blockInfosNew[blockData.blockID].uvCorners.Count < 6 || Chunk.blockInfosNew[blockData.blockID].uvSizes.Count < 6)
@@ -422,24 +427,24 @@ public static partial class BlockMeshBuildingHelper
                 bool isBackBuilt = dataArray[5];
                 bool isFrontBuilt = dataArray[4];
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 0.25f), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 0.25f), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                 //Right
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f) + new Vector3(0.25f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 0.25f), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f) + new Vector3(0.25f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 0.25f), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                 //Bottom
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 0f, 0.25f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 0f, 0.25f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                 //Top
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 1f, 0.375f), new Vector3(0f, 0f, 0.25f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 1f, 0.375f), new Vector3(0f, 0f, 0.25f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                 //Back
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 1, 0f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 1, 0f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                 //Front
 
-                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f) + new Vector3(0f, 0f, 0.25f), new Vector3(0f, 1, 0f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f) + new Vector3(0f, 0f, 0.25f), new Vector3(0f, 1, 0f), new Vector3(0.25f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                 if (isLeftBuilt)
@@ -448,31 +453,31 @@ public static partial class BlockMeshBuildingHelper
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.1875f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.1875f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                     //Bottom
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.1875f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.1875f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0f, 0.375f + 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                 }
 
@@ -482,31 +487,31 @@ public static partial class BlockMeshBuildingHelper
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.1875f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.1875f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                     //Bottom
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.1875f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.1875f + 0.375f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.625f, 0.375f + 0.375f, 0.4375f + 0.125f), new Vector3(0f, 0.1875f, 0f), new Vector3(0.375f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                 }
 
@@ -518,32 +523,32 @@ public static partial class BlockMeshBuildingHelper
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f + 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f + 0.375f, 0f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f + 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f + 0.375f, 0f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                 }
@@ -553,32 +558,32 @@ public static partial class BlockMeshBuildingHelper
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f + 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.1875f + 0.375f, 0.625f), new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.375f + 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f + 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f + 0.125f, 0.375f + 0.375f, 0.625f), new Vector3(0f, 0.1875f, 0f), new Vector3(0f, 0f, 0.375f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                 }
                 break;
@@ -738,24 +743,24 @@ public static partial class BlockMeshBuildingHelper
                     return;
                 }
                 if (curChunk.CheckNeedBuildFace(x - 1, y, z, blockData))
-                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,TSVerts,TSUVs,TSTris,TSNorms);
                 //Right
                 if (curChunk.CheckNeedBuildFace(x + 1, y, z, blockData))
-                    BuildFaceComplex(new Vector3(x + 1, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x + 1, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true, TSVerts, TSUVs, TSTris, TSNorms);
 
                 //Bottom
                 if (curChunk.CheckNeedBuildFace(x, y - 1, z, blockData))
-                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, TSVerts, TSUVs, TSTris, TSNorms);
                 //Top
                 if (curChunk.CheckNeedBuildFace(x, y + 1, z, blockData))
-                    BuildFaceComplex(new Vector3(x, y + 1, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x, y + 1, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, TSVerts, TSUVs, TSTris, TSNorms);
 
                 //Back
                 if (curChunk.CheckNeedBuildFace(x, y, z - 1, blockData))
-                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, TSVerts, TSUVs, TSTris, TSNorms);
                 //Front
                 if (curChunk.CheckNeedBuildFace(x, y, z + 1, blockData))
-                    BuildFaceComplex(new Vector3(x, y, z + 1), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,WTVerts,WTUVs,WTTris,WTNorms);
+                    BuildFaceComplex(new Vector3(x, y, z + 1), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, TSVerts, TSUVs, TSTris, TSNorms);
                 break;
 
         }
@@ -908,7 +913,7 @@ public static partial class BlockMeshBuildingHelper
 
 
     }*/
-    static void BuildFaceComplex(Vector3 origin, Matrix4x4 transformMat, Vector3 corner, Vector3 up, Vector3 right, Vector2 uvCorner, Vector2 uvWidth, bool reversed, List<Vector3> verts,List<Vector2> uvs, List<int> tris, List<Vector3> norms)
+   public static void BuildFaceComplex(Vector3 origin, Matrix4x4 transformMat, Vector3 corner, Vector3 up, Vector3 right, Vector2 uvCorner, Vector2 uvWidth, bool reversed, List<Vector3> verts,List<Vector2> uvs, List<int> tris, List<Vector3> norms)
     { 
 
         int index = verts.Count;
@@ -1024,7 +1029,7 @@ public static partial class BlockMeshBuildingHelper
     }
 
 
-    static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right, Vector2 uvCorner, Vector2 uvWidth,
+    public static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right, Vector2 uvCorner, Vector2 uvWidth,
      bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> norms)
     {
         int index = verts.Count;

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Unity.Collections.AllocatorManager;
 
 
 public class WorldHelper:IWorldHelper{
@@ -185,7 +186,60 @@ public class WorldHelper:IWorldHelper{
             }
         }
     }
-     
+    public void SetBlockOptionalDataWithoutUpdate(Vector3Int pos, byte dataByte)
+    {
+       
+        Vector3Int intPos = Vector3Int.FloorToInt(pos);
+        Chunk chunkNeededUpdate = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(pos));
+        if (chunkNeededUpdate == null)
+        {
+            return;
+        }
+        Vector3Int chunkSpacePos = intPos - Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        if (chunkSpacePos.y < 0 || chunkSpacePos.y >= Chunk.chunkHeight)
+        {
+            return;
+        }
+        chunkNeededUpdate.map[chunkSpacePos.x, chunkSpacePos.y, chunkSpacePos.z].optionalDataValue= dataByte;
+        chunkNeededUpdate.isChunkMapUpdated = true;
+
+        if (chunkSpacePos.z >= Chunk.chunkWidth - 1)
+        {
+            if (chunkNeededUpdate.frontChunk != null)
+            {
+                chunkNeededUpdate.frontChunk.isChunkMapUpdated = true;
+
+            }
+        }
+        if (chunkSpacePos.z <= 0)
+        {
+            if (chunkNeededUpdate.backChunk != null)
+            {
+
+                chunkNeededUpdate.backChunk.isChunkMapUpdated = true;
+
+            }
+        }
+        if (chunkSpacePos.x <= 0)
+        {
+            if (chunkNeededUpdate.leftChunk != null)
+            {
+
+                chunkNeededUpdate.leftChunk.isChunkMapUpdated = true;
+
+            }
+        }
+
+        if (chunkSpacePos.x >= Chunk.chunkWidth - 1)
+        {
+            if (chunkNeededUpdate.rightChunk != null)
+            {
+
+                chunkNeededUpdate.rightChunk.isChunkMapUpdated = true;
+
+            }
+        }
+    }
     public int GetChunkLandingPoint(float x, float z){
        Vector2Int intPos=new Vector2Int((int)x,(int)z); 
 
@@ -217,6 +271,19 @@ public class WorldHelper:IWorldHelper{
             return 0;
         }
         return chunkNeededUpdate.map[chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z];
+    }
+    public BlockShape? GetBlockShape(Vector3 pos)
+    {
+        short blockID = GetBlock(pos);
+        if (Chunk.blockInfosNew.ContainsKey(blockID))
+        {
+            return Chunk.blockInfosNew[blockID].shape;
+        }
+        else
+        {
+            return null;
+        }
+      
     }
 
     public BlockData GetBlockData(Vector3 pos)
@@ -324,4 +391,6 @@ public class WorldHelper:IWorldHelper{
         }
        
     }
+
+   
 }

@@ -123,25 +123,25 @@ public class WorldManager : MonoBehaviour
         if(Random.Range(0f,100f)>99.8f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
             Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
 
-          EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y),randomSpawnPos.y,0);  
+          EntityBeh.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y)+0.8f,randomSpawnPos.y,0);  
         }
         if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
         {
             Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
-            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y,1);
+            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 0.8f, randomSpawnPos.y,1);
         }
         if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
         {
             Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
-            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y), randomSpawnPos.y, 3);
+            EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 0.8f, randomSpawnPos.y, 3);
         }
             if (Random.Range(0f, 100f) > 99.85f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
             {
                 Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
-                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 1, randomSpawnPos.y, 5);
+                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + +2f, randomSpawnPos.y, 5);
             }
         }
         else if (VoxelWorld.currentWorld.worldID == 1)
@@ -150,7 +150,7 @@ public class WorldManager : MonoBehaviour
             {
                 Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
 
-                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y)+1, randomSpawnPos.y, 5);
+                EntityBeh.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y)+2f, randomSpawnPos.y, 5);
             }
         }
         

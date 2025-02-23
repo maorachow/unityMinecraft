@@ -52,10 +52,10 @@ MonoBehaviour:
   shader: {fileID: 4807578003741378534, guid: b247f6700132d0943a08f058d77a0094, type: 3}
   settings:
     directionalLightConeTheta: 0.005
-    globalPointLightRadius: 0.12
+    globalPointLightRadius: 0.2
     skyboxTexture: {fileID: 8900000, guid: 56bfd9484426ee9429ea7f21f95608bb, type: 3}
-    maxRayRecursiveDepth: 4
-    maxAccumFrameCount: 4253
+    maxRayRecursiveDepth: 2
+    maxAccumFrameCount: 32768
     blendingMethod: 0
 --- !u!114 &-5177011848809515823
 MonoBehaviour:
@@ -241,16 +241,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
   m_Name: ScreenSpaceAmbientOcclusion
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   m_Settings:
     AOMethod: 0
     Downsample: 0
-    AfterOpaque: 1
+    AfterOpaque: 0
     Source: 1
     NormalSamples: 2
-    Intensity: 0.25
-    DirectLightingStrength: 0.53
-    Radius: 0.9
+    Intensity: 0.3
+    DirectLightingStrength: 0.25
+    Radius: 0.6
     Samples: 0
     BlurQuality: 0
     Falloff: 1000

@@ -46,39 +46,47 @@ public class pauseMenuUI : MonoBehaviour
         loadResourceButton.onClick.AddListener(LoadResourceButtonOnClick);
     }
     void GraphicsQualitySliderOnValueChanged(float f){
-        Debug.Log(TerrainTextureMipmapAdjusting.applyingTerrainNormal.activeMipmapLimit);
+        Debug.Log("normal map mip limit:"+TerrainTextureMipmapAdjusting.terrainNormalTex.activeMipmapLimit);
         switch((int)graphicsQualitySlider.value){
             case 0:
             graphicsQualityText.text="Very Low";
             QualitySettings.SetQualityLevel(0, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
-            break;
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
-            break;
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
-            break;
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                break;
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
-            break;
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                break;
             case 4:
              graphicsQualityText.text="Very High";
             QualitySettings.SetQualityLevel(4, true);
-                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.applyingTerrainNormal);
-            break;
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
+
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
+                break;
             case 5:
              graphicsQualityText.text="Ultra";
             QualitySettings.SetQualityLevel(5, true);
-                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.applyingTerrainNormal);
-               
-            break;
+                VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
+
+                VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
+
+                break;
         }
     }
     void ViewRangeSliderOnValueChanged(float f){

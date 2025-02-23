@@ -26,7 +26,7 @@ public class ArrowBeh : MonoBehaviour
     {
         entity = GetComponent<EntityBeh>();
         arrowRigidbody = GetComponent<Rigidbody>();
-        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        arrowRigidbody.constraints = RigidbodyConstraints.None;
         isPosInited = true;
         entity.isInUnloadedChunks = false;
     }
@@ -36,7 +36,7 @@ public class ArrowBeh : MonoBehaviour
         arrowRigidbody.linearVelocity= Vector3.zero;
         isPosInited = false;
         entity.isInUnloadedChunks = false;
-        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        arrowRigidbody.constraints = RigidbodyConstraints.None;
     }
     // Update is called once per frame
     public float deltaTimeFromPrevFixedUpdate = 0f;
@@ -52,11 +52,11 @@ public class ArrowBeh : MonoBehaviour
 
         if (velocityLerped.magnitude > 0.01f)
         {
-            arrowTrans.rotation = Quaternion.LookRotation(velocityLerped);
+       //     arrowTrans.rotation = Quaternion.LookRotation(velocityLerped);
         }
        
          lifeTime += Time.deltaTime;
-        if(lifeTime > 20f) {
+        if(lifeTime > 5f&& velocityPrev1.magnitude<0.1f) {
             VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
         }
     }
@@ -73,7 +73,7 @@ public class ArrowBeh : MonoBehaviour
         }
         else
         {
-            arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            arrowRigidbody.constraints = RigidbodyConstraints.None;
         }
        
     }

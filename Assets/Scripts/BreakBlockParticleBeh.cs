@@ -10,13 +10,15 @@ public Mesh particleMesh;
 public ParticleSystemRenderer psr;
 public ParticleSystem ps;
 public List<Vector3> verts=new List<Vector3>();
-public List<Vector2> uvs=new List<Vector2>();
+public List<Vector3> norms = new List<Vector3>();
+    public List<Vector2> uvs=new List<Vector2>();
 public List<int> tris=new List<int>();
 void OnDisable(){
     particleMesh=null;
-     verts=null;
- uvs=null;
- tris=null;
+             verts=null;
+         uvs=null;
+         tris=null;
+         norms=null;
  blockID=0;
 }
 void ReleaseGameObject(){
@@ -28,7 +30,8 @@ void ReleaseGameObject(){
 void OnEnable(){
    
  verts=new List<Vector3>();
- uvs=new List<Vector2>();
+ norms = new List<Vector3>();
+        uvs =new List<Vector2>();
  tris=new List<int>();
      particleMesh=new Mesh();
     ps=GetComponent<ParticleSystem>();
@@ -47,12 +50,12 @@ public void EmitParticle(){
     int y=0;
     int z=0;
      verts=new List<Vector3>();
- uvs=new List<Vector2>();
- tris=new List<int>();
+    uvs=new List<Vector2>();
+    tris=new List<int>();
     ps=GetComponent<ParticleSystem>();
     psr=GetComponent<ParticleSystemRenderer>();
-
-    if(blockID>0&&blockID<100){
+        ItemEntityMeshBuildingHelper.BuildItemMesh(blockID,ref verts,ref uvs,ref tris,ref norms);
+  /*  if(blockID>0&&blockID<100){
           BuildFace(blockID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris,0);
         //Right
    
@@ -102,100 +105,17 @@ public void EmitParticle(){
             }
          
         }
-    }
+    }*/
 
         particleMesh.vertices = verts.ToArray();
+        particleMesh.normals = norms.ToArray();
         particleMesh.uv = uvs.ToArray();
         particleMesh.triangles = tris.ToArray();
         particleMesh.RecalculateBounds();
-        particleMesh.RecalculateNormals();
+        
         particleMesh.RecalculateTangents();
         psr.mesh=particleMesh;
        ps.Play();
        Invoke("ReleaseGameObject",1.5f);
-}
-static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right,Vector2 uvWidth,Vector2 uvCorner, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris){
-        int index = verts.Count;
-        Vector3 vert0=corner;
-        Vector3 vert1=corner+up;
-        Vector3 vert2=corner+up+right;
-        Vector3 vert3=corner+right;
-        verts.Add (vert0);
-        verts.Add (vert1);
-        verts.Add (vert2);
-        verts.Add (vert3);
-
-      //  Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-      //  Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-
-        //uvCorner.x = (float)(typeid - 1) / 16;
-    //    uvCorner=blockInfo[typeid][side];
-        uvs.Add(uvCorner);
-        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-    
-        if (reversed)
-            {
-            tris.Add(index + 0);
-            tris.Add(index + 1);
-            tris.Add(index + 2);
-        
-            tris.Add(index + 2);
-            tris.Add(index + 3);
-            tris.Add(index + 0);
-        
-            }
-            else
-            {
-            tris.Add(index + 1);
-            tris.Add(index + 0);
-            tris.Add(index + 2);
-        
-            tris.Add(index + 3);
-            tris.Add(index + 2);
-            tris.Add(index + 0);
-            
-        }
-    
-    }
-static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side){
-
-        int index = verts.Count;
-    
-        verts.Add (corner);
-        verts.Add (corner + up);
-        verts.Add (corner + up + right);
-        verts.Add (corner + right);
-
-        Vector2 uvWidth = new Vector2(0.0625f, 0.0625f);
-        Vector2 uvCorner = new Vector2(0.00f, 0.00f);
-
-        //uvCorner.x = (float)(typeid - 1) / 16;
-        uvCorner=Chunk.blockInfo[typeid][side];
-        uvs.Add(uvCorner);
-        uvs.Add(new Vector2(uvCorner.x, uvCorner.y + uvWidth.y));
-        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y + uvWidth.y));
-        uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
-    
-        if (reversed)
-            {
-            tris.Add(index + 0);
-            tris.Add(index + 1);
-            tris.Add(index + 2);
-            tris.Add(index + 2);
-            tris.Add(index + 3);
-            tris.Add(index + 0);
-            }
-            else
-            {
-            tris.Add(index + 1);
-            tris.Add(index + 0);
-            tris.Add(index + 2);
-            tris.Add(index + 3);
-            tris.Add(index + 2);
-            tris.Add(index + 0);
-        }
-    
-    }
+} 
 }

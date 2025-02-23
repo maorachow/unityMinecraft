@@ -48,26 +48,26 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 2
   acesPreset:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 3
   hueShiftAmount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   detectPaperWhite:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   paperWhite:
     m_OverrideState: 0
-    m_Value: 300
+    m_Value: 0
   detectBrightnessLimits:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   minNits:
-    m_OverrideState: 0
-    m_Value: 0.005
+    m_OverrideState: 1
+    m_Value: 50
   maxNits:
-    m_OverrideState: 0
-    m_Value: 1000
+    m_OverrideState: 1
+    m_Value: 5000
 --- !u!114 &-3492577154979213141
 MonoBehaviour:
   m_ObjectHideFlags: 3

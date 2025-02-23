@@ -163,7 +163,10 @@ Shader "Custom/RealtimeConductorMetallicRoughnessShader"
                       float3 sampleDir=0;
                       float additionalLightPDF;
                       float expectedDist;
-                            SamplePointLightRandomDirection(randVal,worldPos+normalize(worldNormal)*MIN_RAY_TRACING_DIST ,light.radius,light.positionWS,sampleDir,expectedDist,additionalLightPDF);
+
+                        float lightIntensity=max(light.color.x,max(light.color.y,light.color.z));
+                            bool isLightCulled=false;
+                            SamplePointLightRandomDirection(randVal,worldPos+normalize(worldNormal)*MIN_RAY_TRACING_DIST ,light.radius,light.positionWS,sampleDir,expectedDist,additionalLightPDF,lightIntensity,isLightCulled);
                             RayDesc rayDescAdditionalShadow;
                             RealtimeRaytracingRayPayload testRayResultAdditionalShadow ;
                             INITIALIZE_ADDITIONAL_SHADOWRAY(rayDescAdditionalShadow,testRayResultAdditionalShadow,worldPos+normalize(sampleDir)*MIN_RAY_TRACING_DIST,sampleDir, MIN_RAY_TRACING_DIST*2,MAX_RAY_TRACING_DIST,expectedDist,0,worldNormal,randVal)
@@ -183,6 +186,10 @@ Shader "Custom/RealtimeConductorMetallicRoughnessShader"
                             testRayResultAdditionalShadow.HitMaterialType=-1;  
                             testRayResultAdditionalShadow.Radiance=0;
                             testRayResultAdditionalShadow.expectedShadowRayHitDistance=expectedDist;*/
+                             if(isLightCulled==true){
+                             
+                            continue;
+                            }
                             TraceRay(SceneRaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE, 0xFF, 0, 1, 0, rayDescAdditionalShadow, testRayResultAdditionalShadow);
                             bool additionalLightIsInShadow=testRayResultAdditionalShadow.HitDistance>MIN_RAY_TRACING_DIST&&testRayResultAdditionalShadow.HitDistance<expectedDist+MIN_RAY_TRACING_DIST*100;
                             if(!additionalLightIsInShadow){

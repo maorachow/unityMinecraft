@@ -21,10 +21,8 @@
                     float2 uv = curVertex.texCoord0;\
                     if(_MainTex.SampleLevel(sampler_MainTex, uv, 0).a<0.0001&&_AlphaClip>0){\
                         IgnoreHit();\
-                    }
-                    if(rayPayload.TracingDepth<=0&&RayTCurrent()<0.5){\
-                        IgnoreHit();\
-                    }} 
+                    } }
+                   
                       
 
 

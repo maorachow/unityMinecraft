@@ -17,7 +17,7 @@ void RayGeneration()
     float2 uv=dispatchIdx*ResultTexSourceSize.zw;
     uint3 dispatchDims=DispatchRaysDimensions();
     float3 finalRadiance=0;
-         float2 randJitter=(Random2DTo2D(float2((float)1/(float)SAMPLE_PER_PIXEL,uv.y-_Time.x))*2-1)*ResultTexSourceSize.zw*0.5;
+         float2 randJitter=(Random2DTo2D(float2((float)1/(float)SAMPLE_PER_PIXEL,uv.y-AccumFrameIndex*0.013))*2-1)*ResultTexSourceSize.zw*0.5;
         RayDesc cameraRay=CreateCameraRay(uv+randJitter);
         RealtimeRaytracingRayPayload RayIntersection;
         RayIntersection.TracingRayType=PRIMARY_RAY;
@@ -31,8 +31,8 @@ void RayGeneration()
         RayIntersection.HitDistance = 0;
        
         RayIntersection.randomSeed =float2(
-              Random1DTo1D(1,4358.5453,uv.x+_Time.w),
-            	Random1DTo1D(1,7458.5453,uv.y-_Time.w));
+              Random1DTo1D(1,4358.5453,uv.x+AccumFrameIndex*0.013),
+            	Random1DTo1D(1,7458.5453,uv.y-AccumFrameIndex*0.013));
          
            
         

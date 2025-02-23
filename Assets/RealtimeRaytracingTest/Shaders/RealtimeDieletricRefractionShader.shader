@@ -346,7 +346,12 @@ Shader "Custom/RealtimeDeletricRefractionShader"
                       float3 sampleDir=0;
                       float additionalLightPDF;
                       float expectedDist;
-                            SamplePointLightRandomDirection(randVal,worldPos+normalize(worldNormal)*MIN_RAY_TRACING_DIST ,light.radius,light.positionWS,sampleDir,expectedDist,additionalLightPDF);
+                      float lightIntensity=max(light.color.x,max(light.color.y,light.color.z));
+                      bool isLightCulled=false;
+                            SamplePointLightRandomDirection(randVal,worldPos+normalize(worldNormal)*MIN_RAY_TRACING_DIST ,light.radius,light.positionWS,sampleDir,expectedDist,additionalLightPDF,lightIntensity,isLightCulled);
+                            if(isLightCulled==true){
+                            continue;
+                            }
                             RayDesc rayDescAdditionalShadow;
                             RealtimeRaytracingRayPayload testRayResultAdditionalShadow ;
 

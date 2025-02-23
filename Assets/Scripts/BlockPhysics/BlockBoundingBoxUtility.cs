@@ -252,7 +252,7 @@ public static class BlockBoundingBoxUtility
         if (shape == BlockShape.Torch)
         {
 
-            return new SimpleAxisAlignedBB(new Vector3(x + 0.25f, y, z + 0.25f), new Vector3(x + 0.75f, y + 0.75f, z + +0.75f));
+            return new SimpleAxisAlignedBB(new Vector3(x + 0.45f, y, z + 0.45f), new Vector3(x + 0.55f, y + 0.8f, z + +0.55f));
 
 
         }

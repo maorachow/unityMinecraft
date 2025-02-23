@@ -28,7 +28,7 @@ float3 GetDirectionalLightRandomDirection(float2 randVal,float3 normal,out float
 bool IntersectsSphere(float3 rayOrigin,float3 rayDirection, float4 sphere, out float3 intersectingPosition,out float outT){
     float3 d = rayOrigin - sphere.xyz;
     if (length(d)<sphere.w){
-      outT = -1;
+     outT = -1;
      return false;
     }
     float p1 = -dot(rayDirection, d);
@@ -87,7 +87,7 @@ RealtimeRayTracingPointLight RayTracingGetAdditionalPerObjectLight(int perObject
 
     RealtimeRayTracingPointLight light;
     light.positionWS = lightPositionWS;
-    light.radius =max(RealtimeRaytracingGlobalPointLightRadius,0.01);
+    light.radius =RealtimeRaytracingGlobalPointLightRadius;
  //   light.shadowAttenuation = 1.0; // This value can later be overridden in GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     light.color = color;
   //  light.layerMask = lightLayerMask;
@@ -95,31 +95,53 @@ RealtimeRayTracingPointLight RayTracingGetAdditionalPerObjectLight(int perObject
     return light;
 }
 
-
-void SamplePointLightRandomDirection(float2 rand,float3 position,float lightRadius,float3 lightCenterPos,out float3 sampleDirection,out float sampleExpectedDistance,out float pdf){
+float3 SamplePointLightSphere(float3 origin,float3 lightCenter,float radius,float2 randVal,out float pdf){
     
-    float3 lightNormal=normalize(position-lightCenterPos);
+    float3 normal=normalize(lightCenter - origin);
+    float distSquared=length(lightCenter - origin)*length(lightCenter - origin);
+    float sinThetaMax2 = radius * radius / distSquared;
+    float cosThetaMax = sqrt(max((float)0, 1 - sinThetaMax2));
+    float cosTheta = (1 - randVal.x) + randVal.x * cosThetaMax;
+    float sinTheta = sqrt(max((float)0, 1 - cosTheta * cosTheta));
+    float phi = randVal.y * 2 * PI;
+    
+     pdf=1.0/(2*PI*(1.0-cosTheta));
+    float3 tangentSample = float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+    float3 up = abs(normal.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+ 
+    float3 tangent =normalize(up - normal * dot(up, normal));
+    float3 bitangent = cross(normal, tangent);
+    return  normalize(tangent*tangentSample.x+bitangent*tangentSample.y+normal*tangentSample.z );
+}
+void SamplePointLightRandomDirection(float2 rand,float3 position,float lightRadius,float3 lightCenterPos,out float3 sampleDirection,out float sampleExpectedDistance,out float pdf,in float lightIntensity,out bool isCulled){
+    
+  /*  float3 lightNormal=normalize(position-lightCenterPos);
        float3 outgoingDir = lightCenterPos - position;
      float sqDist = Length2(outgoingDir);
     float3 sampleDir;
     float rcpPDF;
   
-    SampleCone(rand.xy,sqrt(max(1.0 / (1.0 + (lightRadius) / sqDist),0.0001)),sampleDir,rcpPDF);
+    SampleCone(rand.xy,sqrt(1.0 / (1.0 + (lightRadius) / sqDist)),sampleDir,rcpPDF);
 
 
 
     float3 up = normalize(float3(1, 0, 0.0));
     float3 tangent =normalize(up - normalize(outgoingDir) * dot(up, normalize(outgoingDir)));
-    float3 bitangent = cross(normalize(outgoingDir), tangent);
+    float3 bitangent = cross(normalize(outgoingDir), tangent);*/
 
-    float3 sampleDirWS= normalize(tangent*sampleDir.x+bitangent*sampleDir.y+normalize(outgoingDir)*sampleDir.z );
-    
+    float3 sampleDirWS=0;
+    sampleDirWS=  SamplePointLightSphere(position,lightCenterPos,lightRadius,rand,pdf);
     float3 intersectPos;
-    float expectedDist= length(outgoingDir)-lightRadius;
-  //  bool intersected=IntersectsSphere(position,sampleDirWS,float4(lightCenterPos,lightRadius),intersectPos,expectedDist);
-    pdf=rcp(rcpPDF);
+    float expectedDist=0;
+    bool intersected=IntersectsSphere(position,sampleDirWS,float4(lightCenterPos,lightRadius),intersectPos,expectedDist);
+    
     sampleDirection=sampleDirWS;
     sampleExpectedDistance=expectedDist;
+    if(lightIntensity/pdf<0.01){
+    isCulled=true;
+    }else{
+    isCulled=false;
+    }
 }
 
 

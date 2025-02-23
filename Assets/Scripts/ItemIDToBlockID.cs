@@ -25,6 +25,14 @@ public class ItemIDToBlockID
         blockIDToItemIDDic.TryAdd(100,100);
         blockIDToItemIDDic.TryAdd(101,101);
         blockIDToItemIDDic.TryAdd(102,102);
+        blockIDToItemIDDic.TryAdd(103, 103);
+
+        blockIDToItemIDDic.TryAdd(106, 106);
+        blockIDToItemIDDic.TryAdd(107, 107);
+        blockIDToItemIDDic.TryAdd(108, 108);
+        blockIDToItemIDDic.TryAdd(109, 109);
+        blockIDToItemIDDic.TryAdd(110, 110);
+        blockIDToItemIDDic.TryAdd(111, 111);
         ItemIDToBlockIDDic.Clear();
         ItemIDToBlockIDDic.TryAdd(0,-1);
         ItemIDToBlockIDDic.TryAdd(1,1);
@@ -47,6 +55,16 @@ public class ItemIDToBlockID
         ItemIDToBlockIDDic.TryAdd(100,100);
         ItemIDToBlockIDDic.TryAdd(101,101);
         ItemIDToBlockIDDic.TryAdd(102,102);
+        ItemIDToBlockIDDic.TryAdd(103, 103);
+
+
+        ItemIDToBlockIDDic.TryAdd(106, 106);
+        ItemIDToBlockIDDic.TryAdd(107, 107);
+        ItemIDToBlockIDDic.TryAdd(108, 108);
+        ItemIDToBlockIDDic.TryAdd(109, 109);
+        ItemIDToBlockIDDic.TryAdd(110, 110);
+        ItemIDToBlockIDDic.TryAdd(111, 111);
+
         ItemIDToBlockIDDic.TryAdd(155, -1);
         ItemIDToBlockIDDic.TryAdd(156, -1);
         ItemIDToBlockIDDic.TryAdd(157, -1);

@@ -232,6 +232,76 @@ public class EntityBeh : MonoBehaviour
         }
         
     }
+
+    public static EntityBeh SpawnNewEntity(float posX, float posY, float posZ, int entityID,Vector3 initialDirection)
+    {
+
+        switch (entityID)
+        {
+            case 0:
+                GameObject a = VoxelWorld.currentWorld.creeperEntityPool.Get();
+                a.transform.position = new Vector3(posX, posY, posZ);
+
+
+
+                a.GetComponent<EntityBeh>().entityTypeID = entityID;
+                a.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                a.GetComponent<CreeperBeh>().SendMessage("InitPos");
+                return a.GetComponent<EntityBeh>();
+                break;
+            case 1:
+                GameObject b = VoxelWorld.currentWorld.zombieEntityPool.Get();
+                b.transform.position = new Vector3(posX, posY, posZ);
+                b.GetComponent<EntityBeh>().entityTypeID = entityID;
+                b.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+
+                b.GetComponent<ZombieBeh>().SendMessage("InitPos");
+
+
+                return b.GetComponent<EntityBeh>();
+                break;
+            case 2:
+                GameObject c = VoxelWorld.currentWorld.tntEntityPool.Get();
+                c.transform.position = new Vector3(posX, posY, posZ);
+                c.GetComponent<Rigidbody>().position = new Vector3(posX, posY, posZ);
+                c.GetComponent<EntityBeh>().entityTypeID = entityID;
+                c.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                c.GetComponent<TNTBeh>().SendMessage("InitPos");
+                return c.GetComponent<EntityBeh>();
+                break;
+            case 3:
+                GameObject d = VoxelWorld.currentWorld.skeletonEntityPool.Get();
+                d.transform.position = new Vector3(posX, posY, posZ);
+
+                d.GetComponent<EntityBeh>().entityTypeID = entityID;
+                d.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                d.GetComponent<SkeletonBeh>().SendMessage("InitPos");
+                return d.GetComponent<EntityBeh>();
+                break;
+            case 4:
+                GameObject e = VoxelWorld.currentWorld.arrowEntityPool.Get();
+                e.transform.position = new Vector3(posX, posY, posZ);
+                e.GetComponent<Rigidbody>().position = new Vector3(posX, posY, posZ);
+                e.GetComponent<Transform>().rotation=Quaternion.LookRotation(initialDirection);
+                e.GetComponent<Rigidbody>().rotation = Quaternion.LookRotation(initialDirection);
+                e.GetComponent<EntityBeh>().entityTypeID = entityID;
+                e.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+
+                //   e.GetComponent<ArrowBeh>().isPosInited = true;
+                return e.GetComponent<EntityBeh>();
+            case 5:
+                GameObject f = VoxelWorld.currentWorld.endermanEntityPool.Get();
+                f.transform.position = new Vector3(posX, posY, posZ);
+
+                f.GetComponent<EntityBeh>().entityTypeID = entityID;
+                f.GetComponent<EntityBeh>().guid = System.Guid.NewGuid().ToString("N");
+                f.GetComponent<EndermanBeh>().SendMessage("InitPos");
+                //   e.GetComponent<ArrowBeh>().isPosInited = true;
+                return f.GetComponent<EntityBeh>();
+            default: return null;
+        }
+
+    }
     public static void SpawnEntityFromFile(){
         foreach(EntityData ed in entityDataReadFromDisk){
             //        Debug.Log(ed.guid);

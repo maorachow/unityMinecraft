@@ -56,6 +56,14 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(100, "Water");
         blockNameDic.Add(101, "Grass Crop");
         blockNameDic.Add(102, "Torch");
+        blockNameDic.Add(103, "Fences");
+
+        blockNameDic.Add(106, "Green Glass");
+        blockNameDic.Add(107, "Blue Glass");
+        blockNameDic.Add(108, "Black Glass");
+        blockNameDic.Add(109, "Glass");
+        blockNameDic.Add(110, "White Glass");
+        blockNameDic.Add(111, "Red Glass");
         blockNameDic.Add(151, "Diamond Pickaxe");
         blockNameDic.Add(152, "Diamond Sword");
         blockNameDic.Add(153, "Diamond");
@@ -89,29 +97,40 @@ public class GameUIBeh : MonoBehaviour
         AddBlockNameInfo();
     blockImageDic.Clear();
     blockImageDic.TryAdd(-1,Sprite.Create(new Texture2D(16,16),new Rect(0,0,16,16),new Vector2(0.5f,0.5f)));
-    blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/emptyslot"));
-    blockImageDic.TryAdd(1,Resources.Load<Sprite>("Textures/stone"));
-    blockImageDic.TryAdd(2,Resources.Load<Sprite>("Textures/grass_side_carried"));
-    blockImageDic.TryAdd(3,Resources.Load<Sprite>("Textures/dirt"));
-    blockImageDic.TryAdd(4,Resources.Load<Sprite>("Textures/grass_side_carried"));
-    blockImageDic.TryAdd(5,Resources.Load<Sprite>("Textures/bedrock"));
-    blockImageDic.TryAdd(6,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.TryAdd(7,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.TryAdd(8,Resources.Load<Sprite>("Textures/log_oak"));
-    blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/leaves"));
-    blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/sand"));
-    blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/end_stone"));
-    blockImageDic.TryAdd(13, Resources.Load<Sprite>("Textures/endframe_top"));
-    blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/water"));
-    blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/grass"));
-    blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/torch_on"));
-    blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/diamond_pickaxe"));
-    blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/diamond_sword"));
-    blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/diamond"));
-    blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/rotten_flesh"));
-    blockImageDic.TryAdd(155, Resources.Load<Sprite>("Textures/gunpowder"));
-    blockImageDic.TryAdd(156, Resources.Load<Sprite>("Textures/tnt_side"));
-    blockImageDic.TryAdd(158, Resources.Load<Sprite>("Textures/netherite_upgrade_smithing_template"));
+    blockImageDic.TryAdd(0,Resources.Load<Sprite>("Textures/blocksprites/emptyslot"));
+    blockImageDic.TryAdd(1,Resources.Load<Sprite>("Textures/blocksprites/stone"));
+    blockImageDic.TryAdd(2,Resources.Load<Sprite>("Textures/blocksprites/grass_side_carried"));
+    blockImageDic.TryAdd(3,Resources.Load<Sprite>("Textures/blocksprites/dirt"));
+    blockImageDic.TryAdd(4,Resources.Load<Sprite>("Textures/blocksprites/grass_side_carried"));
+    blockImageDic.TryAdd(5,Resources.Load<Sprite>("Textures/blocksprites/bedrock"));
+    blockImageDic.TryAdd(6,Resources.Load<Sprite>("Textures/blocksprites/log_oak"));
+    blockImageDic.TryAdd(7,Resources.Load<Sprite>("Textures/blocksprites/log_oak"));
+    blockImageDic.TryAdd(8,Resources.Load<Sprite>("Textures/blocksprites/log_oak"));
+    blockImageDic.TryAdd(9,Resources.Load<Sprite>("Textures/blocksprites/leaves"));
+    blockImageDic.TryAdd(11,Resources.Load<Sprite>("Textures/blocksprites/sand"));
+    blockImageDic.TryAdd(12, Resources.Load<Sprite>("Textures/blocksprites/end_stone"));
+    blockImageDic.TryAdd(13, Resources.Load<Sprite>("Textures/blocksprites/endframe_top"));
+    blockImageDic.TryAdd(100,Resources.Load<Sprite>("Textures/blocksprites/water"));
+    blockImageDic.TryAdd(101,Resources.Load<Sprite>("Textures/blocksprites/grass"));
+    blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/blocksprites/torch_on"));
+    blockImageDic.TryAdd(103, Resources.Load<Sprite>("Textures/blocksprites/fences"));
+
+    
+    
+    blockImageDic.TryAdd(106, Resources.Load<Sprite>("Textures/blocksprites/glass_green"));
+    blockImageDic.TryAdd(107, Resources.Load<Sprite>("Textures/blocksprites/glass_blue"));
+    blockImageDic.TryAdd(108, Resources.Load<Sprite>("Textures/blocksprites/glass_black"));
+    blockImageDic.TryAdd(109, Resources.Load<Sprite>("Textures/blocksprites/glass"));
+    blockImageDic.TryAdd(110, Resources.Load<Sprite>("Textures/blocksprites/glass_white"));
+    blockImageDic.TryAdd(111, Resources.Load<Sprite>("Textures/blocksprites/glass_red"));
+
+    blockImageDic.TryAdd(151,Resources.Load<Sprite>("Textures/blocksprites/diamond_pickaxe"));
+    blockImageDic.TryAdd(152,Resources.Load<Sprite>("Textures/blocksprites/diamond_sword"));
+    blockImageDic.TryAdd(153,Resources.Load<Sprite>("Textures/blocksprites/diamond"));
+    blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/blocksprites/rotten_flesh"));
+    blockImageDic.TryAdd(155, Resources.Load<Sprite>("Textures/blocksprites/gunpowder"));
+    blockImageDic.TryAdd(156, Resources.Load<Sprite>("Textures/blocksprites/tnt_side"));
+    blockImageDic.TryAdd(158, Resources.Load<Sprite>("Textures/blocksprites/netherite_upgrade_smithing_template"));
         hotbarImageDic.Clear();
     hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){

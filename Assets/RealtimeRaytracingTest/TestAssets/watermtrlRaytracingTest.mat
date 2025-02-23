@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: watermtrlRaytracingTest
-  m_Shader: {fileID: 4800000, guid: 217fe5573fc1195488ac628ac6fe235e, type: 3}
+  m_Shader: {fileID: 4800000, guid: b9701e8653426f2408a5a49d1813011c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -98,7 +98,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicRoughness:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 75dffdb279534294eb2d8c43ea1210a1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal0:
@@ -208,7 +208,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: -33
     - _ReceiveShadows: 1
-    - _RoughnessMultiplier: 1
+    - _RoughnessMultiplier: 0.88
     - _Shininess: 0
     - _Smoothness: 1
     - _Smoothness0: 0.5

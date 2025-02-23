@@ -6,17 +6,29 @@ using UnityEngine;
 public class TerrainTextureMipmapAdjusting : MonoBehaviour
 {
     public static Texture2D terrainTex;
+    public static Texture2D terrainTransparentTex;
+    public static Texture2D terrainTransparentMip0;
+    public static Texture2D terrainNonSolidTex;
+    public static Texture2D terrainNonSolidMip0;
     public static Texture2D terrainMip0;
     public static Texture2D terrainNormalTex;
     public static Texture2D terrainNormalMip0;
+
+    public static Texture2D waterNormalTex;
+    public static Texture2D waterNormalMip0;
     public static Material terrainMat;
     public static Texture2D applyingTerrainNormal;
       public static void SetTerrainTexMipmap()
         {
-        terrainMat= VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
-        terrainTex=new Texture2D(1024,1024,TextureFormat.RGBA32, 6, false);
+       Material terrainMat1= VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+
+        Material nonsolidMat = VoxelWorld.chunkPrefab.transform.GetChild(0).GetComponent<MeshRenderer>().sharedMaterial;
+     
+        Material transparentMat = VoxelWorld.chunkPrefab.transform.GetChild(4).GetComponent<MeshRenderer>().sharedMaterial;
+
+        terrainTex =new Texture2D(1024,1024,TextureFormat.RGBA32, 6, false);
         terrainTex.filterMode=FilterMode.Point;
- 
+        
 
         //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
         terrainMip0 =Resources.Load<Texture2D>("Textures/terrain");
@@ -25,9 +37,58 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
  
 
         terrainTex.Apply(true,true);
-     
-        terrainMat.SetTexture("_BaseMap",terrainTex);
-   
+
+        terrainTransparentTex=new Texture2D(1024,1024,TextureFormat.RGBA32, 6, false);
+        terrainTransparentTex.filterMode = FilterMode.Point;
+        terrainTransparentMip0 = Resources.Load<Texture2D>("Textures/terraintransparent");
+        terrainTransparentTex.SetPixels(terrainTransparentMip0.GetPixels(0), 0);
+
+        terrainTransparentTex.Apply(true,true);
+
+        terrainNonSolidTex = new Texture2D(1024, 1024, TextureFormat.RGBA32, 6, false);
+        terrainNonSolidTex.filterMode = FilterMode.Point;
+        terrainNonSolidMip0 = Resources.Load<Texture2D>("Textures/nonsolid");
+        terrainNonSolidTex.SetPixels(terrainNonSolidMip0.GetPixels(0), 0);
+
+        terrainNonSolidTex.Apply(true, true);
+
+
+        terrainNormalTex = new Texture2D(1024, 1024, TextureFormat.RGBA32, 6, true);
+        terrainNormalTex.filterMode = FilterMode.Point;
+
+        //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
+
+        terrainNormalMip0 = Resources.Load<Texture2D>("Textures/terrainnormal");
+
+        terrainNormalTex.SetPixels(terrainNormalMip0.GetPixels(0), 0);
+
+
+        terrainNormalTex.Apply(true, true);
+
+
+
+
+
+        waterNormalTex = new Texture2D(1024, 1024, TextureFormat.RGBA32, 6, true);
+        waterNormalTex.filterMode = FilterMode.Point;
+
+        //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
+
+        waterNormalMip0 = Resources.Load<Texture2D>("Textures/nonsolidnormal");
+
+        waterNormalTex.SetPixels(waterNormalMip0.GetPixels(0), 0);
+
+
+        waterNormalTex.Apply(true, true);
+
+
+
+        terrainMat1.SetTexture("_BaseMap",terrainTex);
+        nonsolidMat.SetTexture("_BaseMap", terrainNonSolidTex);
+
+        
+        transparentMat.SetTexture("_BaseMap", terrainTransparentTex);
+        Debug.Log("Set Texture");
     }
 
     public static void SetTerrainNormalMipmap()
@@ -79,6 +140,7 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
         terrainTex.Apply(true,true);
         Material nonsolidMat= VoxelWorld.chunkPrefab.transform.GetChild(0).GetComponent<MeshRenderer>().sharedMaterial;
         Material waterMat= VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial;
+        Material transparentMat = VoxelWorld.chunkPrefab.transform.GetChild(4).GetComponent<MeshRenderer>().sharedMaterial;
         nonsolidMat.SetTexture("_BaseMap",nonSolidTextureIn);
         waterMat.SetTexture("_BaseMap",waterTexIn);
         terrainMat.SetTexture("_BaseMap",terrainTex);
@@ -88,11 +150,11 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
   
       public static void ResetItemChunkTextures()
     {
-        FileAssetLoaderBeh.instance.UnloadAndResetResouces();
-        ItemEntityBeh.AddFlatItemInfo();
-        TerrainTextureMipmapAdjusting.applyingTerrainNormal = Resources.Load<Texture2D>("Textures/terrainnormal");
-        TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap(out TerrainTextureMipmapAdjusting.applyingTerrainNormal);
-        VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.applyingTerrainNormal);
+    
+        TerrainTextureMipmapAdjusting.terrainNormalTex = Resources.Load<Texture2D>("Textures/terrainnormal");
+        TerrainTextureMipmapAdjusting.waterNormalTex = Resources.Load<Texture2D>("Textures/nonsolidnormal");
+        VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
+        VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
         VoxelWorld.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap", Resources.Load<Texture2D>("Textures/itemterrain"));
     }
     

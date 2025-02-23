@@ -47,6 +47,7 @@ public class ItemEntityBeh : MonoBehaviour
     public List<Vector3> verts=new List<Vector3>();
     public List<Vector2> uvs=new List<Vector2>();
     public List<int> tris=new List<int>();
+    public List<Vector3> norms = new List<Vector3>();
     public MeshCollider mc;
     public MeshFilter mf;
     public Rigidbody rb;
@@ -64,7 +65,8 @@ public class ItemEntityBeh : MonoBehaviour
     verts=new List<Vector3>();
     uvs=new List<Vector2>();
     tris=new List<int>();
-    itemMesh=new Mesh();
+    norms = new List<Vector3>();
+        itemMesh =new Mesh();
     worldItemEntities.Add(this); 
     lastItemPos=transform.position;
         itemInWorldID = VoxelWorld.currentWorld.worldID;
@@ -78,125 +80,127 @@ public class ItemEntityBeh : MonoBehaviour
     verts=new List<Vector3>();
     uvs=new List<Vector2>();
     tris=new List<int>();
-    if(itemID>150&&itemID<=200&&itemID!=156){
-      //  itemMesh=new Mesh();
-        await BuildFlatItemModel(itemID,itemMesh);
-           mf.mesh=itemMesh;
-        mc.sharedMesh=itemMesh;
-    }
-    if(itemID==0){
-        ReleaseItem();
-        return;
-    }
-        if (itemID > 0 && itemID < 100)
-        {
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
-            //Right
+    norms = new List<Vector3>();
+        /*  if(itemID>150&&itemID<=200&&itemID!=156){
+            //  itemMesh=new Mesh();
+              await BuildFlatItemModel(itemID,itemMesh);
+                 mf.mesh=itemMesh;
+              mc.sharedMesh=itemMesh;
+          }
+          if(itemID==0){
+              ReleaseItem();
+              return;
+          }
+              if (itemID > 0 && itemID < 100)
+              {
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
+                  //Right
 
-            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
+                  BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
 
-            //Bottom
+                  //Bottom
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
-            //Top
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+                  //Top
 
-            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
+                  BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
 
-            //Back
+                  //Back
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
-            //Front
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
+                  //Front
 
-            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
-        }
-        else if (itemID == 100)
-        {
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
-            //Right
+                  BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
+              }
+              else if (itemID == 100)
+              {
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
+                  //Right
 
-            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
+                  BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
 
-            //Bottom
+                  //Bottom
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
-            //Top
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+                  //Top
 
-            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
+                  BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
 
-            //Back
+                  //Back
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
-            //Front
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
+                  //Front
 
-            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
-        }
-        else if (itemID == 156) {
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
-            //Right
+                  BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
+              }
+              else if (itemID == 156) {
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.forward, false, verts, uvs, tris, 0);
+                  //Right
 
-            BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
+                  BuildFace(itemID, new Vector3(x + 1, y, z), Vector3.up, Vector3.forward, true, verts, uvs, tris, 1);
 
-            //Bottom
+                  //Bottom
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
-            //Top
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.forward, Vector3.right, false, verts, uvs, tris, 2);
+                  //Top
 
-            BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
+                  BuildFace(itemID, new Vector3(x, y + 1, z), Vector3.forward, Vector3.right, true, verts, uvs, tris, 3);
 
-            //Back
+                  //Back
 
-            BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
-            //Front
+                  BuildFace(itemID, new Vector3(x, y, z), Vector3.up, Vector3.right, true, verts, uvs, tris, 4);
+                  //Front
 
-            BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
+                  BuildFace(itemID, new Vector3(x, y, z + 1), Vector3.up, Vector3.right, false, verts, uvs, tris, 5);
 
 
-        }
-        else
-        {
+              }
+              else
+              {
 
-            if (itemID >= 101 && itemID < 150)
-            {
-                if (itemID == 102)
-                {
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
-                    //Right
+                  if (itemID >= 101 && itemID < 150)
+                  {
+                      if (itemID == 102)
+                      {
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+                          //Right
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
 
-                    //Bottom
+                          //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
-                    //Top
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+                          //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.625f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0.03125f), true, verts, uvs, tris);
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0.625f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0078125f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0.03125f), true, verts, uvs, tris);
 
-                    //Back
+                          //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
-                    //Front
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), true, verts, uvs, tris);
+                          //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0f, 0f, 0.125f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
+                          BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0f, 0f, 0.125f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), new Vector2(0.0078125f, 0.0390625f), new Vector2(0.0625f, 0.0625f) + new Vector2(0.02734375f, 0f), false, verts, uvs, tris);
 
-                }
-                else
-                {
-                    Vector3 randomCrossModelOffset = new Vector3(0f, 0f, 0f);
-                    BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
-                    BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
-                    BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
-                    BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
-                }
+                      }
+                      else
+                      {
+                          Vector3 randomCrossModelOffset = new Vector3(0f, 0f, 0f);
+                          BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
+                          BuildFace(itemID, new Vector3(x, y, z) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, 1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
+                          BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, false, verts, uvs, tris, 0);
+                          BuildFace(itemID, new Vector3(x, y, z + 1f) + randomCrossModelOffset, new Vector3(0f, 1f, 0f) + randomCrossModelOffset, new Vector3(1f, 0f, -1f) + randomCrossModelOffset, true, verts, uvs, tris, 0);
+                      }
 
-            }
+                  }
 
-        }
-
+              }*/
+        ItemEntityMeshBuildingHelper.BuildItemMesh(itemID,ref verts,ref uvs,ref tris,ref norms);
         itemMesh.vertices = verts.ToArray();
+        itemMesh.normals = norms.ToArray();
         itemMesh.uv = uvs.ToArray();
         itemMesh.triangles = tris.ToArray();
         itemMesh.RecalculateBounds();
-        itemMesh.RecalculateNormals();
+        
         itemMesh.RecalculateTangents();
         mc.sharedMesh=itemMesh;
         mf.mesh=itemMesh;
@@ -574,7 +578,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
      public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
     public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
     //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh 155gun powder 156tnt 157bow 158armor upgrade
-    public static Texture2D itemTextureInfo;
+    public static Texture2D itemTexture;
 //    public List<Vector3> verts=new List<Vector3>();
   //  public List<Vector2> uvs=new List<Vector2>();
   //  public List<int> tris=new List<int>();
@@ -584,29 +588,29 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     public static int textureYSize=64;
  //   public Mesh itemMesh;
     public static void AddFlatItemInfo(){
-        itemMaterialInfo.TryAdd(154,new Vector2(0.1875f,0.125f));
-        itemMaterialInfo.TryAdd(153,new Vector2(0.125f,0.125f));
-        itemMaterialInfo.TryAdd(151,new Vector2(0.0625f,0.125f));
-        itemMaterialInfo.TryAdd(152,new Vector2(0.0f,0.125f));
-        itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.125f));
-        itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.125f));
-        itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.125f));
-        itemMaterialInfo.TryAdd(158, new Vector2(0.5625f, 0.125f));
-        itemTexturePosInfo.TryAdd(154,new Vector2Int(192,128));
-        itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 128));
-        itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 128));
-        itemTexturePosInfo.TryAdd(157, new Vector2Int(512, 128));
-        itemTexturePosInfo.TryAdd(158, new Vector2Int(576, 128));
-        itemTexturePosInfo.TryAdd(153,new Vector2Int(128,128));
-        itemTexturePosInfo.TryAdd(152,new Vector2Int(0,128));
-        itemTexturePosInfo.TryAdd(151,new Vector2Int(64,128));
-        itemTextureInfo=Resources.Load<Texture2D>("Textures/itemterrain");
+        itemMaterialInfo.TryAdd(154,new Vector2(0.1875f, 0.25f));
+        itemMaterialInfo.TryAdd(153,new Vector2(0.125f, 0.25f));
+        itemMaterialInfo.TryAdd(151,new Vector2(0.0625f, 0.25f));
+        itemMaterialInfo.TryAdd(152,new Vector2(0.0f, 0.25f));
+        itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.25f));
+        itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.25f));
+        itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.25f));
+        itemMaterialInfo.TryAdd(158, new Vector2(0.5625f, 0.25f));
+        itemTexturePosInfo.TryAdd(154,new Vector2Int(192, 256));
+        itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 256));
+        itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 256));
+        itemTexturePosInfo.TryAdd(157, new Vector2Int(512, 256));
+        itemTexturePosInfo.TryAdd(158, new Vector2Int(576, 256));
+        itemTexturePosInfo.TryAdd(153,new Vector2Int(128, 256));
+        itemTexturePosInfo.TryAdd(152,new Vector2Int(0, 256));
+        itemTexturePosInfo.TryAdd(151,new Vector2Int(64, 256));
+        itemTexture=Resources.Load<Texture2D>("Textures/itemterrain");
    //     itemTextureInfo.Add(0,Resources.Load<Texture2D>("Textures/diamond_pickaxe"));
       //  itemTextureInfo.Add(1,Resources.Load<Texture2D>("Textures/diamond_sword"));
         isFlatItemInfoAdded=true;
     }
 
-    public async Task BuildFlatItemModel(int itemID,Mesh mesh)
+    /*public async Task BuildFlatItemModel(int itemID,Mesh mesh)
     {
     float x=0f;
     float y=0f;
@@ -712,7 +716,7 @@ static void BuildFlatItemFace(float uvX,float uvY,float uvWidthXY,Vector3 corner
             tris.Add(index + 0);
         }
     
-    }
+    }*/
 
 
 

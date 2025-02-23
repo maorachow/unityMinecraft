@@ -51,7 +51,7 @@ public class AssetBundlePacker : Editor
           string path =  Application.dataPath+"/AssetBundles/jsonData";
           FileStream fs=File.Create(path+"/blockterraininfo.dat");
           fs.Close();
-          File.WriteAllBytes(path+"/blockterraininfo.dat",MessagePackSerializer.Serialize(Chunk.blockInfo));/*new  Dictionary<int,List<Vector2>>{
+          File.WriteAllBytes(path+"/blockterraininfo.dat",MessagePackSerializer.Serialize(Chunk.blockInfosNew));/*new  Dictionary<int,List<Vector2>>{
     {  1,new List<Vector2>{new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f),new Vector2(0f,0f)}},
     { 2,new List<Vector2>{new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f),new Vector2(0.0625f,0f)}},
     {     3,new List<Vector2>{new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f),new Vector2(0.125f,0f)}},

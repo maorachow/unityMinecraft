@@ -521,7 +521,7 @@ public class PlayerMove: MonoBehaviour
             else
             {
                 inventoryItemNumberDic[GetItemFromSlot(7)]--;
-                AddItem(102, 1);
+                AddItem(102, 4);
             }
         }
         else if (exchangeID == 3)
@@ -533,7 +533,7 @@ public class PlayerMove: MonoBehaviour
             else
             {
                 inventoryItemNumberDic[GetItemFromSlot(155)]--;
-                AddItem(156, 1);
+                AddItem(156, 4);
             }
         }
         else if (exchangeID == 4)
@@ -545,7 +545,37 @@ public class PlayerMove: MonoBehaviour
             else
             {
                 inventoryItemNumberDic[GetItemFromSlot(153)]--;
-                AddItem(158, 1);
+                AddItem(158, 8);
+            }
+        }
+        else if (exchangeID == 5)
+        {
+            if (GetItemFromSlot(7) == -1)
+            {
+                return;
+            }
+            else
+            {
+                inventoryItemNumberDic[GetItemFromSlot(7)]--;
+                AddItem(103, 4);
+                
+            }
+        }
+
+        else if (exchangeID == 6)
+        {
+            if (GetItemFromSlot(11) == -1)
+            {
+                return;
+            }
+            else
+            {
+                inventoryItemNumberDic[GetItemFromSlot(11)]--;
+                AddItem(107, 1);
+                AddItem(108, 1);
+                AddItem(109, 1);
+                AddItem(110, 1);
+                AddItem(111, 1);
             }
         }
     }
@@ -1601,40 +1631,238 @@ public class PlayerMove: MonoBehaviour
                             break;
                     }
                     break;
-                case BlockShape.Torch:
+
+
+                case BlockShape.CrossModel:
+                    switch (resultFaces)
+                    {
+                      
+                        case BlockFaces.PositiveY:
+
+                            BlockShape? placingPosShape1 =
+                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                    result1.z + 0.5f));
+                            BlockShape? placingDownPosShape =
+                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                    result1.z + 0.5f));
+                            if (placingDownPosShape is BlockShape.SolidTransparent ||
+                                placingDownPosShape is BlockShape.Solid)
+                            {
+                                if (placingPosShape1 == null)
+                                {
+                                    WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                        (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
+                                    return true;
+                                }
+                               
+                            }
+                            else
+                            {
+                                blockPoint = new Vector3(-1, -1, -1);
+
+                                return false;
+                            }
+                           
+                            break;
+                       
+                    }
+                    break;
+                case BlockShape.SolidTransparent:
                     switch (resultFaces)
                     {
                         case BlockFaces.PositiveX:
-                            WorldHelper.instance.SetBlockDataByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f), new BlockData((short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]], 2));
+
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
                             blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
                             return true;
-
+                            break;
                         case BlockFaces.PositiveY:
-                            WorldHelper.instance.SetBlockDataByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f), new BlockData((short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]], 0));
+
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                             return true;
-
-
+                            break;
                         case BlockFaces.PositiveZ:
-                            WorldHelper.instance.SetBlockDataByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f), new BlockData((short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]], 4));
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
                             return true;
-
+                            break;
                         case BlockFaces.NegativeX:
-                            WorldHelper.instance.SetBlockDataByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f), new BlockData((short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]], 1));
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
                             blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
                             return true;
-                             
+                            break;
                         case BlockFaces.NegativeY:
-                            blockPoint = new Vector3(-1,-1,-1);
-                            return false;
 
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
+                            return true;
+                            break;
                         case BlockFaces.NegativeZ:
-                            WorldHelper.instance.SetBlockDataByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f), new BlockData((short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]], 3));
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
                             return true;
-
+                            break;
                     }
+                    break;
+                case BlockShape.Fence:
+                    switch (resultFaces)
+                    {
+                        case BlockFaces.PositiveX:
+
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
+                            return true;
+                            break;
+                        case BlockFaces.PositiveY:
+
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
+                            return true;
+                            break;
+                        case BlockFaces.PositiveZ:
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
+                            return true;
+                            break;
+                        case BlockFaces.NegativeX:
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
+                            return true;
+                            break;
+                        case BlockFaces.NegativeY:
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
+                            return true;
+                            break;
+                        case BlockFaces.NegativeZ:
+
+                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
+                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
+                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
+                            return true;
+                            break;
+                    }
+                    break;
+                case BlockShape.Torch:
+                    BlockShape? placingPosShape =
+                        WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                            result1.z + 0.5f));
+                    if (placingPosShape is BlockShape.SolidTransparent || placingPosShape is BlockShape.Solid)
+                    {
+                        switch (resultFaces)
+                        {
+                            case BlockFaces.PositiveX:
+                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
+                                        result1.z + 0.5f)) == null)
+                                {
+                                    WorldHelper.instance.SetBlockDataByHand(
+                                        new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                        new BlockData(
+                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
+                                                inventoryDic[currentSelectedHotbar - 1]], 2));
+                                    blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
+                                    return true;
+                                }
+
+                                break;
+
+
+                            case BlockFaces.PositiveY:
+                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                        result1.z + 0.5f)) == null)
+                                {
+                                    WorldHelper.instance.SetBlockDataByHand(
+                                        new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                        new BlockData(
+                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
+                                                inventoryDic[currentSelectedHotbar - 1]], 0));
+                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
+                                    return true;
+                                }
+
+                                break;
+
+                            case BlockFaces.PositiveZ:
+                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                        result1.z + 1.5f)) == null)
+                                {
+                                    WorldHelper.instance.SetBlockDataByHand(
+                                        new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
+                                        new BlockData(
+                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
+                                                inventoryDic[currentSelectedHotbar - 1]], 4));
+                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
+                                    return true;
+                                }
+
+                                break;
+
+                            case BlockFaces.NegativeX:
+                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
+                                        result1.z + 0.5f)) == null)
+                                {
+                                    WorldHelper.instance.SetBlockDataByHand(
+                                        new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                        new BlockData(
+                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
+                                                inventoryDic[currentSelectedHotbar - 1]], 1));
+                                    blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
+                                    return true;
+                                }
+
+                                break;
+
+                            case BlockFaces.NegativeY:
+                                blockPoint = new Vector3(-1, -1, -1);
+                                return false;
+
+                            case BlockFaces.NegativeZ:
+                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                        result1.z - 0.5f)) == null)
+                                {
+                                    WorldHelper.instance.SetBlockDataByHand(
+                                        new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
+                                        new BlockData(
+                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
+                                                inventoryDic[currentSelectedHotbar - 1]], 3));
+                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
+                                    return true;
+                                }
+
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        blockPoint = new Vector3(-1, -1, -1);
+                        
+                        return false;
+                    }
+
+                    
                     break;
             }
             

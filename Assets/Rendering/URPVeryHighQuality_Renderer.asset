@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c546754510c6a94787b140f09195994, type: 3}
   m_Name: VolumetricLightRenderFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   shader: {fileID: 4800000, guid: 1c96a14175505404c99cbf8bcb55bd05, type: 3}
   settings:
     stepCount: 32
@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d76d5bde2df8844ea95b630d445a645, type: 3}
   m_Name: CameraFrustumRayRenderPassFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
 --- !u!114 &-488914240223947357
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -168,12 +168,12 @@ MonoBehaviour:
     AfterOpaque: 0
     Source: 1
     NormalSamples: 1
-    Intensity: 0.25
+    Intensity: 0.3
     DirectLightingStrength: 0.25
-    Radius: 0.9
-    Samples: 1
+    Radius: 0.6
+    Samples: 0
     BlurQuality: 0
-    Falloff: 500
+    Falloff: 1500
     SampleCount: -1
   m_BlueNoise256Textures:
   - {fileID: 2800000, guid: 36f118343fc974119bee3d09e2111500, type: 3}

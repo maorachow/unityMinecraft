@@ -28,9 +28,9 @@ public class FileAssetLoaderBeh : MonoBehaviour
        
     }
     public bool LoadChunkBlockInfo(string path){
-        Chunk.blockInfo.Clear();
+        Chunk.blockInfosNew.Clear();
         try{
-        Chunk.blockInfo=MessagePackSerializer.Deserialize<Dictionary<int,List<Vector2>>>(File.ReadAllBytes(path));
+        Chunk.blockInfosNew=MessagePackSerializer.Deserialize<Dictionary<int,BlockInfo>>(File.ReadAllBytes(path));
         return true;
         }catch(Exception e){
             Debug.Log("Loading block info failed: "+e.ToString());
@@ -87,7 +87,7 @@ public class FileAssetLoaderBeh : MonoBehaviour
            textureAB=AssetBundle.LoadFromFile(path);
             TerrainTextureMipmapAdjusting.SetTerrainTexMipmap(textureAB.LoadAsset<Texture2D>("terrain"),textureAB.LoadAsset<Texture2D>("terrainnormal"),textureAB.LoadAsset<Texture2D>("nonsolid"),textureAB.LoadAsset<Texture2D>("nonsolid"));
             VoxelWorld.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BaseMap",textureAB.LoadAsset<Texture2D>("itemterrain"));
-            ItemEntityBeh.itemTextureInfo=textureAB.LoadAsset<Texture2D>("itemterrain");
+            ItemEntityBeh.itemTexture=textureAB.LoadAsset<Texture2D>("itemterrain");
             return true;
          }catch(Exception e){
               Debug.Log("Loading block texture failed: "+e.ToString());

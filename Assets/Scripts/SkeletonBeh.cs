@@ -156,7 +156,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
                 return;
             }
             Vector3 arrowPos = headTransform.position + headTransform.forward*1.3f;
-            EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4);
+            EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4,headTransform.forward);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
             arrow.GetComponent<Rigidbody>().rotation=Quaternion.LookRotation(headTransform.forward);
           //  System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
@@ -167,7 +167,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             // Debug.Log(sw.Elapsed.TotalMilliseconds);
             arrow.GetComponent<Rigidbody>().constraints=RigidbodyConstraints.None;
             arrow.GetComponent<Rigidbody>().WakeUp();
-            arrow.GetComponent<Rigidbody>().AddForce( headTransform.forward*20f,ForceMode.VelocityChange);
+            arrow.GetComponent<Rigidbody>().AddForce( headTransform.forward*20f+new Vector3(Random.Range(-0.5f,0.5f), Random.Range(-0.5f, 4.5f), Random.Range(-0.5f, 0.5f)),ForceMode.VelocityChange);
             AudioSource.PlayClipAtPoint(skeletonShootClip, transform.position);
             Invoke("CancelAttack", 0.2f);
         }
