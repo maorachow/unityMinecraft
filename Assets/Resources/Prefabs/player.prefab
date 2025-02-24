@@ -59,6 +59,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -97,8 +100,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemMesh: {fileID: 0}
+  t: {fileID: 0}
+  isHandItemBuildCompleted: 0
   mf: {fileID: 0}
   blockID: 0
+  prevBlockID: 0
 --- !u!1 &597692112793059668
 GameObject:
   m_ObjectHideFlags: 0
@@ -230,12 +236,12 @@ MonoBehaviour:
   m_RequiresColorTexture: 0
   m_Version: 2
   m_TaaSettings:
-    quality: 0
-    frameInfluence: 0.1
-    jitterScale: 1
-    mipBias: 0
-    varianceClampScale: 0.9
-    contrastAdaptiveSharpening: 0
+    m_Quality: 0
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &1909428687752091055
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,6 +300,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -510,6 +519,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -593,6 +605,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -676,6 +691,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -826,7 +844,7 @@ Transform:
   m_GameObject: {fileID: 6400299344187784956}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 150, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -848,7 +866,6 @@ CharacterController:
     serializedVersion: 2
     m_Bits: 64
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -871,39 +888,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d92ec001835ebe40881cd37e678effd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPlayerWieldingItem: 0
+  AS: {fileID: 0}
+  playerCameraZShakeValue: 0
+  playerCameraZShakeLerpValue: 0
   playerHealth: 20
   playerMaxHealth: 20
+  playerArmorPoints: 0
+  playerMaxArmorPoints: 20
   curChunk: {fileID: 0}
   am: {fileID: 0}
   blockOnHandID: 0
   cameraPosMode: 0
   prefabBlockOutline: {fileID: 0}
   blockOutline: {fileID: 0}
-  collidingBlockOutline: {fileID: 0}
   cameraPos: {fileID: 0}
   headPos: {fileID: 0}
   playerMoveRef: {fileID: 0}
   playerBodyPos: {fileID: 0}
-  blockOnHandText: {fileID: 0}
   mainCam: {fileID: 0}
   cc: {fileID: 0}
   cameraX: 0
+  critAttackCD: 1
   breakBlockCD: 0.2
   moveSpeed: 5
-  gravity: -9.8
   playerY: 0
   jumpHeight: 2
-  mouseSens: 10
   currentSpeed: 0
   playerVec: {x: 0, y: 0, z: 0}
-  curpos: {x: 0, y: 0}
-  lastpos: {x: 0, y: 0}
-  chunkPrefab: {fileID: 0}
+  playerMotionVec: {x: 0, y: 0, z: 0}
+  isPlayerKilled: 0
   playerHandItem: {fileID: 0}
   currentSelectedHotbar: 0
   inventoryDic: 000000000000000000000000000000000000000000000000000000000000000000000000
   inventoryItemNumberDic: 000000000000000000000000000000000000000000000000000000000000000000000000
-  pauseMenu: {fileID: 0}
+  lerpItemSlotAxis: 0
+  lerpPlayerVec: {x: 0, y: 0, z: 0}
+  playerChunkLoadingPos: {x: 0, y: 0}
+  curHeadBlockID: 0
+  prevHeadBlockID: 0
+  curFootBlockID: 0
+  curUnderFootBlockID: 0
+  prevUnderFootBlockID: 0
+  prevFootBlockID: 0
+  playerMoveDrag: 0
+  isPlayerInGround: 0
+  isPlayerGrounded: 0
+  isUsingCC: 1
+  curChunkLoader: {fileID: 0}
+  playerTeleportingCD: 0
 --- !u!1 &7014026326654567924
 GameObject:
   m_ObjectHideFlags: 0
@@ -972,7 +1005,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1921061619736287277
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -986,6 +1019,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -1080,6 +1114,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1163,6 +1200,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

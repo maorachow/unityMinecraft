@@ -27,6 +27,8 @@ public class ItemIDToBlockID
         blockIDToItemIDDic.TryAdd(102,102);
         blockIDToItemIDDic.TryAdd(103, 103);
 
+        blockIDToItemIDDic.TryAdd(104, 104);
+
         blockIDToItemIDDic.TryAdd(106, 106);
         blockIDToItemIDDic.TryAdd(107, 107);
         blockIDToItemIDDic.TryAdd(108, 108);
@@ -57,6 +59,7 @@ public class ItemIDToBlockID
         ItemIDToBlockIDDic.TryAdd(102,102);
         ItemIDToBlockIDDic.TryAdd(103, 103);
 
+        ItemIDToBlockIDDic.TryAdd(104, 104);
 
         ItemIDToBlockIDDic.TryAdd(106, 106);
         ItemIDToBlockIDDic.TryAdd(107, 107);

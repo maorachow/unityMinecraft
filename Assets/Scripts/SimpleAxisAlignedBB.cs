@@ -2,16 +2,117 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SimpleAxisAlignedBB : AxisAlignedBB {
+public struct SimpleAxisAlignedBB  {
 
-  /*  public float minX;
+    /*  public float minX;
+      public float minY;
+      public float minZ;
+      public float maxX;
+      public float maxY;
+      public float maxZ;*/
+    public float minX;
     public float minY;
     public float minZ;
     public float maxX;
     public float maxY;
-    public float maxZ;*/
+    public float maxZ;
 
-    public SimpleAxisAlignedBB(){}
+    public Vector3 Max
+    {
+        get
+        {
+            return new Vector3(maxX, maxY, maxZ);
+        }
+    }
+
+    public Vector3 Min
+    {
+        get
+        {
+            return new Vector3(minX, minY, minZ);
+        }
+    }
+
+
+    public float getMinX()
+    {
+        return minX;
+    }
+
+
+    public void setMinX(float minX)
+    {
+        this.minX = minX;
+    }
+
+
+    public float getMinY()
+    {
+        return minY;
+    }
+
+
+    public void setMinY(float minY)
+    {
+        this.minY = minY;
+    }
+
+
+    public float getMinZ()
+    {
+        return minZ;
+    }
+
+
+    public void setMinZ(float minZ)
+    {
+        this.minZ = minZ;
+    }
+
+
+    public float getMaxX()
+    {
+        return maxX;
+    }
+
+
+    public void setMaxX(float maxX)
+    {
+        this.maxX = maxX;
+    }
+
+
+    public float getMaxY()
+    {
+        return maxY;
+    }
+
+
+    public void setMaxY(float maxY)
+    {
+        this.maxY = maxY;
+    }
+
+
+    public float getMaxZ()
+    {
+        return maxZ;
+    }
+
+
+    public void setMaxZ(float maxZ)
+    {
+        this.maxZ = maxZ;
+    }
+
+    public static SimpleAxisAlignedBB emptySimpleAxisAlignedBB
+    {
+        get
+        {
+            return new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        }
+    }
+    
     public SimpleAxisAlignedBB(Vector3 pos1, Vector3 pos2) {
         this.minX =  Mathf.Min(pos1.x, pos2.x);
         this.minY =  Mathf.Min(pos1.y, pos2.y);
@@ -175,7 +276,7 @@ public class SimpleAxisAlignedBB : AxisAlignedBB {
 
         return z;
     }
-    public AxisAlignedBB clone() {
+    public SimpleAxisAlignedBB clone() {
         return new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
     }
     public void Visualize(){

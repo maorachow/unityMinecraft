@@ -1,24 +1,13 @@
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
-using UnityEngine.Jobs;
 using Unity.Collections;
 using Unity.Burst;
 using UnityEngine.Rendering;
-using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using Priority_Queue;
-using System.Collections.Concurrent;
 using MessagePack;
-using System.IO;
-using Microsoft.SqlServer.Server;
-using UnityEngine.EventSystems;
-using Unity.Burst.Intrinsics;
-using System.Linq;
-using UnityEditorInternal;
 
 //using FastNoise;
 /*[MessagePackObject]
@@ -66,7 +55,7 @@ public struct RandomGenerator3D
     }
 }
 
-public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
+public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 {
     public struct Vertex
     {
@@ -855,8 +844,8 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         blockAudioDic.TryAdd(101, Resources.Load<AudioClip>("Audios/Grass_dig1"));
         blockAudioDic.TryAdd(102, Resources.Load<AudioClip>("Audios/Wood_dig1"));
         blockAudioDic.TryAdd(103, Resources.Load<AudioClip>("Audios/Wood_dig1"));
+        blockAudioDic.TryAdd(104, Resources.Load<AudioClip>("Audios/Wood_dig1"));
 
-     
         blockAudioDic.TryAdd(107, Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(108, Resources.Load<AudioClip>("Audios/Stone_dig2"));
         blockAudioDic.TryAdd(109, Resources.Load<AudioClip>("Audios/Stone_dig2"));
@@ -4853,309 +4842,7 @@ public class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
       }*/
 
 
-    public void BFSInit(int x, int y, int z)
-    {
-        BFSMapUpdate(x, y, z);
-    }
-
-    public void UpdateBlock(int x, int y, int z)
-    {
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 101 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-        }
-
-        if (blockInfosNew.ContainsKey(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))))
-        {
-            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape == BlockShape.Torch)
-            {
-                BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                switch (curBlockData.optionalDataValue)
-                {
-                    case 0:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 1:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 2:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 3:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 4:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                }
-
-                //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-            }else if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape ==
-                      BlockShape.Fence)
-            {
-
-                BlockShape? shapeThis =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
-                if (shapeThis is not BlockShape.Fence)
-                {
-                    return;
-                }
-                BlockShape? shapeRight =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
-                BlockShape? shapeLeft =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
-                BlockShape? shapeFront =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
-                BlockShape? shapeBack =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
-                bool[] shapes = new[] { false, false, false, false, false, false, false, false };
-                if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
-                {
-                    shapes[7] = true;
-                }
-                else
-                {
-                    shapes[7] = false;
-                }
-
-                if (shapeRight != null && (shapeRight.Value == BlockShape.Fence || shapeRight.Value == BlockShape.Solid))
-                {
-                    shapes[6] = true;
-                }
-                else
-                {
-                    shapes[6] = false;
-                }
-
-                if (shapeBack != null && (shapeBack.Value == BlockShape.Fence || shapeBack.Value == BlockShape.Solid))
-                {
-                    shapes[5] = true;
-                }
-                else
-                {
-                    shapes[5] = false;
-                }
-
-                if (shapeFront != null && (shapeFront.Value == BlockShape.Fence || shapeFront.Value == BlockShape.Solid))
-                {
-                    shapes[4] = true;
-                }
-                else
-                {
-                    shapes[4] = false;
-                }
-                //     Debug.WriteLine("from::"+updateFromPoint);
-                WorldHelper.instance.SetBlockOptionalDataWithoutUpdate(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z), MathUtility.GetByte(shapes));
-
-            }
-
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1), 100);
-        }
-    }
-
-    public void BFSMapUpdate(int x, int y, int z)
-    {
-        //left right bottom top back front
-        //left x-1 right x+1 top y+1 bottom y-1 back z-1 front z+1
-
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 101 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-        }
-
-        if (blockInfosNew.ContainsKey(WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))))
-        {
-            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape==BlockShape.Torch)
-            {
-                BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                switch (curBlockData.optionalDataValue)
-                {
-                    case 0:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 1:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 2:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 3:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                    case 4:
-                        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
-                        {
-                            WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-                        }
-                        break;
-                }
-
-                //    WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
-            }
-
-
-            if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape ==
-                BlockShape.Fence)
-            {
-
-                BlockShape? shapeThis =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
-                if (shapeThis is not BlockShape.Fence)
-                {
-                    return;
-                }
-                BlockShape? shapeRight =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
-                BlockShape? shapeLeft =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
-                BlockShape? shapeFront =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
-                BlockShape? shapeBack =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
-                bool[] shapes = new[] { false, false, false, false, false, false, false, false };
-                if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
-                {
-                    shapes[7] = true;
-                }
-                else
-                {
-                    shapes[7] = false;
-                }
-
-                if (shapeRight != null && (shapeRight.Value == BlockShape.Fence || shapeRight.Value == BlockShape.Solid))
-                {
-                    shapes[6] = true;
-                }
-                else
-                {
-                    shapes[6] = false;
-                }
-
-                if (shapeBack != null && (shapeBack.Value == BlockShape.Fence || shapeBack.Value == BlockShape.Solid))
-                {
-                    shapes[5] = true;
-                }
-                else
-                {
-                    shapes[5] = false;
-                }
-
-                if (shapeFront != null && (shapeFront.Value == BlockShape.Fence || shapeFront.Value == BlockShape.Solid))
-                {
-                    shapes[4] = true;
-                }
-                else
-                {
-                    shapes[4] = false;
-                }
-                //     Debug.WriteLine("from::"+updateFromPoint);
-                WorldHelper.instance.SetBlockOptionalDataWithoutUpdate(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z), MathUtility.GetByte(shapes));
-
-            }
-
-        }
-       
-       
-
-
-
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x - 1, y, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z - 1), 100);
-        }
-
-        if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z)) == 100 &&
-            WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
-        {
-            WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1), 100);
-        }
-
-        UpdateBlock(x - 1, y, z);
-        UpdateBlock(x + 1, y, z);
-        UpdateBlock(x, y - 1, z);
-        UpdateBlock(x, y + 1, z);
-        UpdateBlock(x, y, z - 1);
-        UpdateBlock(x, y, z + 1);
-    }
+  
 
 
     //   void UpdatePlayerDistance(){

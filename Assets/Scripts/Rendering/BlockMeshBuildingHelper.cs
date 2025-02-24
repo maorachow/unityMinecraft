@@ -654,24 +654,24 @@ public static partial class BlockMeshBuildingHelper
                 if (isDown == true)
                 {
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                     //Right
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0.1875f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0.1875f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 0f, 1f), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 0f, 1f), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
 
@@ -679,24 +679,24 @@ public static partial class BlockMeshBuildingHelper
                 else
                 {
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[6], Chunk.blockInfosNew[blockData.blockID].uvSizes[6], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[6], Chunk.blockInfosNew[blockData.blockID].uvSizes[6], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Right
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0.1875f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[7], Chunk.blockInfosNew[blockData.blockID].uvSizes[7], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0.1875f, 0f, 0f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 1f), Chunk.blockInfosNew[blockData.blockID].uvCorners[7], Chunk.blockInfosNew[blockData.blockID].uvSizes[7], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Bottom
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[8], Chunk.blockInfosNew[blockData.blockID].uvSizes[8], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[8], Chunk.blockInfosNew[blockData.blockID].uvSizes[8], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Top
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[9], Chunk.blockInfosNew[blockData.blockID].uvSizes[9], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[9], Chunk.blockInfosNew[blockData.blockID].uvSizes[9], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
                     //Back
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[10], Chunk.blockInfosNew[blockData.blockID].uvSizes[10], true,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[10], Chunk.blockInfosNew[blockData.blockID].uvSizes[10], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
                     //Front
 
-                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 0f, 1f), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[11], Chunk.blockInfosNew[blockData.blockID].uvSizes[11], false,NSVerts,NSUVs,NSTris,NSNorms);
+                    BuildFaceComplex(new Vector3(x, y, z), rotationMat, new Vector3(x, y, z) + new Vector3(0f, 0f, 1f), new Vector3(0f, 1, 0f), new Vector3(0.1875f, 0f, 0f), Chunk.blockInfosNew[blockData.blockID].uvCorners[11], Chunk.blockInfosNew[blockData.blockID].uvSizes[11], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
 
 
                 }

@@ -9,6 +9,8 @@ public static class ItemEntityMeshBuildingHelper
     {
         switch (itemID)
         {
+            case 104:
+                return false;
             case 151:
                 return false;
             case 152:

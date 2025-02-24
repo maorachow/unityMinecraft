@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-public class AxisAlignedBB {
+/*public struct AxisAlignedBB {
 
     public AxisAlignedBB setBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
         this.setMinX(minX);
@@ -14,7 +14,7 @@ public class AxisAlignedBB {
         return this;
     }
 
-    public AxisAlignedBB addCoord(float x, float y, float z) {
+    public SimpleAxisAlignedBB addCoord(float x, float y, float z) {
         float minX = this.getMinX();
         float minY = this.getMinY();
         float minZ = this.getMinZ();
@@ -60,7 +60,7 @@ public class AxisAlignedBB {
         this.setMaxZ(this.getMaxZ() + z);
         Debug.Log("move"+x+" "+y+" "+z+" ");
         return this;
-    }*/
+    }
 
     public AxisAlignedBB shrink(float x, float y, float z) {
         return new SimpleAxisAlignedBB(this.getMinX() + x, this.getMinY() + y, this.getMinZ() + z, this.getMaxX() - x, this.getMaxY() - y, this.getMaxZ() - z);
@@ -276,4 +276,4 @@ public class AxisAlignedBB {
             return new Vector3(minX, minY, minZ);
         }
     }
-}
+}*/

@@ -252,7 +252,22 @@ public static class BlockBoundingBoxUtility
         if (shape == BlockShape.Torch)
         {
 
-            return new SimpleAxisAlignedBB(new Vector3(x + 0.45f, y, z + 0.45f), new Vector3(x + 0.55f, y + 0.8f, z + +0.55f));
+            switch (blockData.optionalDataValue)
+            {
+                case 0:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f, y, z + 0.35f), new Vector3(x + 0.65f, y + 0.8f, z + +0.65f));
+                case 1:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f + 0.35f, y, z + 0.35f), new Vector3(x + 0.65f + 0.35f, y + 0.8f, z + +0.65f));
+                case 2:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f - 0.35f, y, z + 0.35f), new Vector3(x + 0.65f - 0.35f, y + 0.8f, z + +0.65f));
+                case 3:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f, y, z + 0.35f + 0.35f), new Vector3(x + 0.65f, y + 0.8f, z + +0.65f + 0.35f));
+                case 4:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f, y, z + 0.35f - 0.35f), new Vector3(x + 0.65f, y + 0.8f, z + +0.65f - 0.35f));
+                default:
+                    return new SimpleAxisAlignedBB(new Vector3(x + 0.35f, y, z + 0.35f), new Vector3(x + 0.65f, y + 0.8f, z + +0.65f));
+            }
+           
 
 
         }
@@ -265,7 +280,7 @@ public static class BlockBoundingBoxUtility
         }
         if (shape == BlockShape.Water)
         {
-            return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+            return new SimpleAxisAlignedBB();
         }
 
         if (shape == BlockShape.Fence)
@@ -274,12 +289,101 @@ public static class BlockBoundingBoxUtility
         }
         if (shape == BlockShape.Door)
         {
-            return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1f, y + 1f, z + 1f));
+            bool[] doorDataBools = MathUtility.GetBooleanArray(blockData.optionalDataValue);
+
+
+            byte doorFaceID = 0;
+            Vector3 boxMin = new Vector3(x, y, z);
+            Vector3 boxMax = new Vector3(x + 1, y + 1, z + 1);
+            if (doorDataBools[6] == false)
+            {
+                if (doorDataBools[7] == false)
+                {
+                    doorFaceID = 0;
+                }
+                else
+                {
+                    doorFaceID = 1;
+                }
+            }
+            else
+            {
+                if (doorDataBools[7] == false)
+                {
+                    doorFaceID = 2;
+                }
+                else
+                {
+                    doorFaceID = 3;
+                }
+            }
+
+            bool isOpen = doorDataBools[4];
+
+            switch (doorFaceID)
+            {
+                case 0:
+                    if (!isOpen)
+                    {
+                        boxMin = new Vector3(x, y, z);
+                        boxMax = new Vector3(x + 0.1875f, y + 1, z + 1);
+                    }
+                    else
+                    {
+                        boxMin = new Vector3(x, y, z + 1 - 0.1875f);
+                        boxMax = new Vector3(x + 1, y + 1, z + 1);
+                    }
+
+                    break;
+                case 1:
+                    if (!isOpen)
+                    {
+                        boxMin = new Vector3(x + 1 - 0.1875f, y, z);
+                        boxMax = new Vector3(x + 1, y + 1, z + 1f);
+                    }
+                    else
+                    {
+                        boxMin = new Vector3(x, y, z);
+                        boxMax = new Vector3(x + 1, y + 1, z + 0.1875f);
+                    }
+
+                    break;
+                case 2:
+                    if (!isOpen)
+                    {
+                        boxMin = new Vector3(x, y, z);
+                        boxMax = new Vector3(x + 1, y + 1, z + 0.1875f);
+
+                    }
+                    else
+                    {
+                        boxMin = new Vector3(x, y, z);
+                        boxMax = new Vector3(x + 0.1875f, y + 1, z + 1);
+                    }
+
+                    break;
+                case 3:
+                    if (!isOpen)
+                    {
+                        boxMin = new Vector3(x, y, z + 1 - 0.1875f);
+                        boxMax = new Vector3(x + 1, y + 1, z + 1);
+                    }
+                    else
+                    {
+                        boxMin = new Vector3(x + 1 - 0.1875f, y, z);
+                        boxMax = new Vector3(x + 1, y + 1, z + 1f);
+                    }
+
+                    break;
+            }
+            return new SimpleAxisAlignedBB(boxMin, boxMax);
         }
         if (shape == BlockShape.WallAttachment)
         {
             return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1f, y + 1f, z + 1f));
         }
+
+        
         return new SimpleAxisAlignedBB();
 
     }

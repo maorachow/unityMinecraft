@@ -61,7 +61,7 @@ public class PlayerData
     }
 }
 
-public class PlayerMove: MonoBehaviour
+public partial class PlayerMove: MonoBehaviour
 {
     public static AudioClip playerSinkClip
     {
@@ -94,9 +94,10 @@ public class PlayerMove: MonoBehaviour
     public static GameObject playerSweepParticlePrefab;
     public GameObject prefabBlockOutline;
     public GameObject blockOutline;
-    public GameObject collidingBlockOutline;
+   
     public Transform cameraPos;
     public Transform headPos;
+    public Transform playerHeadCenterRef;
     public Transform playerMoveRef;
     public Transform playerBodyPos;
 
@@ -237,6 +238,7 @@ public class PlayerMove: MonoBehaviour
         cc = GetComponent<CharacterController>();
         headPos = transform.GetChild(0).GetChild(0);
         playerMoveRef = headPos.GetChild(1);
+        playerHeadCenterRef = headPos.GetChild(3);
         playerBodyPos = transform.GetChild(0).GetChild(1);
         mainCam = headPos.GetChild(0).gameObject.GetComponent<Camera>();
         mainCam.fieldOfView = cameraFOV;
@@ -305,8 +307,8 @@ public class PlayerMove: MonoBehaviour
         playerDropItemClip = Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline = Resources.Load<GameObject>("Prefabs/blockoutline");
         playerEquipArmorClip = Resources.Load<AudioClip>("Audios/Equip_diamond2");
-        blockOutline = Instantiate(prefabBlockOutline, transform.position, transform.rotation);
-        collidingBlockOutline = Instantiate(prefabBlockOutline, transform.position, transform.rotation);
+        blockOutline = Instantiate(prefabBlockOutline, new Vector3(0, 0, 0),Quaternion.identity);
+    //    collidingBlockOutline = Instantiate(prefabBlockOutline, new Vector3(0,0,0), transform.rotation);
 
 
         //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
@@ -578,6 +580,20 @@ public class PlayerMove: MonoBehaviour
                 AddItem(111, 1);
             }
         }
+
+        else if (exchangeID == 7)
+        {
+            if (GetItemFromSlot(7) == -1)
+            {
+                return;
+            }
+            else
+            {
+                inventoryItemNumberDic[GetItemFromSlot(7)]--;
+                AddItem(104, 6);
+                
+            }
+        }
     }
 
     public int GetItemFromSlot(int itemID)
@@ -606,6 +622,8 @@ public class PlayerMove: MonoBehaviour
         playerBodyPos.rotation = Quaternion.identity;
         transform.GetChild(0).rotation = Quaternion.Euler(0f, 0f, 0f);
         transform.GetChild(0).localPosition = new Vector3(0f, 0f, 0f);
+
+        transform.GetChild(0).GetChild(1).rotation = Quaternion.Euler(0f, 0f, 0f);
         cc.enabled = true;
 
 
@@ -722,51 +740,7 @@ public class PlayerMove: MonoBehaviour
             moveSpeed = 5f;
         }
 
-        Ray ray = mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit info;
-        if (Physics.Raycast(ray, out info, 10f) && info.collider.gameObject.tag != "Entity")
-        {
-            blockOutline.GetComponent<MeshRenderer>().enabled = true;
-
-
-            collidingBlockOutline.GetComponent<MeshRenderer>().enabled = false;
-
-            Vector3 blockPoint = info.point + headPos.forward * 0.01f;
-            Vector3 blockPoint2 = info.point - headPos.forward * 0.01f;
-            blockOutline.transform.position = new Vector3(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint).x + 0.5f,
-               ChunkCoordsHelper.Vec3ToBlockPos(blockPoint).y + 0.5f,
-               ChunkCoordsHelper.Vec3ToBlockPos(blockPoint).z + 0.5f);
-            collidingBlockOutline.transform.position = new Vector3(
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).x + 0.5f,
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).y + 0.5f,
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).z + 0.5f);
-        }
-        else if (Physics.Raycast(ray, out info, 10f) && info.collider.gameObject.tag == "Entity")
-        {
-            Vector3 blockPoint = info.point + headPos.forward * 0.01f;
-            Vector3 blockPoint2 = info.point - headPos.forward * 0.01f;
-            collidingBlockOutline.transform.position = new Vector3(
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).x + 0.5f,
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).y + 0.5f,
-                ChunkCoordsHelper.Vec3ToBlockPos(blockPoint2).z + 0.5f);
-            blockOutline.GetComponent<MeshRenderer>().enabled = false;
-            collidingBlockOutline.GetComponent<MeshRenderer>().enabled = false;
-            if (info.collider.GetComponent<EndermanBeh>() != null)
-            {
-                info.collider.GetComponent<EndermanBeh>().isTargetingPlayer = true;
-            }
-        }
-        else
-        {
-            blockOutline.GetComponent<MeshRenderer>().enabled = false;
-            collidingBlockOutline.GetComponent<MeshRenderer>().enabled = false;
-        }
-
-        if (cameraPosMode == 1)
-        {
-            blockOutline.GetComponent<MeshRenderer>().enabled = false;
-            collidingBlockOutline.GetComponent<MeshRenderer>().enabled = false;
-        }
+   
         // Debug.Log(Input.GetAxis("Mouse ScrollWheel"));
         //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
 
@@ -784,8 +758,8 @@ public class PlayerMove: MonoBehaviour
                    cameraPosMode=0;
                }
              };*/
-        Ray playerHeadForwardRay = new Ray(headPos.position, headPos.position + headPos.forward * 5f);
-        Ray playerHeadBackRay = new Ray(headPos.position, headPos.position + headPos.forward * -5f);
+      //  Ray playerHeadForwardRay = new Ray(headPos.position, headPos.position + headPos.forward * 5f);
+       // Ray playerHeadBackRay = new Ray(headPos.position, headPos.position + headPos.forward * -5f);
         //    blockOnHandID=Mathf.Clamp(blockOnHandID,0,9);
         //     Debug.DrawLine(headPos.position,headPos.position+headPos.forward*5f,Color.green);
         //     Debug.DrawLine(headPos.position,headPos.position+headPos.forward*-5f,Color.green);
@@ -793,13 +767,13 @@ public class PlayerMove: MonoBehaviour
         RaycastHit infoBack = new RaycastHit();
         bool isForwardPointHit = false;
         bool isBackPointHit = false;
-        if (Physics.Linecast(headPos.position, headPos.position + headPos.forward * 5f, out infoForward))
+        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * 5f, out infoForward, ~LayerMask.GetMask("Ignore Raycast")))
         {
             isForwardPointHit = true;
             //     Debug.DrawLine(infoForward.point,infoForward.point+new Vector3(0f,1f,0f),Color.green);
         }
 
-        if (Physics.Linecast(headPos.position, headPos.position + headPos.forward * (-5f), out infoBack))
+        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * (-5f), out infoBack, ~LayerMask.GetMask("Ignore Raycast")))
         {
             isBackPointHit = true;
             //   Debug.DrawLine(infoBack.point,infoBack.point+new Vector3(0f,1f,0f),Color.green);
@@ -814,7 +788,7 @@ public class PlayerMove: MonoBehaviour
             case 1:
                 if (isForwardPointHit == true)
                 {
-                    cameraPos.position = Vector3.Lerp(headPos.position, infoForward.point, 0.92f);
+                    cameraPos.position = Vector3.Lerp(playerHeadCenterRef.position, infoForward.point, 0.92f);
                 }
                 else
                 {
@@ -826,7 +800,7 @@ public class PlayerMove: MonoBehaviour
             case 2:
                 if (isBackPointHit == true)
                 {
-                    cameraPos.position = Vector3.Lerp(headPos.position, infoBack.point, 0.92f);
+                    cameraPos.position = Vector3.Lerp(playerHeadCenterRef.position, infoBack.point, 0.92f);
                 }
                 else
                 {
@@ -838,6 +812,17 @@ public class PlayerMove: MonoBehaviour
         }
 
         WorldHelper.instance.cameraPos = cameraPos.position;
+
+
+
+
+
+
+
+      
+
+
+
         if ((cc.isGrounded != true))
         {
             if (curFootBlockID == 100)
@@ -899,10 +884,31 @@ public class PlayerMove: MonoBehaviour
 
 
         playerVec.y = playerY;
-        headPos.eulerAngles += new Vector3(0f, mouseX, 0f);
+        headPos.localEulerAngles += new Vector3(0f, mouseX, 0f);
         headPos.localEulerAngles = new Vector3(cameraX, headPos.localEulerAngles.y, playerCameraZShakeValue);
+      
         playerMoveRef.eulerAngles = new Vector3(0f, headPos.eulerAngles.y, headPos.eulerAngles.z);
-        playerBodyPos.rotation = Quaternion.Slerp(playerBodyPos.rotation, playerMoveRef.rotation, 5f * Time.deltaTime);
+        Vector3 headHorizontalForward = playerMoveRef.forward;
+        Vector3 bodyHorizontalForward = new Vector3(playerBodyPos.forward.x, 0, playerBodyPos.forward.z).normalized;
+        if (Vector3.Dot(headHorizontalForward, bodyHorizontalForward) < 0.1f)
+        {
+            playerBodyPos.rotation = Quaternion.Slerp(playerBodyPos.rotation, playerMoveRef.rotation, 5f * Time.deltaTime);
+        }
+        else
+        {
+            if (lerpPlayerVec.magnitude > 0.5f)
+            {
+                Vector3 playerBodyCurMoveVecForward =
+                    (playerMoveRef.forward * (lerpPlayerVec.x * 0.5f + 0.6f) + playerMoveRef.right * lerpPlayerVec.z).normalized;
+                Quaternion curMoveVecRotation = Quaternion.LookRotation(playerBodyCurMoveVecForward, Vector3.up);
+
+                playerBodyPos.rotation = Quaternion.Slerp(playerBodyPos.rotation, curMoveVecRotation, 15f * Time.deltaTime);
+            }
+
+        
+        }
+
+        //
 
         if (isPlayerInGround == true)
         {
@@ -989,6 +995,50 @@ public class PlayerMove: MonoBehaviour
         // if(cc.velocity.magnitude>0.1f){
         //       UpdateWorld();
         //  }
+
+
+        Ray ray = new Ray(playerHeadCenterRef.position, playerHeadCenterRef.forward);//mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+
+        RaycastHit info;
+        if (Physics.Raycast(ray, out info, 5f, ~LayerMask.GetMask("Ignore Raycast")) && info.collider.gameObject.tag != "Entity")
+        {
+            blockOutline.GetComponentInChildren<MeshRenderer>().enabled = true;
+
+
+
+
+            Vector3 blockPoint = info.point + playerHeadCenterRef.forward * 0.01f;
+            VoxelWorldRay voxelWorldRay = new VoxelWorldRay(ray.origin, ray.direction);
+            VoxelCast.CastSpecificArea(voxelWorldRay, blockPoint, 1, out Vector3Int voxelCastResult, out _);
+
+            blockOutline.transform.position = new Vector3(voxelCastResult.x + 0.5f,
+                voxelCastResult.y + 0.5f,
+                voxelCastResult.z + 0.5f);
+            blockOutline.GetComponentInChildren<MeshRenderer>().enabled = true;
+        }
+        else if (Physics.Raycast(ray, out info, 10f, ~LayerMask.GetMask("Ignore Raycast")) && info.collider.gameObject.tag == "Entity")
+        {
+            Vector3 blockPoint = info.point + playerHeadCenterRef.forward * 0.01f;
+
+            blockOutline.GetComponentInChildren<MeshRenderer>().enabled = false;
+
+            if (info.collider.GetComponent<EndermanBeh>() != null)
+            {
+                info.collider.GetComponent<EndermanBeh>().isTargetingPlayer = true;
+            }
+        }
+        else
+        {
+            blockOutline.GetComponentInChildren<MeshRenderer>().enabled = false;
+
+        }
+
+        if (cameraPosMode == 1)
+        {
+            blockOutline.GetComponentInChildren<MeshRenderer>().enabled = false;
+
+        }
+
 
         //playerBound.setMinX(transform.position.x-0.3f);
         //playerBound.setMinY(transform.position.y-0.9f);
@@ -1285,665 +1335,7 @@ public class PlayerMove: MonoBehaviour
 
        }*/
 
-    async void PlayerCritAttack()
-    {
-        isPlayerWieldingItem = true;
-        CritAttackAnimate();
-        Invoke("cancelCritAttackInvoke", 0.75f);
-        await UniTask.Delay(TimeSpan.FromSeconds(0.75), ignoreTimeScale: false);
-
-        Vector3 attackEffectPoint;
-        RaycastHit infoForward;
-        if (Physics.Linecast(headPos.position, headPos.position + headPos.forward * 4f, out infoForward))
-        {
-            attackEffectPoint = infoForward.point;
-        }
-        else
-        {
-            attackEffectPoint = headPos.position + headPos.forward * 4f;
-        }
-
-        /* GameObject a=Instantiate(playerSweepParticlePrefab,attackEffectPoint,Quaternion.identity);
-         a.GetComponent<ParticleSystem>().Emit(1);
-         Destroy(a,2f);*/
-        ParticleEffectManagerBeh.instance.EmitPlayerSweepParticleAtPosition(attackEffectPoint);
-        AudioSource.PlayClipAtPoint(playerSweepAttackClip, headPos.position, 1f);
-        Collider[] colliders = Physics.OverlapSphere(transform.position, 4f);
-        foreach (var c in colliders)
-        {
-            if (c.gameObject.tag == "Entity")
-            {
-                if (c.GetComponent(typeof(ILivingEntity)) != null)
-                {
-                    ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
-                    livingEntity.ApplyDamageAndKnockback(10f + Random.Range(-5f, 5f),
-                        (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f));
-                }
-
-                if (c.GetComponent<ItemEntityBeh>() != null)
-                {
-                    c.GetComponent<Rigidbody>().linearVelocity =
-                        (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f);
-                }
-            }
-        }
-
-        isPlayerWieldingItem = false;
-    }
-
-    void cancelAttackInvoke()
-    {
-        am.SetBool("isattacking", false);
-    }
-
-    void AttackAnimate()
-    {
-        am.SetBool("isattacking", true);
-    }
-
-    void cancelCritAttackInvoke()
-    {
-        am.SetBool("isattackingcrit", false);
-    }
-
-    void CritAttackAnimate()
-    {
-        am.SetBool("isattackingcrit", true);
-    }
-
-    void AttackEnemy(GameObject go)
-    {
-        AttackAnimate();
-        Invoke("cancelAttackInvoke", 0.16f);
-        if (go.GetComponent<ZombieBeh>() != null)
-        {
-            if (inventoryDic[currentSelectedHotbar - 1] == 152)
-            {
-                go.GetComponent<ZombieBeh>()
-                    .ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
-            {
-                go.GetComponent<ZombieBeh>()
-                    .ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else
-            {
-                go.GetComponent<ZombieBeh>()
-                    .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
-            }
-        }
-
-        if (go.GetComponent<CreeperBeh>() != null)
-        {
-            if (inventoryDic[currentSelectedHotbar - 1] == 152)
-            {
-                go.GetComponent<CreeperBeh>()
-                    .ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
-            {
-                go.GetComponent<CreeperBeh>()
-                    .ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else
-            {
-                go.GetComponent<CreeperBeh>()
-                    .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
-            }
-        }
-
-        if (go.GetComponent<SkeletonBeh>() != null)
-        {
-            if (inventoryDic[currentSelectedHotbar - 1] == 152)
-            {
-                go.GetComponent<SkeletonBeh>()
-                    .ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
-            {
-                go.GetComponent<SkeletonBeh>()
-                    .ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else
-            {
-                go.GetComponent<SkeletonBeh>()
-                    .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
-            }
-        }
-
-        if (go.GetComponent<EndermanBeh>() != null)
-        {
-            if (inventoryDic[currentSelectedHotbar - 1] == 152)
-            {
-                go.GetComponent<EndermanBeh>()
-                    .ApplyDamageAndKnockback(7f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else if (inventoryDic[currentSelectedHotbar - 1] == 151)
-            {
-                go.GetComponent<EndermanBeh>()
-                    .ApplyDamageAndKnockback(5f, (transform.position - go.transform.position).normalized * -20f);
-            }
-            else
-            {
-                go.GetComponent<EndermanBeh>()
-                    .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
-            }
-
-            go.GetComponent<EndermanBeh>().isTargetingPlayer = true;
-        }
-    }
-
-    async void LeftClick()
-    {
-        if (cameraPosMode == 1)
-        {
-            return;
-        }
-
-        if (isPlayerWieldingItem)
-        {
-            return;
-        }
-
-        Ray ray = mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit info;
-        if (Physics.Raycast(ray, out info, 10f))
-        {
-            if (info.collider.gameObject.tag == "Entity")
-            {
-                AttackEnemy(info.collider.gameObject);
-                return;
-            }
-
-            Vector3 blockPoint = info.point + headPos.forward * 0.01f;
-            int tmpID = WorldHelper.instance.GetBlock(blockPoint);
-            if (tmpID == 0)
-            {
-                return;
-            }
-
-            if (inventoryDic[currentSelectedHotbar - 1] == 151)
-            {
-                //   return;
-                AttackAnimate();
-                Invoke("cancelAttackInvoke", 0.16f);
-                WorldHelper.instance.BreakBlockInArea(blockPoint, new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
-
-
-                return;
-            }
-
-            /*       WorldHelper.instance.SetBlockByHand(blockPoint,0);
-                   GameObject b=ObjectPools.particleEffectPool.Get();
-                   b.transform.position=new Vector3(WorldHelper.instance.Vec3ToBlockPos(blockPoint).x+0.5f,WorldHelper.instance.Vec3ToBlockPos(blockPoint).y+0.5f,WorldHelper.instance.Vec3ToBlockPos(blockPoint).z+0.5f);
-                   b.GetComponent<particleAndEffectBeh>().blockID=tmpID;
-                   b.GetComponent<particleAndEffectBeh>().SendMessage("EmitParticle");*/
-            WorldHelper.instance.BreakBlockAtPoint(blockPoint);
-
-
-            WorldHelper.instance.StartUpdateAtPoint(blockPoint);
-            AttackAnimate();
-            Invoke("cancelAttackInvoke", 0.16f);
-        }
-    }
-
-    void PlayerEatAnimate()
-    {
-        am.SetBool("iseating", true);
-    }
-
-    void PlayerCancelEatAnimateInvoke()
-    {
-        am.SetBool("iseating", false);
-    }
-
-    public bool isPlayerWieldingItem = false;
-
-    async void PlayerEat()
-    {
-        if (playerHealth < 20f)
-        {
-            isPlayerWieldingItem = true;
-            inventoryItemNumberDic[currentSelectedHotbar - 1]--;
-            GameUIBeh.instance.UpdateBlockOnHandText();
-            PlayerEatAnimate();
-            for (int i = 0; i < 3; i++)
-            {
-                await UniTask.Delay(300);
-                AudioSource.PlayClipAtPoint(playerEatClip, transform.position + new Vector3(0f, 0.5f, 0f), 1f);
-            }
-
-            Invoke("PlayerCancelEatAnimateInvoke", 0f);
-            playerHealth += 4f;
-            playerHealth = Mathf.Clamp(playerHealth, 0f, 20f);
-
-            GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
-
-            isPlayerWieldingItem = false;
-        }
-        else
-        {
-            return;
-        }
-    }
-
-    async void ThrowTNT()
-    {
-        Vector3 tntPos = headPos.position + headPos.forward;
-        EntityBeh tntEntity = EntityBeh.SpawnNewEntity(tntPos.x, tntPos.y, tntPos.z, 2);
-        await UniTask.WaitUntil(() => tntEntity.GetComponent<TNTBeh>().rigidbody != null);
-        tntEntity.GetComponent<TNTBeh>().AddForce((headPos.forward * 16));
-        inventoryItemNumberDic[currentSelectedHotbar - 1]--;
-        AttackAnimate();
-        Invoke("cancelAttackInvoke", 0.16f);
-    }
-
-    public void UpgradeArmor()
-    {
-        if (playerArmorPoints >= playerMaxArmorPoints)
-        {
-            return;
-        }
-
-        playerArmorPoints = Mathf.Min(playerArmorPoints + 2f, playerMaxArmorPoints);
-        AudioSource.PlayClipAtPoint(playerEquipArmorClip, transform.position + new Vector3(0f, 0.5f, 0f), 1f);
-        GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
-        inventoryItemNumberDic[currentSelectedHotbar - 1]--;
-        AttackAnimate();
-        Invoke("cancelAttackInvoke", 0.16f);
-    }
-
-
-    bool TryPlaceBlock(short blockID,VoxelWorldRay ray,out Vector3 blockPoint)
-    {
-        Vector3Int result1;
-        BlockFaces resultFaces;
-        VoxelCast.Cast(ray, 5, out result1, out resultFaces);
-      
-
-        if (!ItemIDToBlockID.ItemIDToBlockIDDic.ContainsKey(inventoryDic[currentSelectedHotbar - 1]) ||
-            ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]] == -1)
-        {
-            blockPoint = new Vector3(-1, -1, -1);
-            return false;
-        }
-
-        if (collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithPlayer == true ||
-            collidingBlockOutline.GetComponent<BlockOutlineBeh>().isCollidingWithEntity == true)
-        {
-            blockPoint = new Vector3(-1, -1, -1);
-            return false;
-        }
-
-        BlockShape placingShape = Chunk
-            .blockInfosNew[ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]].shape;
-        if (result1.y != -1)
-        {
-            switch (placingShape)
-            {
-                case BlockShape.Solid:
-                    switch (resultFaces)
-                    {
-                        case BlockFaces.PositiveX:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveY:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeX:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeY:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
-                            return true;
-                            break;
-                    }
-                    break;
-
-
-                case BlockShape.CrossModel:
-                    switch (resultFaces)
-                    {
-                      
-                        case BlockFaces.PositiveY:
-
-                            BlockShape? placingPosShape1 =
-                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
-                                    result1.z + 0.5f));
-                            BlockShape? placingDownPosShape =
-                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                    result1.z + 0.5f));
-                            if (placingDownPosShape is BlockShape.SolidTransparent ||
-                                placingDownPosShape is BlockShape.Solid)
-                            {
-                                if (placingPosShape1 == null)
-                                {
-                                    WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                        (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
-                                    return true;
-                                }
-                               
-                            }
-                            else
-                            {
-                                blockPoint = new Vector3(-1, -1, -1);
-
-                                return false;
-                            }
-                           
-                            break;
-                       
-                    }
-                    break;
-                case BlockShape.SolidTransparent:
-                    switch (resultFaces)
-                    {
-                        case BlockFaces.PositiveX:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveY:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeX:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeY:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
-                            return true;
-                            break;
-                    }
-                    break;
-                case BlockShape.Fence:
-                    switch (resultFaces)
-                    {
-                        case BlockFaces.PositiveX:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveY:
-
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.PositiveZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeX:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeY:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
-                            return true;
-                            break;
-                        case BlockFaces.NegativeZ:
-
-                            WorldHelper.instance.SetBlockByHand(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[inventoryDic[currentSelectedHotbar - 1]]);
-                            blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
-                            return true;
-                            break;
-                    }
-                    break;
-                case BlockShape.Torch:
-                    BlockShape? placingPosShape =
-                        WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                            result1.z + 0.5f));
-                    if (placingPosShape is BlockShape.SolidTransparent || placingPosShape is BlockShape.Solid)
-                    {
-                        switch (resultFaces)
-                        {
-                            case BlockFaces.PositiveX:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
-                                        result1.z + 0.5f)) == null)
-                                {
-                                    WorldHelper.instance.SetBlockDataByHand(
-                                        new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                        new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                inventoryDic[currentSelectedHotbar - 1]], 2));
-                                    blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
-                                    return true;
-                                }
-
-                                break;
-
-
-                            case BlockFaces.PositiveY:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
-                                        result1.z + 0.5f)) == null)
-                                {
-                                    WorldHelper.instance.SetBlockDataByHand(
-                                        new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                        new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                inventoryDic[currentSelectedHotbar - 1]], 0));
-                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
-                                    return true;
-                                }
-
-                                break;
-
-                            case BlockFaces.PositiveZ:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                        result1.z + 1.5f)) == null)
-                                {
-                                    WorldHelper.instance.SetBlockDataByHand(
-                                        new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                        new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                inventoryDic[currentSelectedHotbar - 1]], 4));
-                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
-                                    return true;
-                                }
-
-                                break;
-
-                            case BlockFaces.NegativeX:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
-                                        result1.z + 0.5f)) == null)
-                                {
-                                    WorldHelper.instance.SetBlockDataByHand(
-                                        new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                        new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                inventoryDic[currentSelectedHotbar - 1]], 1));
-                                    blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
-                                    return true;
-                                }
-
-                                break;
-
-                            case BlockFaces.NegativeY:
-                                blockPoint = new Vector3(-1, -1, -1);
-                                return false;
-
-                            case BlockFaces.NegativeZ:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                        result1.z - 0.5f)) == null)
-                                {
-                                    WorldHelper.instance.SetBlockDataByHand(
-                                        new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                        new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                inventoryDic[currentSelectedHotbar - 1]], 3));
-                                    blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
-                                    return true;
-                                }
-
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        blockPoint = new Vector3(-1, -1, -1);
-                        
-                        return false;
-                    }
-
-                    
-                    break;
-            }
-            
-
-           
-        }
-
-       
-        blockPoint = new Vector3(-1, -1, -1);
-        return false;
-    }
-    void RightClick()
-    {
-        if (cameraPosMode == 1)
-        {
-            return;
-        }
-
-        if (isPlayerWieldingItem)
-        {
-            return;
-        }
-
-        Ray ray = mainCam.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        RaycastHit info;
-        if (inventoryDic[currentSelectedHotbar - 1] == 154)
-        {
-            PlayerEat();
-            return;
-        }
-
-        if (inventoryDic[currentSelectedHotbar - 1] == 156)
-        {
-            ThrowTNT();
-            return;
-        }
-
-        if (inventoryDic[currentSelectedHotbar - 1] == 158)
-        {
-            UpgradeArmor();
-            return;
-        }
-
-        if (Physics.Raycast(ray, out info, 5f) && info.collider.gameObject.tag == "Entity" && critAttackCD <= 0f)
-        {
-            if (inventoryDic[currentSelectedHotbar - 1] == 152)
-            {
-                PlayerCritAttack();
-                critAttackCD = 1f;
-                return;
-            }
-        }
-
-        if (Physics.Raycast(ray, out info, 5f) && info.collider.gameObject.tag != "Entity" &&
-            info.collider.gameObject.tag != "Player")
-        {
-
-            VoxelWorldRay blockRay = new VoxelWorldRay(ray.origin, ray.direction);
-          bool isBlockPlaced=  TryPlaceBlock((short)inventoryDic[currentSelectedHotbar - 1], blockRay, out Vector3 blockPoint);
-
-          if (isBlockPlaced)
-          {
-              if (Chunk.blockAudioDic.ContainsKey(inventoryDic[currentSelectedHotbar - 1]))
-              {
-                  AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar - 1]], blockPoint,
-                      1f);
-              }
-              else
-              {
-                  Debug.Log("missing file");
-              }
-
-              inventoryItemNumberDic[currentSelectedHotbar - 1]--;
-
-              WorldHelper.instance.StartUpdateAtPoint(blockPoint);
-              AttackAnimate();
-              Invoke("cancelAttackInvoke", 0.16f);
-          }
-            
-        }
-    }
+   
 
 
     public int ReadPlayerJson(bool ExludePlayerInWorldIDData = false)

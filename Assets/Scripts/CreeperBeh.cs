@@ -432,12 +432,12 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
              ApplyGravity(cc,gravity,dt);
         }
        
-            transform.GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(3).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(4).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
-            transform.GetChild(5).GetChild(0).GetChild(0).localScale=new Vector3(0.99f,0.99f,0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(0).GetChild(0).localScale=new Vector3(0.5f*0.99f,0.75f*0.99f,0.25f*0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(1).GetChild(0).GetChild(0).localScale=new Vector3(0.5f*0.99f, 0.5f * 0.99f, 0.5f * 0.99f)+new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(2).GetChild(0).GetChild(0).localScale=new Vector3(0.99f*0.25f,0.99f*0.375f,0.99f * 0.25f) +new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(3).GetChild(0).GetChild(0).localScale= new Vector3(0.99f * 0.25f, 0.99f * 0.375f, 0.99f * 0.25f) + new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(4).GetChild(0).GetChild(0).localScale= new Vector3(0.99f * 0.25f, 0.99f * 0.375f, 0.99f * 0.25f) + new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
+            transform.GetChild(5).GetChild(0).GetChild(0).localScale= new Vector3(0.99f * 0.25f, 0.99f * 0.375f, 0.99f * 0.25f) + new Vector3(creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f,creeperExplodeFuse*0.1f);
     
        // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
        // entityFacingPos=targetRotation.eulerAngles;

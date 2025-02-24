@@ -14048,8 +14048,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1720877777}
   m_HandleRect: {fileID: 1720877776}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 0.99999994
+  m_Value: 1
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -18191,7 +18191,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 115116082}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.483
+  m_Size: 0.48300004
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -19760,7 +19760,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 5
+          m_IntArgument: 7
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -27529,6 +27529,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1896333787}
   m_CullTransparentMesh: 1
+--- !u!1 &1928242538
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1928242539}
+  m_Layer: 2
+  m_Name: playerheadcenterref
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1928242539
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1928242538}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.28, z: -0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6095466469615324927}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1932606562
 GameObject:
   m_ObjectHideFlags: 0
@@ -33768,6 +33799,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d92ec001835ebe40881cd37e678effd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPlayerWieldingItem: 0
   AS: {fileID: 0}
   playerCameraZShakeValue: 0
   playerCameraZShakeLerpValue: 0
@@ -33781,9 +33813,9 @@ MonoBehaviour:
   cameraPosMode: 0
   prefabBlockOutline: {fileID: 0}
   blockOutline: {fileID: 0}
-  collidingBlockOutline: {fileID: 0}
   cameraPos: {fileID: 0}
   headPos: {fileID: 0}
+  playerHeadCenterRef: {fileID: 0}
   playerMoveRef: {fileID: 0}
   playerBodyPos: {fileID: 0}
   mainCam: {fileID: 0}
@@ -33817,7 +33849,6 @@ MonoBehaviour:
   isUsingCC: 1
   curChunkLoader: {fileID: 0}
   playerTeleportingCD: 0
-  isPlayerWieldingItem: 0
 --- !u!4 &6095466469615324927
 Transform:
   m_ObjectHideFlags: 0
@@ -33834,6 +33865,7 @@ Transform:
   - {fileID: 7216867008576494075}
   - {fileID: 4279720221104226824}
   - {fileID: 3629153049855890320}
+  - {fileID: 1928242539}
   m_Father: {fileID: 1550536561378600049}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &6161270734141561674

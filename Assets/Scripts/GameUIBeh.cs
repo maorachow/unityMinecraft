@@ -57,6 +57,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(101, "Grass Crop");
         blockNameDic.Add(102, "Torch");
         blockNameDic.Add(103, "Fences");
+        blockNameDic.Add(104, "Wooden Door");
 
         blockNameDic.Add(106, "Green Glass");
         blockNameDic.Add(107, "Blue Glass");
@@ -115,9 +116,9 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(102,Resources.Load<Sprite>("Textures/blocksprites/torch_on"));
     blockImageDic.TryAdd(103, Resources.Load<Sprite>("Textures/blocksprites/fences"));
 
-    
-    
-    blockImageDic.TryAdd(106, Resources.Load<Sprite>("Textures/blocksprites/glass_green"));
+    blockImageDic.TryAdd(104, Resources.Load<Sprite>("Textures/blocksprites/woodendoor"));
+
+        blockImageDic.TryAdd(106, Resources.Load<Sprite>("Textures/blocksprites/glass_green"));
     blockImageDic.TryAdd(107, Resources.Load<Sprite>("Textures/blocksprites/glass_blue"));
     blockImageDic.TryAdd(108, Resources.Load<Sprite>("Textures/blocksprites/glass_black"));
     blockImageDic.TryAdd(109, Resources.Load<Sprite>("Textures/blocksprites/glass"));

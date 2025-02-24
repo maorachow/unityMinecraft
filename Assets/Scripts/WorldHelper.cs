@@ -129,6 +129,7 @@ public class WorldHelper:IWorldHelper{
        
     }
 
+
     public void SetBlockDataByHand(Vector3 pos, BlockData blockID)
     {
         if (blockID == -1)
@@ -285,7 +286,19 @@ public class WorldHelper:IWorldHelper{
         }
       
     }
+    public BlockShape? GetBlockShape(BlockData blockData)
+    {
+       
+        if (Chunk.blockInfosNew.ContainsKey(blockData.blockID))
+        {
+            return Chunk.blockInfosNew[blockData.blockID].shape;
+        }
+        else
+        {
+            return null;
+        }
 
+    }
     public BlockData GetBlockData(Vector3 pos)
     {
         Vector3Int intPos = Vector3Int.FloorToInt(pos);
@@ -338,6 +351,14 @@ public class WorldHelper:IWorldHelper{
             Chunk chunkNeededUpdate=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(blockPoint));
             Vector3Int chunkSpacePos=intPos-Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
             chunkNeededUpdate.BFSInit(chunkSpacePos.x,chunkSpacePos.y,chunkSpacePos.z);
+    }
+
+    public void StartUpdateAtPoint(Vector3 blockPoint,ChunkUpdateTypes updateType,BlockData? optionalPrevBlockData=null)
+    {
+        Vector3Int intPos = new Vector3Int(WorldHelper.instance.FloatToInt(blockPoint.x), WorldHelper.instance.FloatToInt(blockPoint.y), WorldHelper.instance.FloatToInt(blockPoint.z));
+        Chunk chunkNeededUpdate = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(blockPoint));
+        Vector3Int chunkSpacePos = intPos - Vector3Int.FloorToInt(chunkNeededUpdate.transform.position);
+        chunkNeededUpdate.BFSInit(chunkSpacePos.x, chunkSpacePos.y, chunkSpacePos.z, updateType, optionalPrevBlockData);
     }
     public void BreakBlockAtPoint(Vector3 blockPoint){
         ParticleEffectManagerBeh.instance.EmitBreakBlockParticleAtPosition(new Vector3(Vector3Int.FloorToInt(blockPoint).x + 0.5f, Vector3Int.FloorToInt(blockPoint).y + 0.5f, Vector3Int.FloorToInt(blockPoint).z + 0.5f), WorldHelper.instance.GetBlock(blockPoint));

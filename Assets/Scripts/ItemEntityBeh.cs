@@ -596,12 +596,15 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.25f));
         itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.25f));
         itemMaterialInfo.TryAdd(158, new Vector2(0.5625f, 0.25f));
+        itemMaterialInfo.TryAdd(104, new Vector2(0.625f, 0.25f));
+
         itemTexturePosInfo.TryAdd(154,new Vector2Int(192, 256));
         itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 256));
         itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 256));
         itemTexturePosInfo.TryAdd(157, new Vector2Int(512, 256));
         itemTexturePosInfo.TryAdd(158, new Vector2Int(576, 256));
         itemTexturePosInfo.TryAdd(153,new Vector2Int(128, 256));
+        itemTexturePosInfo.TryAdd(104, new Vector2Int(640, 256));
         itemTexturePosInfo.TryAdd(152,new Vector2Int(0, 256));
         itemTexturePosInfo.TryAdd(151,new Vector2Int(64, 256));
         itemTexture=Resources.Load<Texture2D>("Textures/itemterrain");

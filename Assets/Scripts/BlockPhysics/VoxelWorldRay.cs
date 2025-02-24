@@ -20,6 +20,18 @@ public struct VoxelWorldRay
     {
         this.origin = origin;
         this.direction = direction;
+        if (Math.Abs(this.direction.y) < 0.00001f)
+        {
+            this.direction.y = 0.00001f;
+        }
+        if (Math.Abs(this.direction.z) < 0.00001f)
+        {
+            this.direction.z = 0.00001f;
+        }
+        if (Math.Abs(this.direction.x) < 0.00001f)
+        {
+            this.direction.x = 0.00001f;
+        }
     }
 
 
