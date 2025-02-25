@@ -42,7 +42,7 @@ public class TNTBeh : MonoBehaviour
     private void OnDisable()
     {
         fuseTime = 4f;
-        rigidbody.linearVelocity = Vector3.zero;  
+        rigidbody.velocity = Vector3.zero;  
         
     }
     public void FixedUpdate()
@@ -97,7 +97,7 @@ public class TNTBeh : MonoBehaviour
                 }
                 if (c.GetComponent<ItemEntityBeh>() != null)
                 {
-                    c.GetComponent<Rigidbody>().linearVelocity = (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f);
+                    c.GetComponent<Rigidbody>().velocity = (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f);
                 }
                 if (c.GetComponent<TNTBeh>() != null)
                 {
@@ -110,7 +110,7 @@ public class TNTBeh : MonoBehaviour
     }
     public void AddForce(Vector3 force)
     {
-        rigidbody.linearVelocity=force;
+        rigidbody.velocity=force;
     }
     public void InitPos()
     {

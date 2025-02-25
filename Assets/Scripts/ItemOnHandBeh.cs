@@ -183,8 +183,8 @@ public class ItemOnHandBeh : MonoBehaviour
 
             if (itemID == 157)
             {
-                t.localPosition = new Vector3(0.2f, 0.1f, -0.5f);
-                t.localEulerAngles = new Vector3(-45f, 0f, -90f);
+                t.localPosition = new Vector3(0.15f, 0.1f, 0.425f);
+                t.localEulerAngles = new Vector3(135f, 0f, -90f);
             }
         }
         else

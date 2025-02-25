@@ -472,7 +472,6 @@ Material:
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
     - _Vector: {r: 0.25, g: 0.5, b: 0.5, a: 1}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &6625517515173623591
 MonoBehaviour:
   m_ObjectHideFlags: 11

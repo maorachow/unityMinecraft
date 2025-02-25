@@ -10,7 +10,7 @@ public partial class PlayerMove
     {
         isPlayerWieldingItem = true;
         CritAttackAnimate();
-        Invoke("cancelCritAttackInvoke", 0.75f);
+        Invoke("CancelCritAttackInvoke", 0.75f);
         await UniTask.Delay(TimeSpan.FromSeconds(0.75), ignoreTimeScale: false);
 
         Vector3 attackEffectPoint;
@@ -43,7 +43,7 @@ public partial class PlayerMove
 
                 if (c.GetComponent<ItemEntityBeh>() != null)
                 {
-                    c.GetComponent<Rigidbody>().linearVelocity =
+                    c.GetComponent<Rigidbody>().velocity =
                         (transform.position - c.transform.position).normalized * Random.Range(-20f, -30f);
                 }
             }
@@ -52,6 +52,39 @@ public partial class PlayerMove
         isPlayerWieldingItem = false;
     }
 
+    async void PlayerCritAttackBow()
+    {
+        isPlayerWieldingItem = true;
+        CritAttackBowAnimate();
+        Invoke("CancelCritAttackBowInvoke",1.25f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.65), ignoreTimeScale: false);
+
+        for (int i = 0; i < 5; i++)
+        {
+            Vector3 arrowPos = playerHeadCenterRef.position + playerHeadCenterRef.forward * 1.3f;
+            EntityBeh arrow = EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4, playerHeadCenterRef.forward);
+            ArrowBeh arrowComponent = arrow.GetComponent<ArrowBeh>();
+            arrowComponent.sourceTrans = transform;
+            arrow.GetComponent<Rigidbody>().rotation = Quaternion.LookRotation(playerHeadCenterRef.forward);
+            arrowComponent.CheckIsOwnedByPlayer();
+            arrowComponent.SetArrowDamage(4f,2f);
+            //  System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+            //   sw.Start();
+
+            await UniTask.WaitUntil(() => arrowComponent.isPosInited == true);
+            //   sw.Stop();
+            // Debug.Log(sw.Elapsed.TotalMilliseconds);
+            arrow.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
+            arrow.GetComponent<Rigidbody>().WakeUp();
+            arrow.GetComponent<Rigidbody>().AddForce(playerHeadCenterRef.forward * 40f, ForceMode.Impulse);
+            AudioSource.PlayClipAtPoint(playerBowShootClip, transform.position);
+
+            await UniTask.Delay(TimeSpan.FromSeconds(0.1), ignoreTimeScale: false);
+        }
+     
+        isPlayerWieldingItem = false;
+
+    }
     void cancelAttackInvoke()
     {
         am.SetBool("isattacking", false);
@@ -62,7 +95,7 @@ public partial class PlayerMove
         am.SetBool("isattacking", true);
     }
 
-    void cancelCritAttackInvoke()
+    void CancelCritAttackInvoke()
     {
         am.SetBool("isattackingcrit", false);
     }
@@ -71,13 +104,35 @@ public partial class PlayerMove
     {
         am.SetBool("isattackingcrit", true);
     }
+    void CancelCritAttackBowInvoke()
+    {
+        am.SetBool("isattackingcritbow", false);
+    }
 
+    void CritAttackBowAnimate()
+    {
+        am.SetBool("isattackingcritbow", true);
+        Vector3 headFacingAngle = playerHeadCenterRef.forward;
+        if (headFacingAngle.y > 0.2f)
+        {
+            am.SetInteger("bowcritattackangle", 1);
+        }
+        else if (headFacingAngle.y < 0.2f && headFacingAngle.y > -0.2f)
+        {
+            am.SetInteger("bowcritattackangle", 0);
+        }
+        else if (headFacingAngle.y < -0.2f)
+        {
+            am.SetInteger("bowcritattackangle", -1);
+        }
+    }
     void AttackEnemy(GameObject go)
     {
         AttackAnimate();
         Invoke("cancelAttackInvoke", 0.16f);
         if (go.GetComponent<ZombieBeh>() != null)
         {
+         
             if (inventoryDic[currentSelectedHotbar - 1] == 152)
             {
                 go.GetComponent<ZombieBeh>()
@@ -151,7 +206,7 @@ public partial class PlayerMove
                     .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
             }
 
-            go.GetComponent<EndermanBeh>().isTargetingPlayer = true;
+            go.GetComponent<EndermanBeh>().isIdling = false;
         }
     }
 
@@ -302,6 +357,16 @@ public partial class PlayerMove
             return;
         }
 
+        if (critAttackCD <= 0f)
+        {
+            if (inventoryDic[currentSelectedHotbar - 1] == 157)
+            {
+                PlayerCritAttackBow();
+                critAttackCD = 2.3f;
+                return;
+            }
+        }
+        
         if (Physics.Raycast(ray, out info, 5f, ~LayerMask.GetMask("Ignore Raycast")) && info.collider.gameObject.tag == "Entity" && critAttackCD <= 0f)
         {
             if (inventoryDic[currentSelectedHotbar - 1] == 152)

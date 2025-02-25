@@ -18,9 +18,13 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
     public static Texture2D waterNormalMip0;
     public static Material terrainMat;
     public static Texture2D applyingTerrainNormal;
-      public static void SetTerrainTexMipmap()
+    public static Texture2D itemTerrainTex;
+    public static Texture2D itemTerrainMip0;
+    public static void SetTerrainTexMipmap()
         {
        Material terrainMat1= VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial;
+
+       Material itemTerrainMat1 =VoxelWorld.itemPrefab.GetComponent<MeshRenderer>().sharedMaterial;
 
         Material nonsolidMat = VoxelWorld.chunkPrefab.transform.GetChild(0).GetComponent<MeshRenderer>().sharedMaterial;
      
@@ -33,7 +37,7 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
         //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
         terrainMip0 =Resources.Load<Texture2D>("Textures/terrain");
      
-        terrainTex.SetPixels(terrainMip0.GetPixels(0),0);
+        terrainTex.SetPixels32(terrainMip0.GetPixels32(0),0);
  
 
         terrainTex.Apply(true,true);
@@ -41,14 +45,14 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
         terrainTransparentTex=new Texture2D(1024,1024,TextureFormat.RGBA32, 6, false);
         terrainTransparentTex.filterMode = FilterMode.Point;
         terrainTransparentMip0 = Resources.Load<Texture2D>("Textures/terraintransparent");
-        terrainTransparentTex.SetPixels(terrainTransparentMip0.GetPixels(0), 0);
+        terrainTransparentTex.SetPixels32(terrainTransparentMip0.GetPixels32(0), 0);
 
         terrainTransparentTex.Apply(true,true);
 
         terrainNonSolidTex = new Texture2D(1024, 1024, TextureFormat.RGBA32, 6, false);
         terrainNonSolidTex.filterMode = FilterMode.Point;
         terrainNonSolidMip0 = Resources.Load<Texture2D>("Textures/nonsolid");
-        terrainNonSolidTex.SetPixels(terrainNonSolidMip0.GetPixels(0), 0);
+        terrainNonSolidTex.SetPixels32(terrainNonSolidMip0.GetPixels32(0), 0);
 
         terrainNonSolidTex.Apply(true, true);
 
@@ -60,7 +64,7 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
 
         terrainNormalMip0 = Resources.Load<Texture2D>("Textures/terrainnormal");
 
-        terrainNormalTex.SetPixels(terrainNormalMip0.GetPixels(0), 0);
+        terrainNormalTex.SetPixels32(terrainNormalMip0.GetPixels32(0), 0);
 
 
         terrainNormalTex.Apply(true, true);
@@ -76,17 +80,27 @@ public class TerrainTextureMipmapAdjusting : MonoBehaviour
 
         waterNormalMip0 = Resources.Load<Texture2D>("Textures/nonsolidnormal");
 
-        waterNormalTex.SetPixels(waterNormalMip0.GetPixels(0), 0);
+        waterNormalTex.SetPixels32(waterNormalMip0.GetPixels32(0), 0);
 
 
         waterNormalTex.Apply(true, true);
 
 
+        itemTerrainTex = new Texture2D(1024, 1024, TextureFormat.RGBA32,3, false);
+        itemTerrainTex.filterMode = FilterMode.Point;
 
+        //  var terrainTex2=Resources.Load<Texture2D>("Textures/terrain2");
+
+        itemTerrainMip0 = Resources.Load<Texture2D>("Textures/itemterrain");
+
+        itemTerrainTex.SetPixels32(itemTerrainMip0.GetPixels32(0), 0);
+
+
+        itemTerrainTex.Apply(true, true);
         terrainMat1.SetTexture("_BaseMap",terrainTex);
         nonsolidMat.SetTexture("_BaseMap", terrainNonSolidTex);
 
-        
+        itemTerrainMat1.SetTexture("_BaseMap", itemTerrainTex);
         transparentMat.SetTexture("_BaseMap", terrainTransparentTex);
         Debug.Log("Set Texture");
     }

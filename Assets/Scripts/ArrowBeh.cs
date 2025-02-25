@@ -14,29 +14,54 @@ public class ArrowBeh : MonoBehaviour
     public float lifeTime = 0f;
     public Transform sourceTrans;
     public bool isPosInited = false;
+    public float arrowDamage;
+    public float arrowDamageRandomRange;
      
      void Start()
     {
         entity= GetComponent<EntityBeh>();
         arrowRigidbody = GetComponent<Rigidbody>();  
         arrowTrans=transform.GetChild(0);
-       
+        
+
+    }
+
+    public void CheckIsOwnedByPlayer()
+    {
+        BoxCollider arrowCollider = GetComponent<BoxCollider>();
+        if (sourceTrans.GetComponent<PlayerMove>() != null)
+        {
+            arrowCollider.gameObject.layer = LayerMask.NameToLayer("PlayerOwnedProjectile");
+          
+        }
     }
     public void OnEnable()
     {
         entity = GetComponent<EntityBeh>();
         arrowRigidbody = GetComponent<Rigidbody>();
-        arrowRigidbody.constraints = RigidbodyConstraints.None;
+        arrowRigidbody.velocity = new Vector3(0, 0, 0);
+        gameObject.layer = LayerMask.NameToLayer("Projectile");
+        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
         isPosInited = true;
         entity.isInUnloadedChunks = false;
+        arrowDamageRandomRange = 2f;
+        arrowDamage = 3f;
+
+
+    }
+
+    public void SetArrowDamage(float damage,float damageRandomRange)
+    {
+        this.arrowDamage= damage;
+        this.arrowDamageRandomRange= damageRandomRange;
     }
     public void OnDisable()
     {
         lifeTime = 0f;
-        arrowRigidbody.linearVelocity= Vector3.zero;
+        arrowRigidbody.velocity= Vector3.zero;
         isPosInited = false;
         entity.isInUnloadedChunks = false;
-        arrowRigidbody.constraints = RigidbodyConstraints.None;
+        arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
     }
     // Update is called once per frame
     public float deltaTimeFromPrevFixedUpdate = 0f;
@@ -58,12 +83,13 @@ public class ArrowBeh : MonoBehaviour
          lifeTime += Time.deltaTime;
         if(lifeTime > 5f&& velocityPrev1.magnitude<0.1f) {
             VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
+            return;
         }
     }
    
     private void FixedUpdate()
     {
-        velocityPrev1 = arrowRigidbody.linearVelocity;
+        velocityPrev1 = arrowRigidbody.velocity;
       
         deltaTimeFromPrevFixedUpdate = 0f;
         if (entity.isInUnloadedChunks)
@@ -73,37 +99,50 @@ public class ArrowBeh : MonoBehaviour
         }
         else
         {
-            arrowRigidbody.constraints = RigidbodyConstraints.None;
+            arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
         }
        
     }
-    public void OnTriggerEnter(Collider other )
+    public void OnTriggerStay(Collider other )
     {
         Collider c = other;
         if(sourceTrans == null) {
             return;
         }
-        if (arrowRigidbody.linearVelocity.magnitude < 5f)
-        {
-            return;
-        }
+       
         if(c.transform==sourceTrans)
         {
+            Debug.Log("damage failed:sourcetrans");
             return;
         }
         if (c.gameObject.tag != "Entity" && c.gameObject.tag != "Player")
         {
+
             return;
         }
-        if (c.GetComponent(typeof(ILivingEntity)) != null)
+
+        if (c is CharacterController)
         {
-            ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
-            livingEntity.ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+            float arrowVelocityMagnitude = arrowRigidbody.velocity.magnitude;
+            
+            if (c.GetComponent(typeof(ILivingEntity)) != null&&arrowVelocityMagnitude>=0.2f)
+            {
+            //    Debug.Log("damage success:entity");
+                ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
+                livingEntity.ApplyDamageAndKnockback(arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+                VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
+                return;
+            }
+            if (c.GetComponent<PlayerMove>() != null && arrowVelocityMagnitude >= 0.2f)
+            {
+         //       Debug.Log("damage success:player");
+                c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+                VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
+                return;
+            }
+        //    Debug.Log("character controller damage failed: arrow velocity:"+arrowVelocityMagnitude);
         }
-        if (c.GetComponent<PlayerMove>() != null)
-        {
-            c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
-        }
+        
   /*      if (c.GetComponent<CreeperBeh>() != null)
         {
             c.GetComponent<CreeperBeh>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
@@ -120,10 +159,10 @@ public class ArrowBeh : MonoBehaviour
         {
             c.GetComponent<EndermanBeh>().ApplyDamageAndKnockback(3f + Random.Range(-2f, 2f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
         }*/
-        if (c.gameObject.layer!=0&&c.gameObject.layer!=8)
+      /*  if (c.gameObject.layer!=0&&c.gameObject.layer!=8)
         {
-            VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
-        }
+          
+        }*/
        
     }
 }

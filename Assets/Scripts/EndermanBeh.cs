@@ -16,6 +16,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
     private CharacterController cc;
     public Animator am;
     public Transform headTransform;
+    public Transform headHatTransform;
     public float entityHealth { get; set; }
     public Vector3 entityVec;
     public Vector3 entityMotionVec;
@@ -33,8 +34,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
     public float timeUsedToReachTarget;
     public bool hasReachedTarget;
     public static bool isEndermanPrefabLoaded = false;
-    public bool isTargetingPlayer=false;
-
+   
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
         AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
@@ -76,10 +76,12 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         currentTrans = transform;
 
         headTransform = transform.GetChild(0);
+        headHatTransform = headTransform.GetChild(1);
         entityFacingPos = transform.rotation.eulerAngles;
 
         cc = GetComponent<CharacterController>();
         am = GetComponent<Animator>();
+        isIdling = true;
 
     }
 
@@ -96,7 +98,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         entityMotionVec = Vector3.zero;
         isEndermanDied = false;
         entityHealth = 30f;
-        isTargetingPlayer = false;
+        isIdling = true;
         isPosInited = false;
     }
 
@@ -108,7 +110,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         Transform diedEndermanTrans = Instantiate(diedEndermanPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
 
 
-        cc.enabled = false;
+       
         diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(0).GetChild(0).GetChild(0).position;
         diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().position= transform.GetChild(0).GetChild(1).position;
         diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().position= transform.GetChild(1).position;
@@ -129,16 +131,16 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
 
 
 
-        diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        cc.enabled = true;
+        diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+     
         Destroy(diedEndermanTrans.gameObject, 30f);
-        ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y, transform.position.z, 13, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
+        ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y+1.5f, transform.position.z, 13, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
         VoxelWorld.currentWorld.endermanEntityPool.Release(gameObject);
 
     }
@@ -146,15 +148,20 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
 
 
 
-    public void Attack()
+    public void TryAttack()
     {
-        if (attackCD <= 0f)
+        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < endermanTargetRadius*1.2f && isIdling == false)
         {
-            playerPosition.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 15f);
-            am.SetBool("attack", true);
-            attackCD = 1.2f;
-            Invoke("CancelAttack", 0.2f);
+
+            if (attackCD <= 0f)
+            {
+                playerPosition.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 15f);
+                am.SetBool("attack", true);
+                attackCD = 1.2f;
+                Invoke("CancelAttack", 0.2f);
+            }
         }
+      
 
     }
     public void CancelAttack()
@@ -219,12 +226,16 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         {
             AudioSource.PlayClipAtPoint(endermanIdleClip, currentTrans.position, 1f);
         }
-         
-       
+
+
+        if (PlayerMove.instance.isPlayerKilled == true)
+        {
             isIdling = true;
+        }
+       //     
         
 
-        if (isIdling == true&&isTargetingPlayer==false)
+        if (isIdling == true)
         {
             if (hasReachedTarget == true)
             {
@@ -273,40 +284,44 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
             gravity = -9.8f;
         }
     }
+    public static readonly float endermanTargetRadius = 1.4f;
     public void MoveToTarget(CharacterController cc, Vector3 pos, float dt)
     {
 
         currentTrans.rotation = Quaternion.Slerp(currentTrans.rotation, Quaternion.Euler(new Vector3(0f, headTransform.eulerAngles.y, 0f)), 5f * dt);
         ChangeHeadPos(pos);
-        entityVec.x = 0.6f;
-        if (entitySpeed <= 0.01f)
+        if ((currentTrans.position - pos).magnitude < endermanTargetRadius)
         {
-            Jump();
+            hasReachedTarget = true;
+            entityVec.x = 0f;
         }
-        if (cc.enabled == true)
+        else
         {
+            hasReachedTarget = false;
+            entityVec.x = 0.6f;
+        }
+
+       
+        
             if (entityMotionVec.magnitude > 0.7f)
             {
                 cc.Move(entityMotionVec * dt);
             }
             else
             {
-                cc.Move((currentTrans.forward * entityVec.x + currentTrans.right * entityVec.z) * moveSpeed * dt + entityMotionVec * dt);
+                cc.Move((currentTrans.forward * entityVec.x + currentTrans.right * entityVec.z) * moveSpeed * dt +
+                        entityMotionVec * dt);
             }
 
             entitySpeed = Speed();
             //     Debug.Log(Speed());
             am.SetFloat("speed", entitySpeed);
 
-        }
-        if ((currentTrans.position - pos).magnitude < 2.4f)
-        {
-            hasReachedTarget = true;
-        }
-        else
-        {
-            hasReachedTarget = false;
-        }
+            if (entitySpeed <= 0.01f && hasReachedTarget == false)
+            {
+                Jump();
+            }
+        
     }
     public void ApplyGravity(CharacterController cc, float gravity, float dt)
     {
@@ -337,10 +352,12 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
     }
     public void Update()
     {
+       
         float dt = Time.deltaTime;
-        if (entityHealth <= 0f && isEndermanDied == false)
+        
+        if (GlobalGameOptions.isGamePaused == true || dt <= 0f)
         {
-            DieWithKnockback(entityMotionVec);
+            return;
         }
         entityMotionVec = Vector3.Lerp(entityMotionVec, Vector3.zero, 3f * dt);
 
@@ -359,28 +376,48 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         }
         if (entity.isInUnloadedChunks == true)
         {
+            if (cc != null)
+            {
+                if (cc.enabled == true)
+                {
+                    cc.enabled = false;
+                }
+             
+            }
+
+
             return;
+        }
+        else
+        {
+            if (cc != null)
+            {
+                if (cc.enabled == false)
+                {
+                    cc.enabled = true;
+                }
+                
+            }
         }
 
         MoveToTarget(cc, targetPos, dt);
-        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < 2.4f)
+        if (isIdling == true)
         {
-            if(isTargetingPlayer)
-            {
-            //  hasReachedTarget=true;
-            entityVec.x = 0f;
-
-            entitySpeed = Mathf.Lerp(entitySpeed, Speed(), 5f * dt);
-            //     Debug.Log(Speed());
-            //  am.SetFloat("speed",entitySpeed);
-            Attack();
-            }
-           
-
+            headHatTransform.localPosition = new Vector3(0, -2.375f, 0f);
         }
+        else
+        {
+            headHatTransform.localPosition = new Vector3(0, -2.25f, 0f);
+        }
+
+        TryAttack();
+       
         ApplyGravity(cc, gravity, dt);
 
-
+        if (entityHealth <= 0f && isEndermanDied == false)
+        {
+            DieWithKnockback(entityMotionVec);
+        }
 
 
 

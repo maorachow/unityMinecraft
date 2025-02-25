@@ -45,13 +45,27 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Ambient: 0.5
     - _Bevel: 0.5
+    - _BevelAmount: 0
     - _BevelClamp: 0
     - _BevelOffset: 0
     - _BevelRoundness: 0
+    - _BevelType: 0
     - _BevelWidth: 0
     - _BumpFace: 0
     - _BumpOutline: 0
@@ -59,6 +73,7 @@ Material:
     - _CullMode: 0
     - _Diffuse: 0.5
     - _FaceDilate: 0
+    - _FaceShininess: 0
     - _FaceUVSpeedX: 0
     - _FaceUVSpeedY: 0
     - _GlowInner: 0.05
@@ -69,15 +84,20 @@ Material:
     - _LightAngle: 3.1416
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
+    - _OutlineMode: 0
+    - _OutlineShininess: 0
     - _OutlineSoftness: 0
     - _OutlineUVSpeedX: 0
     - _OutlineUVSpeedY: 0
     - _OutlineWidth: 0
+    - _Padding: 0
     - _PerspectiveFilter: 0.875
+    - _QueueControl: -1
+    - _QueueOffset: 0
     - _Reflectivity: 10
     - _ScaleRatioA: 0.9
     - _ScaleRatioB: 0.73125
-    - _ScaleRatioC: 0.3711929
+    - _ScaleRatioC: 0.365625
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -91,7 +111,7 @@ Material:
     - _TextureHeight: 1024
     - _TextureWidth: 1024
     - _UnderlayDilate: 1
-    - _UnderlayOffsetX: 0.97
+    - _UnderlayOffsetX: 1
     - _UnderlayOffsetY: -0.78
     - _UnderlaySoftness: 0
     - _VertexOffsetX: 0
@@ -102,13 +122,25 @@ Material:
     - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
     - _EnvMatrixRotation: {r: 0, g: 0, b: 0, a: 0}
     - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FaceUVSpeed: {r: 0, g: 0, b: 0, a: 0}
     - _GlowColor: {r: 0, g: 1, b: 0, a: 0.5}
+    - _IsoPerimeter: {r: 0, g: 0, b: 0, a: 0}
     - _MaskCoord: {r: 0, g: 0, b: 32767, a: 32767}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColor1: {r: 0, g: 1, b: 1, a: 1}
+    - _OutlineColor2: {r: 0.009433985, g: 0.02534519, b: 1, a: 1}
+    - _OutlineColor3: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineOffset1: {r: 0, g: 0, b: 0, a: 0}
+    - _OutlineOffset2: {r: 0, g: 0, b: 0, a: 0}
+    - _OutlineOffset3: {r: 0, g: 0, b: 0, a: 0}
+    - _OutlineUVSpeed: {r: 0, g: 0, b: 0, a: 0}
     - _ReflectFaceColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReflectOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Softness: {r: 0, g: 0, b: 0, a: 0}
+    - _SpecColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
     - _UnderlayColor: {r: 0, g: 0, b: 0, a: 1}
+    - _UnderlayOffset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &11400000
 MonoBehaviour:
@@ -195,6 +227,21 @@ MonoBehaviour:
       m_Y: 41
       m_Width: 45
       m_Height: 35
+    m_Scale: 1
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+  - m_Index: 48
+    m_Metrics:
+      m_Width: 56.25
+      m_Height: 11.25
+      m_HorizontalBearingX: 0
+      m_HorizontalBearingY: 45
+      m_HorizontalAdvance: 67.5
+    m_GlyphRect:
+      m_X: 753
+      m_Y: 184
+      m_Width: 57
+      m_Height: 12
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
@@ -858,21 +905,6 @@ MonoBehaviour:
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
-  - m_Index: 48
-    m_Metrics:
-      m_Width: 56.25
-      m_Height: 11.25
-      m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 45
-      m_HorizontalAdvance: 67.5
-    m_GlyphRect:
-      m_X: 753
-      m_Y: 184
-      m_Width: 57
-      m_Height: 12
-    m_Scale: 1
-    m_AtlasIndex: 0
-    m_ClassDefinitionType: 0
   m_CharacterTable:
   - m_ElementType: 1
     m_Unicode: 32
@@ -885,6 +917,10 @@ MonoBehaviour:
   - m_ElementType: 1
     m_Unicode: 42
     m_GlyphIndex: 45
+    m_Scale: 1
+  - m_ElementType: 1
+    m_Unicode: 45
+    m_GlyphIndex: 48
     m_Scale: 1
   - m_ElementType: 1
     m_Unicode: 46
@@ -1061,10 +1097,6 @@ MonoBehaviour:
   - m_ElementType: 1
     m_Unicode: 8230
     m_GlyphIndex: 8231
-    m_Scale: 1
-  - m_ElementType: 1
-    m_Unicode: 45
-    m_GlyphIndex: 48
     m_Scale: 1
   m_AtlasTextures:
   - {fileID: 1226309096821276658}

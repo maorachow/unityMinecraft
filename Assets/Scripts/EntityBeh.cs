@@ -398,17 +398,11 @@ public class EntityBeh : MonoBehaviour
              currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));   
         }
         if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
-            if (cc != null)
-            {
-            cc.enabled=false;
-            }
+          
             
             isInUnloadedChunks=true;
         }else{
-            if (cc != null)
-            {
-                cc.enabled=true;
-            }
+            
                 
              isInUnloadedChunks=false;
         }

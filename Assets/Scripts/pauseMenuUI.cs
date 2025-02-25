@@ -36,7 +36,9 @@ public class pauseMenuUI : MonoBehaviour
         viewRangeSlider=GameObject.Find("viewrangeslider").GetComponent<Slider>();
         viewRangeText=GameObject.Find("viewrangetext").GetComponent<Text>();
         rebuildAllChunksButton=GameObject.Find("rebuildallchunksbutton").GetComponent<Button>();
+     
         viewRangeSlider.onValueChanged.AddListener(ViewRangeSliderOnValueChanged);
+        viewRangeSlider.value = GlobalGameOptions.inGameRenderDistance;
         rebuildAllChunksButton.onClick.AddListener(RebuildAllChunksButtonOnClick);
         SaveWorldButton=GameObject.Find("saveworldbutton").GetComponent<Button>();
         SaveWorldButton.onClick.AddListener(SaveWorldButtonOnClick);
@@ -90,7 +92,7 @@ public class pauseMenuUI : MonoBehaviour
         }
     }
     void ViewRangeSliderOnValueChanged(float f){
-        PlayerMove.viewRange=viewRangeSlider.value;
+     GlobalGameOptions.inGameRenderDistance=(int)viewRangeSlider.value;
         viewRangeText.text=viewRangeSlider.value.ToString();
 
     }

@@ -1,9 +1,7 @@
+using System;
 using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SkeletonBeh : MonoBehaviour,ILivingEntity
 {
@@ -39,7 +37,10 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         //   Debug.Log("gra");
         if (cc.enabled == true)
         {
+
+
             cc.Move((new Vector3(0f, entityVec.y, 0f)) * moveSpeed * dt);
+
             if (cc.isGrounded != true)
             {
 
@@ -59,6 +60,9 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
                 isJumping = false;
             }
             entityVec.y = entityY;
+
+
+          
         }
     }
 
@@ -69,8 +73,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         Transform curTrans = transform;
         Transform diedSkeletonTrans = Instantiate(diedSkeletonPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
 
-
-        cc.enabled = false;
+     
+        //  cc.enabled = false;
         diedSkeletonTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().position = curTrans.GetChild(0).GetChild(0).position;
         diedSkeletonTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().position = curTrans.GetChild(0).GetChild(1).GetChild(0).position;
         diedSkeletonTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().position = curTrans.GetChild(0).GetChild(2).GetChild(0).position;
@@ -87,17 +91,17 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
 
 
-        diedSkeletonTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        diedSkeletonTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().linearVelocity = knockback;
-        cc.enabled = true;
+        diedSkeletonTrans.GetChild(0).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(1).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(2).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+        diedSkeletonTrans.GetChild(0).GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+      //  cc.enabled = true;
        
         Destroy(diedSkeletonTrans.gameObject, 30f);
-     
-         VoxelWorld.currentWorld.skeletonEntityPool.Release(gameObject);
+        ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y + 1.5f, transform.position.z, 157, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
+        VoxelWorld.currentWorld.skeletonEntityPool.Release(gameObject);
 
     }
 
@@ -159,9 +163,10 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             EntityBeh arrow=EntityBeh.SpawnNewEntity(arrowPos.x, arrowPos.y, arrowPos.z, 4,headTransform.forward);
             arrow.GetComponent<ArrowBeh>().sourceTrans = transform;
             arrow.GetComponent<Rigidbody>().rotation=Quaternion.LookRotation(headTransform.forward);
-          //  System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
-         //   sw.Start();
-            
+            arrow.GetComponent<ArrowBeh>().SetArrowDamage(3f, 2f);
+            //  System.Diagnostics.Stopwatch sw=new System.Diagnostics.Stopwatch();
+            //   sw.Start();
+
             await UniTask.WaitUntil(()=>arrow.GetComponent<ArrowBeh>().isPosInited==true);
             //   sw.Stop();
             // Debug.Log(sw.Elapsed.TotalMilliseconds);
@@ -193,6 +198,14 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         entityHealth = 20f;
         isPosInited = false;
     }
+    public void OnEnable()
+    {
+        if (cc != null)
+        {
+            cc.enabled = true;
+        }
+
+    }
     void Start()
     {
         entityHealth = 20f;
@@ -221,8 +234,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     }
     float Speed()
     {
-        //      Debug.Log(cc.velocity);
-        return new Vector3(cc.velocity.x,0,cc.velocity.y).magnitude;
+           //   Debug.Log(new Vector3(cc.velocity.x, 0, cc.velocity.y).magnitude);
+        return new Vector3(cc.velocity.x,0,cc.velocity.z).magnitude;
 
     }
     public void Jump()
@@ -268,42 +281,71 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         }
         if (hasReachedTarget)
         {
-            entitySpeed = Speed();
-            //     Debug.Log(Speed());
-            am.SetFloat("speed", entitySpeed);
-            return;
+
+            entityVec.x = 0f;
+        }
+        else
+        {
+            entityVec.x = 0.6f;
         }
         
-        entityVec.x = 0.6f;
-        if (entitySpeed <= 0.01f)
-        {
-            Jump();
-        }
-        if (cc.enabled == true)
-        {
-             
-                cc.Move((currentTrans.forward * entityVec.x + currentTrans.right * entityVec.z) * moveSpeed * dt + entityMotionVec * dt);
-             
+      
+       
+       
+           
+                cc.Move((transform.forward * entityVec.x + transform.right * entityVec.z) * (1f - 0) * moveSpeed * Time.deltaTime + entityMotionVec * Time.deltaTime);
+            
+
 
             entitySpeed = Speed();
             //     Debug.Log(Speed());
             am.SetFloat("speed", entitySpeed);
-
-        }
+            if (entitySpeed <= 0.01f && !hasReachedTarget)
+            {
+                Jump();
+            }
+        
        
        
     }
     public void Update()
     {
+        
         float dt = Time.deltaTime;
+        if (GlobalGameOptions.isGamePaused == true||dt<=0f)
+        {
+            return;
+        }
         if (!isPosInited)
         {
             return;
         }
-        if (entityHealth <= 0f && isSkeletonDied == false)
+
+        if (entity.isInUnloadedChunks == true)
         {
-            DieWithKnockback(entityMotionVec);
+            
+                if (cc.enabled == true)
+                {
+                    cc.enabled = false;
+                }
+
+            
+
+
+                return;
         }
+        else
+        {
+           
+                if (cc.enabled == false)
+                {
+                    cc.enabled = true;
+                }
+
+            
+        }
+
+        
         entityMotionVec = Vector3.Lerp(entityMotionVec, Vector3.zero, 3f * dt);
 
         
@@ -316,13 +358,10 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             attackCD -= dt;
         }
-        if (entity.isInUnloadedChunks == true)
-        {
-            return;
-        }
+       
 
         MoveToTarget(cc, targetPos, dt);
-        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < 12f)
+        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < 12f&&isIdling==false)
         {
  ;
            Attack();
@@ -331,7 +370,10 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         ApplyGravity(cc, gravity, dt);
 
 
-
+        if (entityHealth <= 0f && isSkeletonDied == false)
+        {
+            DieWithKnockback(entityMotionVec);
+        }
 
 
         // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
@@ -388,15 +430,25 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             //  Debug.Log("hit");
 
-             
+
+            if (PlayerMove.instance.isPlayerKilled == true)
+            {
+                isIdling = true;
+            }
+            else
+            {
                 isIdling = false;
-           
-          
+            }
+
+
 
         }
         else
         {
-            isIdling = true;
+          
+                isIdling=true;
+             
+           
         }
         if (isIdling == true)
         {

@@ -71,6 +71,7 @@ public partial class PlayerMove: MonoBehaviour
     public static AudioClip playerSinkClip1;
     public static AudioClip playerSinkClip2;
     public static AudioClip playerEatClip;
+    public static AudioClip playerBowShootClip;
     public static AudioClip playerDropItemClip;
     public static AudioClip playerSweepAttackClip;
     public static AudioClip playerEnterPortalClip;
@@ -111,7 +112,7 @@ public partial class PlayerMove: MonoBehaviour
     public float playerY = 0f;
     public float jumpHeight = 2;
 
-    public static float cameraFOV = 90f;
+ 
     public float currentSpeed;
     public Vector3 playerVec;
     public Vector3 playerMotionVec;
@@ -120,7 +121,7 @@ public partial class PlayerMove: MonoBehaviour
     public int currentSelectedHotbar = 5;
     public int[] inventoryDic = new int[9];
     public int[] inventoryItemNumberDic = new int[9];
-    public static float viewRange = 32;
+    
 
     public static float chunkStrongLoadingRange = 48;
 
@@ -233,7 +234,7 @@ public partial class PlayerMove: MonoBehaviour
     {
         instance = this;
         chunkStrongLoadingRange = 64;
-        viewRange = 64;
+     
         am = transform.GetChild(0).GetComponent<Animator>();
         cc = GetComponent<CharacterController>();
         headPos = transform.GetChild(0).GetChild(0);
@@ -241,7 +242,7 @@ public partial class PlayerMove: MonoBehaviour
         playerHeadCenterRef = headPos.GetChild(3);
         playerBodyPos = transform.GetChild(0).GetChild(1);
         mainCam = headPos.GetChild(0).gameObject.GetComponent<Camera>();
-        mainCam.fieldOfView = cameraFOV;
+        mainCam.fieldOfView = GlobalGameOptions.inGameFOV;
         cameraPos = mainCam.transform;
     }
 
@@ -258,7 +259,7 @@ public partial class PlayerMove: MonoBehaviour
 
     public void BreakBlockButtonPress()
     {
-        if (isPlayerKilled == true || GameUIBeh.isPaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             return;
         }
@@ -272,7 +273,7 @@ public partial class PlayerMove: MonoBehaviour
 
     public void PlaceBlockButtonPress()
     {
-        if (isPlayerKilled == true || GameUIBeh.isPaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             return;
         }
@@ -307,6 +308,7 @@ public partial class PlayerMove: MonoBehaviour
         playerDropItemClip = Resources.Load<AudioClip>("Audios/Pop");
         prefabBlockOutline = Resources.Load<GameObject>("Prefabs/blockoutline");
         playerEquipArmorClip = Resources.Load<AudioClip>("Audios/Equip_diamond2");
+        playerBowShootClip= Resources.Load<AudioClip>("Audios/Bow_shoot");
         blockOutline = Instantiate(prefabBlockOutline, new Vector3(0, 0, 0),Quaternion.identity);
     //    collidingBlockOutline = Instantiate(prefabBlockOutline, new Vector3(0,0,0), transform.rotation);
 
@@ -347,7 +349,7 @@ public partial class PlayerMove: MonoBehaviour
             return;
         }
 
-        if (isPlayerKilled == true || GameUIBeh.isPaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             return;
         }
@@ -414,9 +416,17 @@ public partial class PlayerMove: MonoBehaviour
         //   playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
     }
 
+    private float curAnimSpeed;
     float Speed()
     {
-        return Vector3.Magnitude(new Vector3(cc.velocity.x, 0f, cc.velocity.z));
+       
+        if (GlobalGameOptions.isGamePaused == true)
+        {
+            return curAnimSpeed;
+        }
+
+        curAnimSpeed = Vector3.Magnitude(new Vector3(cc.velocity.x, 0f, cc.velocity.z));
+        return curAnimSpeed;
     }
 
 
@@ -638,7 +648,7 @@ public partial class PlayerMove: MonoBehaviour
     {
         //     Debug.Log("Pause");
         Cursor.lockState = CursorLockMode.None;
-        if (GameUIBeh.isPaused == false)
+        if (GlobalGameOptions.isGamePaused == false)
         {
             GameUIBeh.instance.PauseGame();
             return;
@@ -678,10 +688,11 @@ public partial class PlayerMove: MonoBehaviour
               PauseOrResume();
             }*/
 
-        if (GameUIBeh.isPaused == true)
+        if (GlobalGameOptions.isGamePaused == true||Time.deltaTime<=0f)
         {
             return;
         }
+        
 
         /*     if(Input.GetKeyDown(KeyCode.E)){
 
@@ -719,8 +730,7 @@ public partial class PlayerMove: MonoBehaviour
             return;
         }
 
-        currentSpeed = Speed();
-        am.SetFloat("speed", currentSpeed);
+      
         /*   if(Input.GetKeyDown(KeyCode.K)){
                 AddItem(2,10);
                 AddItem(3,10);
@@ -890,10 +900,16 @@ public partial class PlayerMove: MonoBehaviour
         playerMoveRef.eulerAngles = new Vector3(0f, headPos.eulerAngles.y, headPos.eulerAngles.z);
         Vector3 headHorizontalForward = playerMoveRef.forward;
         Vector3 bodyHorizontalForward = new Vector3(playerBodyPos.forward.x, 0, playerBodyPos.forward.z).normalized;
-        if (Vector3.Dot(headHorizontalForward, bodyHorizontalForward) < 0.1f)
+        if (Vector3.Dot(headHorizontalForward, bodyHorizontalForward) < 0.2f)
         {
             playerBodyPos.rotation = Quaternion.Slerp(playerBodyPos.rotation, playerMoveRef.rotation, 5f * Time.deltaTime);
+        }else if (isPlayerWieldingItem==true)
+        {
+             
+                playerBodyPos.rotation = Quaternion.Slerp(playerBodyPos.rotation, playerMoveRef.rotation, 5f * Time.deltaTime);
+            
         }
+
         else
         {
             if (lerpPlayerVec.magnitude > 0.5f)
@@ -921,8 +937,11 @@ public partial class PlayerMove: MonoBehaviour
             cc.Move((playerMoveRef.forward * lerpPlayerVec.x + playerMoveRef.right * lerpPlayerVec.z) * moveSpeed *
                     (1f - playerMoveDrag) * Time.deltaTime + new Vector3(0f, playerVec.y, 0f) * 5f * Time.deltaTime +
                     playerMotionVec * Time.deltaTime);
-        }
 
+            currentSpeed = Speed();
+            am.SetFloat("speed", currentSpeed);
+        }
+     
 
         if (breakBlockCD > 0f)
         {
@@ -1024,7 +1043,7 @@ public partial class PlayerMove: MonoBehaviour
 
             if (info.collider.GetComponent<EndermanBeh>() != null)
             {
-                info.collider.GetComponent<EndermanBeh>().isTargetingPlayer = true;
+                info.collider.GetComponent<EndermanBeh>().isIdling = false;
             }
         }
         else
@@ -1057,7 +1076,7 @@ public partial class PlayerMove: MonoBehaviour
           }*/
         curChunkLoader.chunkLoadingCenter = playerChunkLoadingPos;
         curChunkLoader.cameraFrustum = GeometryUtility.CalculateFrustumPlanes(mainCam);
-        curChunkLoader.chunkLoadingRange = viewRange;
+        curChunkLoader.chunkLoadingRange = GlobalGameOptions.inGameRenderDistance;
 
         if (curChunk == null)
         {

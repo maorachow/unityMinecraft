@@ -150,7 +150,7 @@ public static class ItemEntityMeshBuildingHelper
                         BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockID].uvCorners[2], Chunk.blockInfosNew[blockID].uvSizes[2], false, verts, uvs, tris, norms);
                         BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y + 0.8f, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockID].uvCorners[3], Chunk.blockInfosNew[blockID].uvSizes[3], true, verts, uvs, tris, norms);
                         BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), new Vector3(0f, 0.8f, 0f), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockID].uvCorners[4], Chunk.blockInfosNew[blockID].uvSizes[4], true, verts, uvs, tris, norms);
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), new Vector3(0f, 1f, 0f), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockID].uvCorners[4], Chunk.blockInfosNew[blockID].uvSizes[4], true, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z + 1), new Vector3(0f, 0.8f, 0f), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockID].uvCorners[5], Chunk.blockInfosNew[blockID].uvSizes[5], false, verts, uvs, tris, norms);
                         break;
                     case BlockShape.Fence:
                         BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z) + new Vector3(0.375f, 0f, 0.375f), new Vector3(0f, 1, 0f), new Vector3(0f, 0f, 0.25f), Chunk.blockInfosNew[blockID].uvCorners[0], Chunk.blockInfosNew[blockID].uvSizes[0], false, verts, uvs, tris, norms);

@@ -25,20 +25,28 @@ public class GameSettingsUIBeh : MonoBehaviour
     gameFOVSlider.onValueChanged.AddListener(GameFOVSliderOnValueChanged);
     controlSensSlider.onValueChanged.AddListener(ControlSensSliderOnValueChanged);
     gameSoundVolumeSlider.onValueChanged.AddListener(GameSoundVolumeSliderOnValueChanged);
+    gameFOVSlider.value = GlobalGameOptions.inGameFOV;
+    gameSoundVolumeSlider.value = GlobalGameOptions.gameVolume;
+    controlSensSlider.value = GlobalGameOptions.inGameMouseSensitivity;
+
   }
   void SaveButtonOnClick(){
     GameSettingsUIBeh.instance.gameObject.SetActive(false);
   }
   void GameFOVSliderOnValueChanged(float f){
-    PlayerMove.cameraFOV=gameFOVSlider.value;
+      GlobalGameOptions.inGameFOV = gameFOVSlider.value;
+      
     gameFOVText.text=gameFOVSlider.value.ToString();
   }
-  void ControlSensSliderOnValueChanged(float f){
-     PlayerInputBeh.mouseSens=controlSensSlider.value;
+  void ControlSensSliderOnValueChanged(float f)
+  {
+      GlobalGameOptions.inGameMouseSensitivity = controlSensSlider.value;
+    
     controlSensText.text=controlSensSlider.value.ToString();
   }
   void GameSoundVolumeSliderOnValueChanged(float f){
-    AudioListener.volume=gameSoundVolumeSlider.value;
+      GlobalGameOptions.gameVolume = gameSoundVolumeSlider.value;
+        AudioListener.volume=gameSoundVolumeSlider.value;
     gameSoundVolumeText.text=gameSoundVolumeSlider.value.ToString();
   }
 }

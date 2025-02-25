@@ -233,7 +233,6 @@ Material:
     - _HueVariation: {r: 1, g: 0.5, b: 0, a: 0.1}
     - _SpecColor: {r: 0, g: 0.026930332, b: 1, a: 1}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &1350443697823015496
 MonoBehaviour:
   m_ObjectHideFlags: 11

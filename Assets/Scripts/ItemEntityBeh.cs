@@ -478,7 +478,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         await UniTask.WaitUntil(()=>rb.constraints== RigidbodyConstraints.None);
         if (rb != null)
         {
-    rb.linearVelocity=f;
+    rb.velocity=f;
         }
      
     }
@@ -544,11 +544,11 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
         if(prevBlockOnItemID!=curBlockOnItemID){
             if(curBlockOnItemID==100){
-            rb.linearDamping=2f;   
+            rb.AddForce(new Vector3(0,2f,0f));   
              AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }else{
-                rb.linearDamping=0f;
+            //    rb.linearDamping=0f;
             }
              
         }

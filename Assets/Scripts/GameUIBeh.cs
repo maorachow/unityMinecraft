@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+ 
 public class GameUIBeh : MonoBehaviour
 {
     public bool isCraftingMenuOpened=false;
     public GameObject pauseMenu;
     public GameObject craftUI;
     public static GameUIBeh instance;
-    public static bool isPaused=false;
+  //  public static bool isPaused=false;
    public RectTransform selectedHotbarTransform;
    public Slider playerHealthSlider;
     public Slider playerArmorPointsSlider;
@@ -19,7 +20,7 @@ public class GameUIBeh : MonoBehaviour
    public PlayerMove player;
    public static Dictionary<int,Sprite> blockImageDic=new Dictionary<int,Sprite>();
    public static Dictionary<int,Image> hotbarImageDic=new Dictionary<int,Image>();
-   public static Dictionary<int,TMP_Text> hotbarTextDic=new Dictionary<int,TMP_Text>();
+   public static Dictionary<int, TMP_Text> hotbarTextDic=new Dictionary<int, TMP_Text>();
     public static Dictionary<int, string> blockNameDic = new Dictionary<int, string>();
     public int selectedHotbar=1;
 
@@ -71,6 +72,7 @@ public class GameUIBeh : MonoBehaviour
         blockNameDic.Add(154, "Rotten Flesh");
         blockNameDic.Add(155, "Gunpowder");
         blockNameDic.Add(156, "TNT");
+        blockNameDic.Add(157, "Bow");
         blockNameDic.Add(158, "Armor Upgrader");
         //     isBlockNameDicAdded=true;
         //     }
@@ -131,8 +133,9 @@ public class GameUIBeh : MonoBehaviour
     blockImageDic.TryAdd(154,Resources.Load<Sprite>("Textures/blocksprites/rotten_flesh"));
     blockImageDic.TryAdd(155, Resources.Load<Sprite>("Textures/blocksprites/gunpowder"));
     blockImageDic.TryAdd(156, Resources.Load<Sprite>("Textures/blocksprites/tnt_side"));
+    blockImageDic.TryAdd(157, Resources.Load<Sprite>("Textures/blocksprites/bow"));
     blockImageDic.TryAdd(158, Resources.Load<Sprite>("Textures/blocksprites/netherite_upgrade_smithing_template"));
-        hotbarImageDic.Clear();
+    hotbarImageDic.Clear();
     hotbarTextDic.Clear();
     for(int i=1;i<=9;i++){
         
@@ -194,19 +197,19 @@ public class GameUIBeh : MonoBehaviour
     public void PauseGame(){
   //   Debug.Log("UIPause");
         pauseMenu=transform.Find("pausemenuUI").gameObject;
-          
-        
-        isPaused=true;
-        Time.timeScale=0;
+        GlobalGameOptions.isGamePaused = true;
+        Time.timeScale = 0;
+       
+       
         pauseMenu.SetActive(true);
     }
     public void Resume(){
    //   Debug.Log("UIResume");
             pauseMenu=transform.Find("pausemenuUI").gameObject;
-          
+
+        Time.timeScale = 1;
+        GlobalGameOptions.isGamePaused = false;
         
-        isPaused=false;
-        Time.timeScale=1;
         pauseMenu.SetActive(false);
     }
 
@@ -248,7 +251,7 @@ public class GameUIBeh : MonoBehaviour
             }
             
         }
-        foreach(KeyValuePair<int,TMP_Text> i in hotbarTextDic){
+        foreach(KeyValuePair<int, TMP_Text> i in hotbarTextDic){
             i.Value.text=player.inventoryItemNumberDic[i.Key].ToString();
         }  }
     }

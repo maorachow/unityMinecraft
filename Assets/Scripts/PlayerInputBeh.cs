@@ -23,7 +23,7 @@ public class PlayerInputBeh : MonoBehaviour
     public Vector2 playerMoveVec;
     public bool isJumping = false;
     public bool isPlayerSpeededUp = false;
-    public static float mouseSens = 1f;
+   
     public Button breakBlockButton;
     public Button placeBlockButton;
     public Button dropItemButton;
@@ -136,7 +136,7 @@ public class PlayerInputBeh : MonoBehaviour
                     {
                         if(Touch.activeTouches[i].isInProgress)
                         {
-                        mouseDelta = Touch.activeTouches[i].delta * mouseSens;
+                        mouseDelta = Touch.activeTouches[i].delta * GlobalGameOptions.inGameMouseSensitivity;
                             timePressed += Time.deltaTime;
                         }
                         else
@@ -150,7 +150,7 @@ public class PlayerInputBeh : MonoBehaviour
             }
             else
             {
-                mouseDelta = Mouse.current.delta.ReadValue() * mouseSens;
+                mouseDelta = Mouse.current.delta.ReadValue() * GlobalGameOptions.inGameMouseSensitivity;
             }
         }
         
@@ -192,7 +192,7 @@ public class PlayerInputBeh : MonoBehaviour
         playerMoveVec=playerInputs.PlayerInput.Move.ReadValue<Vector2>();
         isJumping = playerInputs.PlayerInput.Jump.IsInProgress();
         isPlayerSpeededUp=playerInputs.PlayerInput.SpeedUp.IsInProgress();
-        switchItemSlotAxis= playerInputs.PlayerInput.SwitchItemSlot.ReadValue<float>();
+        switchItemSlotAxis= playerInputs.PlayerInput.SwitchItemSlot.ReadValue<float>()/120f;
        
     }
 
