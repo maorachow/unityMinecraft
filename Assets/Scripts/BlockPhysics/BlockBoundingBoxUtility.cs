@@ -285,7 +285,41 @@ public static class BlockBoundingBoxUtility
 
         if (shape == BlockShape.Fence)
         {
-            return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1f, y + 1f, z + 1f));
+
+            float x1 = 0f;
+            float y1 =0f;
+            float z1 = 0f;
+            bool[] fenceDatabools = MathUtility.GetBooleanArray(blockData.optionalDataValue);
+            Vector3 boxMinPoint = new Vector3(x1 + 0.375f, y1, z1 + 0.375f);
+            Vector3 boxMaxPoint = new Vector3(x1 + 0.625f, y1 + 1f, z1 + 0.625f);
+            bool isLeftBuilt = fenceDatabools[7];
+            bool isRightBuilt = fenceDatabools[6];
+            bool isBackBuilt = fenceDatabools[5];
+            bool isFrontBuilt = fenceDatabools[4];
+            if (isLeftBuilt)
+            {
+                boxMinPoint.x = x1 + 0f;
+            }
+
+            if (isRightBuilt)
+            {
+                boxMaxPoint.x = x1 + 1f;
+            }
+
+            if (isBackBuilt)
+            {
+                boxMinPoint.z = z1 + 0f;
+            }
+
+            if (isFrontBuilt)
+            {
+                boxMaxPoint.z = z1 + 1f;
+            }
+         
+
+
+
+            return new SimpleAxisAlignedBB(boxMinPoint+ new Vector3(x, y, z), boxMaxPoint+ new Vector3(x, y, z));
         }
         if (shape == BlockShape.Door)
         {

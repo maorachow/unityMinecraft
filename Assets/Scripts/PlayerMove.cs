@@ -119,8 +119,7 @@ public partial class PlayerMove: MonoBehaviour
     public bool isPlayerKilled = false;
     public ItemOnHandBeh playerHandItem;
     public int currentSelectedHotbar = 5;
-    public int[] inventoryDic = new int[9];
-    public int[] inventoryItemNumberDic = new int[9];
+  
     
 
     public static float chunkStrongLoadingRange = 48;
@@ -314,8 +313,7 @@ public partial class PlayerMove: MonoBehaviour
 
 
         //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
-        GameUIBeh.instance.CloseCraftingUI();
-        GameUIBeh.instance.Resume();
+      
 
         transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, 0f);
         transform.GetChild(0).localPosition = new Vector3(0f, 0f, 0f);
@@ -358,63 +356,6 @@ public partial class PlayerMove: MonoBehaviour
     }
 
 
-    public bool CheckInventoryIsFull(int itemID)
-    {
-        for (int i = 0; i < inventoryDic.Length; i++)
-        {
-            if (inventoryDic[i] == 0)
-            {
-                return false;
-            }
-
-            if (inventoryDic[i] == itemID && inventoryItemNumberDic[i] < 64)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    public void AddItem(int itemTypeID, int itemCount)
-    {
-        playerHandItem.blockID = inventoryDic[currentSelectedHotbar - 1];
-        // inventoryDic[0]=1;
-        //  inventoryItemNumberDic[0]=100;
-        int itemCountTmp = itemCount;
-        for (int i = 0; i < inventoryDic.Length; i++)
-        {
-            if (inventoryItemNumberDic[i] == 64)
-            {
-                continue;
-            }
-            else if (inventoryDic[i] == 0 || inventoryDic[i] == itemTypeID && inventoryItemNumberDic[i] < 64)
-            {
-                inventoryDic[i] = itemTypeID;
-
-                while (inventoryItemNumberDic[i] < 64)
-                {
-                    inventoryItemNumberDic[i] += 1;
-                    itemCountTmp--;
-                    if (itemCountTmp == 0)
-                    {
-                        return;
-                    }
-                }
-
-
-                continue;
-            }
-        }
-
-        for (int i = 0; i < itemCount; i++)
-        {
-            ItemEntityBeh.SpawnNewItem(headPos.position.x, headPos.position.y, headPos.position.z, itemTypeID,
-                (headPos.forward * 3));
-        }
-        //   playerHandItem.SendMessage("OnBlockIDChanged",inventoryDic[currentSelectedHotbar-1]);  
-    }
 
     private float curAnimSpeed;
     float Speed()
@@ -429,6 +370,12 @@ public partial class PlayerMove: MonoBehaviour
         return curAnimSpeed;
     }
 
+    void SetAnimationStatePlayerViewAngle(float viewAngle)
+    {
+        float viewAngleFactor = -viewAngle / 180f;
+        viewAngleFactor += 0.5f;
+        am.SetFloat("playerviewanglefactorvertical", viewAngleFactor);
+    }
 
     void InvokeRevertColor()
     {
@@ -497,127 +444,7 @@ public partial class PlayerMove: MonoBehaviour
         RespawnUI.instance.gameObject.SetActive(true);
     }
 
-//0diamond to pickaxe 1diamond to sword
-    public void ExchangeItem(int exchangeID)
-    {
-        if (exchangeID == 0)
-        {
-            if (GetItemFromSlot(153) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(153)]--;
-                AddItem(151, 1);
-            }
-        }
-        else if (exchangeID == 1)
-        {
-            if (GetItemFromSlot(153) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(153)]--;
-                AddItem(152, 1);
-            }
-        }
-        else if (exchangeID == 2)
-        {
-            if (GetItemFromSlot(7) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(7)]--;
-                AddItem(102, 4);
-            }
-        }
-        else if (exchangeID == 3)
-        {
-            if (GetItemFromSlot(155) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(155)]--;
-                AddItem(156, 4);
-            }
-        }
-        else if (exchangeID == 4)
-        {
-            if (GetItemFromSlot(153) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(153)]--;
-                AddItem(158, 8);
-            }
-        }
-        else if (exchangeID == 5)
-        {
-            if (GetItemFromSlot(7) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(7)]--;
-                AddItem(103, 4);
-                
-            }
-        }
 
-        else if (exchangeID == 6)
-        {
-            if (GetItemFromSlot(11) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(11)]--;
-                AddItem(107, 1);
-                AddItem(108, 1);
-                AddItem(109, 1);
-                AddItem(110, 1);
-                AddItem(111, 1);
-            }
-        }
-
-        else if (exchangeID == 7)
-        {
-            if (GetItemFromSlot(7) == -1)
-            {
-                return;
-            }
-            else
-            {
-                inventoryItemNumberDic[GetItemFromSlot(7)]--;
-                AddItem(104, 6);
-                
-            }
-        }
-    }
-
-    public int GetItemFromSlot(int itemID)
-    {
-        for (int i = 0; i < inventoryDic.Length; i++)
-        {
-            if (inventoryDic[i] == itemID && inventoryItemNumberDic[i] > 0)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
 
     public void PlayerRespawn()
     {
@@ -655,13 +482,19 @@ public partial class PlayerMove: MonoBehaviour
         }
         else
         {
+           
             GameUIBeh.instance.Resume();
+            if (GameUIBeh.instance.isCraftingMenuOpened == true)
+            {
+                GameUIBeh.instance.CloseCraftingUI();
+            }
             return;
         }
     }
 
     public void OpenOrCloseCraftingUI()
     {
+       
         Cursor.lockState = CursorLockMode.None;
         if (GameUIBeh.instance.isCraftingMenuOpened == true)
         {
@@ -669,6 +502,10 @@ public partial class PlayerMove: MonoBehaviour
         }
         else
         {
+            if (GameUIBeh.instance.isPauseMenuOpened == true)
+            {
+                return;
+            }
             GameUIBeh.instance.OpenCraftingUI();
         }
     }
@@ -876,9 +713,11 @@ public partial class PlayerMove: MonoBehaviour
         float mouseY = PlayerInputBeh.instance.mouseDelta.y;
 
 
-        mouseY = Mathf.Clamp(mouseY, -90f, 90f);
+       // mouseY = Mathf.Clamp(mouseY, -90f, 90f);
         cameraX -= mouseY;
         cameraX = Mathf.Clamp(cameraX, -90f, 90f);
+
+        SetAnimationStatePlayerViewAngle(cameraX);
 
         if (PlayerInputBeh.instance.playerMoveVec != Vector2.zero && GameUIBeh.instance.isCraftingMenuOpened == false)
         {
@@ -951,6 +790,12 @@ public partial class PlayerMove: MonoBehaviour
         if (critAttackCD > 0f)
         {
             critAttackCD -= Time.deltaTime;
+        
+        }
+
+        if (critAttackCD <= 0f && isPlayerWieldingItem == true)
+        {
+            isPlayerWieldingItem = false;
         }
 
         /*   pi.Player.DropItem.performed+=ctx=>{
@@ -1154,47 +999,9 @@ public partial class PlayerMove: MonoBehaviour
         PlayerDropItem(currentSelectedHotbar - 1);
     }
 
-    void PlayerDropItem(int slotID)
-    {
-        if (this == null)
-        {
-            return;
-        }
 
-        if (inventoryItemNumberDic[slotID] > 0)
-        {
-            AudioSource.PlayClipAtPoint(playerDropItemClip, gameObject.transform.position, 1f);
-            ItemEntityBeh.SpawnNewItem(headPos.position.x, headPos.position.y, headPos.position.z, inventoryDic[slotID],
-                (headPos.forward * 12));
-            inventoryItemNumberDic[slotID]--;
-            if (inventoryItemNumberDic[slotID] - 1 <= 0)
-            {
-            }
 
-            AttackAnimate();
-            Invoke("cancelAttackInvoke", 0.16f);
-        }
-        else
-        {
-        }
-    }
-
-    void UpdateInventory()
-    {
-        for (int i = 0; i < inventoryItemNumberDic.Length; i++)
-        {
-            inventoryItemNumberDic[i] = Mathf.Clamp(inventoryItemNumberDic[i], 0, 64);
-        }
-
-        for (int i = 0; i < inventoryDic.Length; i++)
-        {
-            if (inventoryItemNumberDic[i] <= 0)
-            {
-                inventoryDic[i] = 0;
-            }
-        }
-    }
-
+   
     public void PlayerTryTeleportToEnderWorld()
     {
         if (playerTeleportingCD >= 4f)
@@ -1359,8 +1166,8 @@ public partial class PlayerMove: MonoBehaviour
 
     public int ReadPlayerJson(bool ExludePlayerInWorldIDData = false)
     {
-        inventoryDic = new int[9];
-        inventoryItemNumberDic = new int[9];
+        inventoryDic = new int[18];
+        inventoryItemNumberDic = new int[18];
 
         gameWorldPlayerDataPath = WorldManager.gameWorldDataPath;
 
@@ -1391,7 +1198,7 @@ public partial class PlayerMove: MonoBehaviour
         }
         else
         {
-            pd = new PlayerData(20f, 0f, 150f, 0f, new int[9], new int[9], 0, 0f);
+            pd = new PlayerData(20f, 0f, 150f, 0f, new int[18], new int[18], 0, 0f);
             //    return;
         }
 
@@ -1439,8 +1246,8 @@ public partial class PlayerMove: MonoBehaviour
             cc.enabled = false;
             transform.position = new Vector3(0f, 150f, 0f);
             cc.enabled = true;
-            inventoryDic = new int[9];
-            inventoryItemNumberDic = new int[9];
+            inventoryDic = new int[18];
+            inventoryItemNumberDic = new int[18];
             playerArmorPoints = 0f;
         }
 

@@ -497,7 +497,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity
         }
       
         Vector3 position=transform.position;
-        entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,Time.deltaTime*3f);
+        entityMotionVec=Vector3.Lerp(entityMotionVec,Vector3.zero,dt*3f);
        
       
      

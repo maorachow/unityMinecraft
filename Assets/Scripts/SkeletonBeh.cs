@@ -249,13 +249,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     public void MoveToTarget(CharacterController cc, Vector3 pos, float dt)
     {
         currentTrans.rotation = Quaternion.Slerp(currentTrans.rotation, Quaternion.Euler(new Vector3(0f, headTransform.eulerAngles.y, 0f)), 5f * dt);
-        if (cc.enabled == true)
-        {
-            if (entityMotionVec.magnitude > 0.7f)
-            {
-                cc.Move(entityMotionVec * dt);
-            }
-        }
+        
             ChangeHeadPos(pos);
         if (isIdling)
         {
@@ -288,12 +282,19 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             entityVec.x = 0.6f;
         }
-        
+
+
+
+        if (entityMotionVec.magnitude > 0.7f)
+        {
+            cc.Move(entityMotionVec * dt);
+        }
+        else
+        {
+            cc.Move((transform.forward * entityVec.x + transform.right * entityVec.z)* moveSpeed * dt + entityMotionVec * dt);
+        }
+
       
-       
-       
-           
-                cc.Move((transform.forward * entityVec.x + transform.right * entityVec.z) * (1f - 0) * moveSpeed * Time.deltaTime + entityMotionVec * Time.deltaTime);
             
 
 

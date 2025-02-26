@@ -11,6 +11,7 @@ public class BlockOutlineBeh : MonoBehaviour
     public BlockData curBlockData;
     public BlockData prevBlockData;
     public Transform outlineRendererTransform;
+    public Vector3Int prevPosInt;
 
     void Start()
     {
@@ -19,10 +20,13 @@ public class BlockOutlineBeh : MonoBehaviour
     void FixedUpdate()
     {
         curBlockData = WorldHelper.instance.GetBlockData(transform.position);
-        if (curBlockData != prevBlockData)
+        Vector3Int curPosInt = ChunkCoordsHelper.Vec3ToBlockPos(transform.position);
+      
+        if (curBlockData != prevBlockData||prevPosInt!=curPosInt)
         {
             OnCurrentBlockChanged(curBlockData, prevBlockData);
         }
+        prevPosInt=curPosInt;
         prevBlockData= curBlockData;
     }
 
@@ -56,15 +60,46 @@ public class BlockOutlineBeh : MonoBehaviour
                 outlineRendererTransform.localScale = new Vector3(1, 1, 1);
                 return;
             case BlockShape.Fence:
+                float x1 = -0.5f;
+                float y1 = -0.5f;
+                float z1 = -0.5f;
+                bool[] fenceDatabools = MathUtility.GetBooleanArray(curBlockData1.optionalDataValue);
+                Vector3 boxMinPoint = new Vector3(x1 + 0.375f, y1, z1 + 0.375f);
+                Vector3 boxMaxPoint = new Vector3(x1 + 0.625f, y1 + 1f, z1 + 0.625f);
+                bool isLeftBuilt = fenceDatabools[7];
+                bool isRightBuilt = fenceDatabools[6];
+                bool isBackBuilt = fenceDatabools[5];
+                bool isFrontBuilt = fenceDatabools[4];
+                if (isLeftBuilt)
+                {
+                    boxMinPoint.x = x1 + 0f;
+                }
 
-                outlineRendererTransform.localPosition = new Vector3(0, 0, 0);
-                outlineRendererTransform.localScale = new Vector3(1, 1, 1);
+                if (isRightBuilt)
+                {
+                    boxMaxPoint.x = x1 + 1f;
+                }
+
+                if (isBackBuilt)
+                {
+                    boxMinPoint.z = z1 + 0f;
+                }
+
+                if (isFrontBuilt)
+                {
+                    boxMaxPoint.z = z1 + 1f;
+                }
+                Vector3 boxExtents1 = boxMaxPoint- boxMinPoint;
+                Vector3 boxCenter1 = (boxMaxPoint + boxMinPoint) / 2f;
+                outlineRendererTransform.localPosition = boxCenter1;
+                outlineRendererTransform.localScale = boxExtents1;
                 return;
             case BlockShape.CrossModel:
                 outlineRendererTransform.localPosition = new Vector3(0, -0.125f, 0);
                 outlineRendererTransform.localScale = new Vector3(0.5f, 0.75f, 0.5f);
               
                 return;
+          
             case BlockShape.Torch:
 
                 switch (curBlockData1.optionalDataValue)

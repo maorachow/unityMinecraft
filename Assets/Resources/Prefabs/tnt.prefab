@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7833694229843695706}
   - component: {fileID: 1928028759912982809}
   - component: {fileID: -2505605410020906349}
-  m_Layer: 8
+  m_Layer: 6
   m_Name: tnt
   m_TagString: Entity
   m_Icon: {fileID: 0}
@@ -126,6 +126,7 @@ MonoBehaviour:
   currentChunk: {fileID: 0}
   cc: {fileID: 0}
   entityTypeID: 0
+  entityInWorldID: 0
   guid: 
   isInUnloadedChunks: 0
 --- !u!54 &1928028759912982809

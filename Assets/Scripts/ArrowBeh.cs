@@ -61,6 +61,7 @@ public class ArrowBeh : MonoBehaviour
         arrowRigidbody.velocity= Vector3.zero;
         isPosInited = false;
         entity.isInUnloadedChunks = false;
+        sourceTrans = null;
         arrowRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
     }
     // Update is called once per frame
@@ -107,6 +108,7 @@ public class ArrowBeh : MonoBehaviour
     {
         Collider c = other;
         if(sourceTrans == null) {
+            Debug.Log("damage failed:null sourcetrans");
             return;
         }
        
@@ -125,20 +127,27 @@ public class ArrowBeh : MonoBehaviour
         {
             float arrowVelocityMagnitude = arrowRigidbody.velocity.magnitude;
             
-            if (c.GetComponent(typeof(ILivingEntity)) != null&&arrowVelocityMagnitude>=0.2f)
+            if (c.GetComponent(typeof(ILivingEntity)) != null)
             {
+
             //    Debug.Log("damage success:entity");
                 ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
-                livingEntity.ApplyDamageAndKnockback(arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+                livingEntity.ApplyDamageAndKnockback((arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f))* Mathf.Min(arrowVelocityMagnitude,1f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
                 VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
                 return;
             }
-            if (c.GetComponent<PlayerMove>() != null && arrowVelocityMagnitude >= 0.2f)
+
+            if (c.GetComponent<PlayerMove>() != null)
             {
          //       Debug.Log("damage success:player");
-                c.GetComponent<PlayerMove>().ApplyDamageAndKnockback(arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+                c.GetComponent<PlayerMove>().ApplyDamageAndKnockback((arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f)) *Mathf.Min(arrowVelocityMagnitude, 1f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
                 VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
                 return;
+            }
+
+            if (arrowVelocityMagnitude < 0.2f)
+            {
+            //    Debug.Log("damage failed:not enough velocity");
             }
         //    Debug.Log("character controller damage failed: arrow velocity:"+arrowVelocityMagnitude);
         }

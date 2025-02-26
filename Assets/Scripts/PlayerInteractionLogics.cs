@@ -112,19 +112,7 @@ public partial class PlayerMove
     void CritAttackBowAnimate()
     {
         am.SetBool("isattackingcritbow", true);
-        Vector3 headFacingAngle = playerHeadCenterRef.forward;
-        if (headFacingAngle.y > 0.2f)
-        {
-            am.SetInteger("bowcritattackangle", 1);
-        }
-        else if (headFacingAngle.y < 0.2f && headFacingAngle.y > -0.2f)
-        {
-            am.SetInteger("bowcritattackangle", 0);
-        }
-        else if (headFacingAngle.y < -0.2f)
-        {
-            am.SetInteger("bowcritattackangle", -1);
-        }
+     
     }
     void AttackEnemy(GameObject go)
     {
