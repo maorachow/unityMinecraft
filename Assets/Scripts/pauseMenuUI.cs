@@ -55,24 +55,29 @@ public class pauseMenuUI : MonoBehaviour
             QualitySettings.SetQualityLevel(0, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                Shader.DisableKeyword("_CONTACT_SHADOW");
                 break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                Shader.DisableKeyword("_CONTACT_SHADOW");
                 break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                Shader.DisableKeyword("_CONTACT_SHADOW");
                 break;
             case 3:
              graphicsQualityText.text="High";
             QualitySettings.SetQualityLevel(3, true);
+                
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
+                Shader.EnableKeyword("_CONTACT_SHADOW");
                 break;
             case 4:
              graphicsQualityText.text="Very High";
@@ -80,6 +85,7 @@ public class pauseMenuUI : MonoBehaviour
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
 
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
+                Shader.EnableKeyword("_CONTACT_SHADOW");
                 break;
             case 5:
              graphicsQualityText.text="Ultra";
@@ -87,6 +93,7 @@ public class pauseMenuUI : MonoBehaviour
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
 
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
+                Shader.EnableKeyword("_CONTACT_SHADOW");
 
                 break;
         }

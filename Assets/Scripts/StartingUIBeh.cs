@@ -31,6 +31,7 @@ public class StartingUIBeh : MonoBehaviour
     quitButton.onClick.AddListener(QuitButtonOnClick);
     settingsButton.onClick.AddListener(SettingsButtonOnClick);
      cameraPos=GameObject.Find("Main Camera").GetComponent<Transform>();
+     Cursor.lockState = CursorLockMode.None;
    }
    void StartNewWorldButtonOnClick(){
     CreateGameDirectory();

@@ -4,27 +4,54 @@ using UnityEngine;
  
 using System;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering;
+
 
 public class ContactShadowRenderFeature : ScriptableRendererFeature
 {
     public ContactShadowRenderPass contactShadowRenderPass;
     private Material material;
-    [SerializeField]  public Shader shader;
+    private Shader shader;
     [SerializeField] public ContactShadowSettings settings;
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        renderer.EnqueuePass(contactShadowRenderPass);
+        if (renderingData.cameraData.cameraType == CameraType.SceneView ||
+            renderingData.cameraData.cameraType == CameraType.Game)
+        {
+            renderer.EnqueuePass(contactShadowRenderPass);
+        }
+       
     }
 
+    public void OnEnable()
+    {
+
+
+    }
+
+    public void OnDisable()
+    {
+        Debug.Log("contact shadow rendererfeature OnDisable");
+
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        contactShadowRenderPass?.Dispose();
+        contactShadowRenderPass = null;
+        CoreUtils.Destroy(material);
+    }
     public override void Create()
     {
+        shader=Shader.Find("Hidden/ContactShadowShader");
         if (shader == null)
         {
             return;
         }
-        material = new Material(shader);
+        material = CoreUtils.CreateEngineMaterial(shader);
         contactShadowRenderPass = new ContactShadowRenderPass(material,settings);
-        contactShadowRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+        contactShadowRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+        contactShadowRenderPass.SetupPass();
     }
 }
 [Serializable]
@@ -32,77 +59,121 @@ public class ContactShadowSettings
 {
     [Range(10, 256)] public  int sampleCount;
     [Range(0f, 1f)] public float edgeWidth;
-    [Range(0f, 1f)] public float shadowWeight;
+     
     [Range(0.1f, 8f)] public float stepLength;
-    [Range(0f, 0.1f)] public float shadowBias;
-    [Range(0f,30f)] public float fadeDistance;
+    
+    [Range(0f,45f)] public float fadeDistance;
+    public bool downSample=false;
+
+    public enum CurrentRenderingEntryPoint
+    {
+        AfterPrepasses,
+        AfterGBuffer
+    }
+    public CurrentRenderingEntryPoint currentEntryPoint;
 }
 public class ContactShadowRenderPass : ScriptableRenderPass
 {
     public Material material;
     public ContactShadowSettings settings;
     private RenderTextureDescriptor shadowTextureDescriptor;
-    private RTHandle contactShadowHandle;
-
+    private RTHandle contactShadowMap;
+    private static readonly string contactShadowKeyword = "_CONTACT_SHADOW";
     private static readonly int   
               sampleCountID = Shader.PropertyToID("SampleCount"),
               edgeWidthID = Shader.PropertyToID("EdgeWidth"),
               shadowWeightID = Shader.PropertyToID("ShadowWeight"),
                 stepLengthID = Shader.PropertyToID("StepLength"),
-                shadowBiasID = Shader.PropertyToID("ContactShadowBias"),
+               blitScreenParamsID = Shader.PropertyToID("_BlitScreenParams"),
         fadeDistanceID=Shader.PropertyToID("FadeDistance");
     public ContactShadowRenderPass(Material mat,ContactShadowSettings settings)
     {
+       
         this.material = mat;
         this.settings = settings;
         shadowTextureDescriptor = new RenderTextureDescriptor(Screen.width,
-           Screen.height, RenderTextureFormat.Default, 0);
+           Screen.height, RenderTextureFormat.RFloat, 0);
     }
 
+    public void SetupPass()
+    {
+        if (settings.currentEntryPoint==ContactShadowSettings.CurrentRenderingEntryPoint.AfterPrepasses)
+        {
+            this.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+        }else if (settings.currentEntryPoint == ContactShadowSettings.CurrentRenderingEntryPoint.AfterGBuffer)
+        {
+            this.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
+        }
+    }
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+    {
+        ConfigureInput(ScriptableRenderPassInput.Normal);
+    }
     public override void Configure(CommandBuffer cmd,
        RenderTextureDescriptor cameraTextureDescriptor)
     {
+        
         // Set the blur texture size to be the same as the camera target size.
-        shadowTextureDescriptor.width = cameraTextureDescriptor.width;
-        shadowTextureDescriptor.height = cameraTextureDescriptor.height;
+        if (!settings.downSample)
+        {
+            shadowTextureDescriptor.width = cameraTextureDescriptor.width;
+            shadowTextureDescriptor.height = cameraTextureDescriptor.height;
+        }
+        else
+        {
+            shadowTextureDescriptor.width = cameraTextureDescriptor.width/2;
+            shadowTextureDescriptor.height = cameraTextureDescriptor.height / 2;
+        }
+
 
         // Check if the descriptor has changed, and reallocate the RTHandle if necessary
-        RenderingUtils.ReAllocateIfNeeded(ref contactShadowHandle, shadowTextureDescriptor);
+        material.SetVector(blitScreenParamsID, new Vector4(
+            shadowTextureDescriptor.width,
+            shadowTextureDescriptor.height,
+            1.0f/shadowTextureDescriptor.width,
+            1.0f / shadowTextureDescriptor.height));
+
+        RenderingUtils.ReAllocateIfNeeded(ref contactShadowMap, shadowTextureDescriptor);
+       // cmd.SetGlobalTexture("_ContactShadowMap", contactShadowMap);
     }
     public void UpdateSettings()
     {
         material.SetInt(sampleCountID, settings.sampleCount);
         material.SetFloat(edgeWidthID, settings.edgeWidth);
-        material.SetFloat(shadowWeightID, settings.shadowWeight);
+      //  material.SetFloat(shadowWeightID, settings.shadowWeight);
         material.SetFloat(stepLengthID, settings.stepLength);
-        material.SetFloat(shadowBiasID,settings.shadowBias);
+    //    material.SetFloat(shadowBiasID,settings.shadowBias);
         material.SetFloat(fadeDistanceID, settings.fadeDistance);
     }
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        CommandBuffer cmd = CommandBufferPool.Get();
-
+       
+        CommandBuffer cmd = CommandBufferPool.Get("Generate Contact Shadowmap");
+        CoreUtils.SetKeyword(cmd, contactShadowKeyword, true);
         RTHandle cameraTargetHandle =
             renderingData.cameraData.renderer.cameraColorTargetHandle;
         var camera = renderingData.cameraData.camera;
-
-
-        // Blit from the camera target to the temporary render texture,
-        // using the first shader pass.
-        //    Blit(cmd, cameraTargetHandle, blurTextureHandle, material);
-        // Blit from the temporary render texture to the camera target,
-        // using the second shader pass.
-
+ 
         UpdateSettings();
+ 
+        Blit(cmd, cameraTargetHandle, contactShadowMap, material);
 
-        //  cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        //   cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-        //   cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-        Blit(cmd, cameraTargetHandle, contactShadowHandle, material, 0);
-        Blit(cmd, contactShadowHandle, cameraTargetHandle, material,1);
-
-        //Execute the command buffer and release it back to the pool.
+        cmd.SetGlobalTexture("_ContactShadowMap", contactShadowMap);
+    
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
     }
+
+    public override void OnCameraCleanup(CommandBuffer cmd)
+    {
+        CoreUtils.SetKeyword(cmd, contactShadowKeyword, false);
+    }
+
+    public void Dispose()
+    {
+
+        contactShadowMap?.Release();
+    }
 }
+
+

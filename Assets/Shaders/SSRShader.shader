@@ -1,510 +1,805 @@
-Shader "CustomEffects/SSREffect"
+Shader "Hidden/SSRShader"
 {
+    HLSLINCLUDE
     
-     
-           
- 
- 
-  Properties {
-        _MainTex ("Base (RGB)", 2D) = "" {}
-    }
-
-    
-    
-   
-    
-    SubShader
-    {
-        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"}
-        LOD 100
-        ZWrite Off Cull Off
-        Pass
-        {
-            Name "SSRQuad"
-
-            HLSLPROGRAM
-            
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
-        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
-   
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        // The Blit.hlsl file provides the vertex shader (Vert),
+        // the input structure (Attributes), and the output structure (Varyings)
             #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-              #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl" 
-           
-              #pragma vertex Vert
-              #pragma fragment SSRPassFragment1
-               #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-      
-           
-         
-                
-            uniform float StrideSize;
-            uniform float SSRThickness;
-            uniform float SSRBias;
-            uniform int StepCount;
-            uniform float FadeDistance;
-            uniform Texture2D HiZBufferTexture;
-            uniform float MaxHiZufferTextureMipLevel;
-             SamplerState sampler_point_clamp;
-             SamplerState sampler_linear_clamp;
-            // SamplerState sampler2D_float;
-                 uniform float4 ProjectionParams2;
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"  
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDF.hlsl"  
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"  
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"  
+            uniform float4 ProjectionParams2;
             uniform float4 CameraViewTopLeftCorner;
             uniform float4 CameraViewXExtent;
             uniform float4 CameraViewYExtent;
-                        float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
-                // Screen is y-inverted  
-                uv.y = 1.0 - uv.y;  
 
+
+
+            uniform Texture2D HiZBufferTexture;
+          
+            uniform int MaxHiZBufferTextureMipLevel;
+            uniform float SSRBlendFactor;
+            SamplerState sampler_point_clamp;
+            SamplerState sampler_linear_clamp ;
+            SamplerState sampler_linear_repeat ;
+            uniform float4 SSRSourceSize;
+            uniform int MaxIterations;
+            uniform float SSRThickness;
+            uniform float MaxTracingDistance;
+               uniform float SSRMinSmoothness;
+            uniform int UseColorPyramid;
+            uniform int UseTemporalFilter;
+            uniform int UseNormalImportanceSampling;
+            float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
+             
+                #if UNITY_UV_STARTS_AT_TOP
+                uv.y = 1.0 - uv.y;  
+                #endif
                 float zScale = linearEyeDepth * ProjectionParams2.x; // divide by near plane  
                 float3 viewPos = CameraViewTopLeftCorner.xyz + CameraViewXExtent.xyz * uv.x + CameraViewYExtent.xyz * uv.y;  
                 viewPos *= zScale;  
                 return viewPos;  
             }
-            half3 ReconstructViewPosMatrix(float2 uv) {  
-                // Screen is y-inverted  
-           //     uv.y = 1.0 - uv.y;  
-           float rawDepth=0;
-                #if UNITY_REVERSED_Z
-                    rawDepth = SampleSceneDepth(uv);
-                #else
-                    //  调整 Z 以匹配 OpenGL 的 NDC ([-1, 1])
-                    rawDepth= lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv));
-                #endif
-                float3 worldPos = ComputeWorldSpacePosition(uv, rawDepth, UNITY_MATRIX_I_VP);
-               worldPos-=_WorldSpaceCameraPos;
-                return worldPos;
-            }
-             
-            void ReconstructUVAndDepthMatrix(float3 wpos, out float2 uv, out float depth) {  
-                float4 cpos = mul(UNITY_MATRIX_VP, float4(wpos,0));  
-                uv = float2(cpos.x, cpos.y * _ProjectionParams.x) / cpos.w * 0.5 + 0.5;  
-                depth = cpos.w;  
-            }
-
-            void ReconstructUVAndDepth(float3 wpos, out float2 uv, out float depth) {  
-                float4 cpos = mul(UNITY_MATRIX_VP, wpos);  
-                uv = float2(cpos.x, cpos.y * _ProjectionParams.x) / cpos.w * 0.5 + 0.5;  
-                depth = cpos.w;  
-            }
-             void ReconstructUVAndDepthFromViewPos(float3 vpos, out float2 uv, out float depth) {  
-                float4 cpos = mul(UNITY_MATRIX_P, vpos);  
-                uv = float2(cpos.x, cpos.y * _ProjectionParams.x) / cpos.w * 0.5 + 0.5;  
-                depth = cpos.w;  
-            }
-            half4 GetSource(half2 uv) {  
-                return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, 1);  
-            }
-
-
- 
-
-            float3 GetWorldPosition(float2 vTexCoord, float depth)
-            {
-              #if UNITY_REVERSED_Z
-                    depth = SampleSceneDepth(vTexCoord);
-                #else
-                    //  调整 Z 以匹配 OpenGL 的 NDC ([-1, 1])
-                    depth= lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(vTexCoord));
-                #endif
-                float3 worldPos = ComputeWorldSpacePosition(vTexCoord, depth, UNITY_MATRIX_I_VP);
-                return worldPos;
-            }
-
-
-            float GetShadow(float3 posWorld)
-            {
-                float4 shadowCoord = TransformWorldToShadowCoord(posWorld);
-                float shadow = MainLightRealtimeShadow(shadowCoord);
-                return shadow;
-            }  
-
-            float3 UnpackNormal(float3 normal)
-            {
-            
-                float2 remappedOctNormalWS = Unpack888ToFloat2(normal); // values between [ 0,  1]
-                float2 octNormalWS = remappedOctNormalWS.xy * 2.0 - 1.0;    // values between [-1, +1]
-                normal = UnpackNormalOctQuadEncode(octNormalWS);
-             
-    
-                return normal;
-            }
-            uniform sampler2D _GBuffer2;
 
             float4 TransformViewToHScreen(float3 vpos,float2 screenSize) {  
-                float4 cpos = mul(UNITY_MATRIX_P, vpos);  
+                float4 cpos = mul(UNITY_MATRIX_P, float4(vpos,1));  
                 cpos.xy = float2(cpos.x, cpos.y * _ProjectionParams.x) * 0.5 + 0.5 * cpos.w;  
                 cpos.xy *= screenSize;  
                 return cpos;  
             }  
 
-            
-void swap(inout float v0, inout float v1) {  
-    float temp = v0;  
-    v0 = v1;    
-    v1 = temp;
-}  
-static half dither[16] = {
-  0.7352 ,  1.0467,   1.3015 ,  0.8843 ,  1.4073  , 0.8318  , 0.6256 ,  0.1751 ,  0.2248 ,  0.4364 ,  1.2059 ,  0.7479,   1.2864 ,  0.3335  , 1.1274  , 0.6915
-};
 
 
-  float Random2DTo1D(float2 value,float a ,float2 b)
-            {			
-	            //avaoid artifacts
-	            float2 smallValue = sin(value);
-	            //get scalar value from 2d vector	
-	            float  random = dot(smallValue,b);
-	            random = frac(sin(random) * a);
-	            return random;
+
+
+            float linearDepthToProjectionDepth(float linearDepth, float near, float far)
+            {
+                return (1.0 / linearDepth - 1.0 / near) / (1.0 / far - 1.0 / near);
             }
-            float Random2DTo1D(float2 value){
-	            return (
-		            Random2DTo1D(value,14375.5964, float2(15.637, 76.243))
-		          
-	            );
-            }
-            float4 SSRPassFragment1(Varyings input):SV_Target{
-
-            
-   
-                     float rawDepth = SampleSceneDepth(input.texcoord).r;  
-                      float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
-                      float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-                   return float4(vpos.xyz,1);
-                      float3 normal = SampleSceneNormals(input.texcoord);  
-                       float nDotV = max(dot(normal,normalize(-vpos) ), -1.0);
-                       vpos=vpos+ normal * (length(vpos) / _ProjectionParams.z * 4.2) ;
-                    float3 vDir = normalize(vpos);  
-                    float3 rDir = TransformWorldToViewDir(normalize(reflect(vDir, normal))); 
-                     float3 startView=mul(UNITY_MATRIX_V,float4(vpos,0));
-                     float magnitude=1200;
-                   float end = startView.z + rDir.z * magnitude;  
-                   
-                   
-               if (end > -_ProjectionParams.y)  {
-                magnitude = (-_ProjectionParams.y - startView.z) / rDir.z; 
-                   }
-                 end = startView.z + rDir.z * magnitude;  
+            float ProjectionDepthToLinearDepth(float depth,bool isTestDepth)
+            {
                 
-                  
-                    if(end > -_ProjectionParams.y){
-               //         return float4(0,0,0,1);
+                if(isTestDepth){
+                      #if  UNITY_REVERSED_Z
+                    return LinearEyeDepth(depth,_ZBufferParams);
+                    #else
+                     return LinearEyeDepth(depth,_ZBufferParams);
+                    #endif
+                    } else{
+                         return LinearEyeDepth(depth,_ZBufferParams);
                         }
-                   float3 endView = startView + rDir * magnitude;  
-                  float4 startHScreen = TransformViewToHScreen(startView, _ScreenParams.xy);  
-                    float4 endHScreen = TransformViewToHScreen(endView, _ScreenParams.xy);  
-                    
-
-                    float startK = 1.0 / startHScreen.w;  
-                    float endK = 1.0 / endHScreen.w;  
-
-                    
-                    float2 startScreen = startHScreen.xy * startK;  
-                    float2 endScreen = endHScreen.xy * endK;  
-
-                    // 经过齐次除法的视角坐标  
-                    float3 startQ = startView * startK;  
-                    float3 endQ = endView * endK;  
-                    float2 diff = endScreen - startScreen;  
-
-
-
-
-                   bool permute = false;  
-                    if (abs(diff.x) < abs(diff.y)) {  
-                        permute = true;  
-
-                        diff = diff.yx;  
-                        startScreen = startScreen.yx;  
-                        endScreen = endScreen.yx;  
-                    }  
-
-                      float dir = sign(diff.x);  
-                    float invdx = dir / diff.x;  
-                    float2 dp = float2(dir, invdx * diff.y);  
-                    float3 dq = (endQ - startQ) * invdx;  
-                    float dk = (endK - startK) * invdx;  
-
-                     dp*=StrideSize;  
-                     dq*=StrideSize;  
-                     dk*=StrideSize;
-
-                  
-                    float rayZMin = startView.z;  
-                    float rayZMax = startView.z;  
-                    float preZ = startView.z;  
+                
                  
-
-                    float2 P = startScreen;  
-                    float3 Q = startQ;  
-                    float K = startK;  
-
-
-                      end = endScreen.x * dir;  
-                      float strideLen=1;
-                   float mipLevel = 0.0;
-
-                    float2 hitUV = 0.0;
-                  //  return float4(nDotV.xxx,1);
+              
+                     
+          
                
-                     float jitter = (Random2DTo1D(input.texcoord)*0.5+0.5);  
-                     dp*=jitter;  
-                     dq*=jitter;  
-                     dk*=jitter;
+            }
+            float3 IntersectDepthPlane(float3 RayOrigin, float3 RayDir, float t)
+            {
+                return RayOrigin + RayDir * t;
+            }
 
-                     UNITY_LOOP  
-                    for (int i = 0; i < StepCount ; i++) {  
-                         
+            float2 GetCellCount(float2 Size, float Level)
+            {
+                return floor(Size / (Level > 0.0 ? exp2(Level) : 1.0));
+            }
+
+            float2 GetCell(float2 pos, float2 CellCount)
+            {
+                return floor(pos * CellCount);
+            }
+            float GetMinimumDepthPlane(float2 p, int mipLevel)
+            {
+         //       int mipLevel1=clamp(mipLevel,0,MaxHiZBufferTextureMipLevel);
+                #if UNITY_REVERSED_Z
+                return SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,p,mipLevel).x;
+                #else
+                  return SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,p,mipLevel).x;
+                #endif
+            }
+              float GetMaximumDepthPlane(float2 p, int mipLevel)
+            {
+         //       int mipLevel1=clamp(mipLevel,0,MaxHiZBufferTextureMipLevel);
+                #if UNITY_REVERSED_Z
+                return SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,p,mipLevel).y;
+                #else
+                  return SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,p,mipLevel).y;
+                #endif
+            }
+            float3 IntersectCellBoundary(float3 o, float3 d, float2 cell, float2 cell_count, float2 crossStep, float2 crossOffset)
+            {
+                float3 intersection = 0;
+	
+                float2 index = cell + crossStep;
+                float2 boundary = index / cell_count;
+            //    boundary += crossOffset;
+	
+                float2 delta = boundary - o.xy;
+                delta /= d.xy;
+                float t = min(delta.x, delta.y);
+   
+                intersection = IntersectDepthPlane(o, d, t);
+               intersection.xy += (delta.x < delta.y) ? float2(crossOffset.x, 0.0) : float2(0.0, crossOffset.y);
+                return intersection;
+            }
+            inline bool FloatEqApprox(float a, float b) {
+                const float eps = 0.00001f;
+                return abs(a - b) < eps;
+            }
+            bool CrossedCellBoundary(float2 CellIdxA, float2 CellIdxB)
+            {
+              //  return CellIdxA.x!=CellIdxB.x || CellIdxA.y!=CellIdxB.y;
+                return !FloatEqApprox( CellIdxA.x,CellIdxB.x) || !FloatEqApprox( CellIdxA.y,CellIdxB.y);
+            }
+            
+                 uniform  Texture2D CameraLumTex;
+                 float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
+                    {
+                        float a = roughness * roughness;
+	
+                        float phi = 2.0 * PI * Xi.x;
+                        float cosTheta = sqrt(max(((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y)),1e-8));
+                        float sinTheta = sqrt(max((1.0 - cosTheta * cosTheta),1e-8));
+	
+	                    // from spherical coordinates to cartesian coordinates - halfway vector
+                        float3 H;
+                        H.x = cos(phi) * sinTheta;
+                        H.y = sin(phi) * sinTheta;
+                        H.z = cosTheta;
+	
+	                    // from tangent-space H vector to world-space sample vector
+                        float3 up = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+                        float3 tangent = normalize(cross(up, N));
+                        float3 bitangent = cross(N, tangent);
+	
+                        float3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+                        return normalize(sampleVec);
+                    }
+
+
+                    float Random2DTo1D(float2 value,float a ,float2 b)
+                    {			
+	                    //avaoid artifacts
+	                    float2 smallValue = sin(value);
+	                    //get scalar value from 2d vector	
+	                    float  random = dot(smallValue,b);
+	                    random = frac(sin(random) * a);
+	                    return random;
+                    }
+
+                    float2 Random2DTo2D(float2 value){
+	                    return float2(
+		                    Random2DTo1D(value,14375.5964, float2(15.637, 76.243)),
+		                    Random2DTo1D(value,14684.6034,float2(45.366, 23.168))
+	                    );
+                    }
+
+            float4 SSRTracing(Varyings input):SV_Target{
+                  float rawDepth1=SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,input.texcoord,0);
+                  float linearDepth = LinearEyeDepth(rawDepth1, _ZBufferParams);
+                
+                   float3 vnormal = (SampleSceneNormals(input.texcoord).xyz);
+                
+                 
+             
+
+
+                  float3 rayOriginWorld = ReconstructViewPos(input.texcoord,linearDepth)+ProjectionParams2.yzw; 
+                  #if SSR_USE_FORWARD_RENDERING
+                        float roughness=0.04;
+                  #else 
+                        float roughness=1-SAMPLE_TEXTURE2D_X(_CameraNormalsTexture,sampler_point_clamp,input.texcoord).a;
+                  #endif
+             
+                   UNITY_BRANCH
+                   if(1.0f-roughness<SSRMinSmoothness){
+                       return float4(0,0,0,0);
+                       }
+
+                  float3 vDir=normalize(rayOriginWorld - ProjectionParams2.yzw);
+                  float3 rDir = reflect(vDir, normalize(vnormal));
+                  float3 finalRDir=rDir;
 
                       
-                        P += dp * strideLen;  
-                        Q.z += dq.z * strideLen;  
-                        K += dk * strideLen;  
-    
+                      
+                  UNITY_BRANCH
+                   if(UseNormalImportanceSampling){
+                     
+                
+                    float2 randomVal=Random2DTo2D(input.texcoord+float2(_Time.y,-_Time.y));
+                    float3 importanceSampleRDir=normalize(ImportanceSampleGGX(randomVal,vnormal,roughness));
+
+                        rDir = reflect(vDir, normalize(importanceSampleRDir));
+                    finalRDir=rDir;
                          
-                        rayZMax = ( Q.z) / ( K);  
-                              
-         
-                        float2 hitUV = permute ? P.yx : P;  
-                        hitUV /= _ScreenParams.xy;  
-
-
-                        if (any(hitUV < 0.0) || any(hitUV > 1.0)){ 
-
-                            return float4(0,0,0,0);
-                            }
-                           
-                        float surfaceDepth = -LinearEyeDepth(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,hitUV,mipLevel), _ZBufferParams);  
-                        if(-surfaceDepth/_ProjectionParams.z>0.9){
-                            return float4(0,0,0,0);
-                            }
-                        bool isBehind = ((rayZMax )  <= surfaceDepth+SSRBias);  
-                        
-                        
-                            if (isBehind)  {
-                               
-                                 
-                                 
-                                if(mipLevel <= 0) {
-                                    bool intersecting =isBehind&& (abs(rayZMax- surfaceDepth)<SSRThickness+(-surfaceDepth>30?60*(1-nDotV):-surfaceDepth/_ProjectionParams.z*20));  
-                                    if(intersecting){
-                                        return GetSource(hitUV);
-                                        }
-                                    
-                                   
-                                    
-                                }
-                                    
-                                      
-                                    P -= dp * strideLen;
-                                    Q.z -= dq.z * strideLen;
-                                    K -= dk * strideLen;
-                                mipLevel --;
-                               strideLen /= 2;// 步长减半 
-                            }else{
-                                  if(mipLevel<MaxHiZufferTextureMipLevel){
-                                mipLevel ++;
-                        
-                               strideLen *=2.0;
-                                }
-                               
-                      }
-                                 
-
-                           
-                    }  
-                      return float4(0,0,0,0);
-
-            }
-            float4 SSRPassFragment(Varyings input) : SV_Target {  
-
-       
-                float rawDepth = SampleSceneDepth(input.texcoord).r;  
-                
-                float rawDepth1=SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture,sampler_linear_clamp,input.texcoord,0);
-              //  return float4(rawDepth1.xxx,1);
-               // float4 gbuff = tex2D(_GBuffer2, input.texcoord);
-                float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
-                float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-            //    return float4(vpos.xyz,1);
-                float3 vnormal = (SampleSceneNormals(input.texcoord).xyz);
-          //     return float4(vnormal.xyz,1);
-                vpos=vpos+ vnormal * (length(vpos) / _ProjectionParams.z * 4.2) ;
-               
-
-                float3 vDir = normalize(vpos);  
-                //return float4(vDir.xyz,1);
-        //         float diff = max(dot(vnormal, vDir), -1.0);
-         //       if (diff >= -0.3)
-         //       {
-         //       return float4(0,0,0,1);
-         //       }
-
-               
-
-                float3 rDir = normalize(reflect(vDir, vnormal));  
-                float strideLen=StrideSize;
-                
-               
-                 
-                 float3 curPos=vpos;
-               
-                
- 
-                
-                float mipLevel = 0.0;
-                UNITY_LOOP
-                for(int i = 0; i < StepCount; i++){
-                    curPos += rDir*strideLen;// 步近
-                         float2 uv1=0;
-                     float resultDepth=0;
-                    ReconstructUVAndDepthMatrix(curPos,uv1,resultDepth);
-                    float sampleDepth=0.0;
-                    
-                    
+                       }
                     
                      
-                    
-                     sampleDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,uv1,mipLevel), _ZBufferParams);
-                    
-                    
-                    
-                    if(resultDepth>sampleDepth){
-                    
-                        if(mipLevel <= 0){
-                         if (resultDepth>sampleDepth-0.1 &&abs(resultDepth-sampleDepth) <  SSRThickness )
-                           {
-                              if(sampleDepth/_ProjectionParams.z>0.9||resultDepth/_ProjectionParams.z>0.9){
-                               return float4(0,0,0,0);
-                             }
-                              if(uv1.x<0||uv1.x>1||uv1.y<0||uv1.y>1){
-                                 return float4(0,0,0,0);
-                             }
-                               return GetSource(uv1);
-                            }
-                        }
-                      //  return float4(mipLevel.xxx/MaxHiZufferTextureMipLevel,1);
-                              mipLevel --; 
-                        
-                        curPos -= rDir*strideLen; 
-                       
-                        strideLen /= 2.0;
 
-                       
-                    }
-                    else{
-                    if(mipLevel<MaxHiZufferTextureMipLevel){
-                        mipLevel ++;
-                        
-                        strideLen *=2.0;
-                    }
                          
-                    }
-                }
-                return float4(0,0,0,0);
-           //     UNITY_LOOP
-          //       for (int i = 0;i <StepCount; i++)
-           //             {
-          //          // Has it hit anything yet
-          //              if (hit == false)
-          //              {
-                        // Update the Current Position of the Ray
-           //             curPos +=rDir *curLength;
-          //              if(length(curPos)>FadeDistance){
-           //             return float4(0,0,0,1);
-           //             }
-                        // Get the UV Coordinates of the current Ray
-           //             ReconstructUVAndDepth(curPos,uv1,resultDepth);
-                        // The Depth of the Current Pixel
-          //              float sampleDepth = LinearEyeDepth(SampleSceneDepth(uv1), _ZBufferParams);
-          //   
-          //                  if (resultDepth>sampleDepth &&resultDepth < sampleDepth +SSRThickness )
-           //                 {
-                                // If it's hit something, then return the UV position
-           //                   if(uv1.x<0||uv1.x>1||uv1.y<0||uv1.y>1){
-            //                     return float4(0,0,0,1);
-            //                  }
-            //                    return GetSource(uv1);
-              //              }
-               //         if (resultDepth < 0.00001||sampleDepth<0.00001)
-             //           {
-                                // If it's hit something, then return the UV position
-                             
-            //                return float4(0,0,0,1);
-            //            }
-                           // curDepth = GetDepth(curUV.xy + (float2(0.01, 0.01) * 2));
-           
+                  rayOriginWorld=rayOriginWorld+ vnormal * 0.7*(linearDepth / 100.0) ;
+                //  return float4(linearDepth.xxx/100,1);
+                  float3 viewPosOrigin=mul(UNITY_MATRIX_V,float4(rayOriginWorld.xyz,1)).xyz;
+                 float3 viewRDir = normalize(mul(UNITY_MATRIX_V,float4(finalRDir, 0)).xyz);
+                 float maxDist =1000;
 
-                        // Get the New Position and Vector
-                        
-           //         }
-          //          }
-              //  ReconstructUVAndDepth(vpos,uv,depth);
-              //  ReconstructUVAndDepthMatrix(ReconstructViewPosMatrix(input.texcoord,linearDepth),uv,depth);
-              //  return float4(uv.xy,1,1);
-             //   UNITY_LOOP
-              //  for (int i = 0; i < 16; i++) {  
-              //  float3 vpos2 = vpos + rDir * 1 * i;  
-              //  float2 uv2;  
-             //   float stepDepth;  
-             //   ReconstructUVAndDepth(vpos2, uv2, stepDepth);  
-             //   float stepRawDepth = SampleSceneDepth(uv2);  
-             //   float stepSurfaceDepth = LinearEyeDepth(stepRawDepth, _ZBufferParams);  
-             //   if (stepSurfaceDepth < stepDepth && stepDepth < stepSurfaceDepth + 0.1 )  {
-             //    if(uv2.x<0||uv2.x>1||uv2.y<0||uv2.y>1){
-            //    return float4(0,0,0,1);
-             //   }
-            //    return GetSource(uv2);  
-            //    }
-               
+
+                   float end = viewPosOrigin.z + viewRDir.z * maxDist;
+                    if (end > - _ProjectionParams.y)
+                    {
+                        maxDist = (-_ProjectionParams.y - viewPosOrigin.z) / viewRDir.z;
+                    }
+                        float3 viewPosEnd = viewPosOrigin + viewRDir * maxDist;
+                        float4 startHScreen = TransformViewToHScreen(viewPosOrigin, SSRSourceSize.xy);
+                        float4 endHScreen = TransformViewToHScreen(viewPosEnd,  SSRSourceSize.xy);
+                            float startK = 1.0 / startHScreen.w;
+                            float endK = 1.0 / endHScreen.w;
+                            float3 startScreen = startHScreen.xyz * startK;
+                             float3 endScreen = endHScreen.xyz * endK;
+                 #if  UNITY_REVERSED_Z
+             //     startScreen.z=1-startScreen.z;
+              //    endScreen.z=1-endScreen.z;
+
+
+              //  return float4(startScreen.zzz,1);
+                
+
+                #endif
+                    float3 startScreenTextureSpace = float3(startScreen.xy * SSRSourceSize.zw, startScreen.z);
+                    float3 endScreenTextureSpace = float3(endScreen.xy *  SSRSourceSize.zw, endScreen.z);
+
+                     float3 reflectDirTextureSpace = normalize(endScreenTextureSpace - startScreenTextureSpace);
+    
+    
+    
+                    float outMaxDistance = reflectDirTextureSpace.x >= 0 ? (1 - startScreenTextureSpace.x) / reflectDirTextureSpace.x : -startScreenTextureSpace.x / reflectDirTextureSpace.x;
+                    outMaxDistance = min(outMaxDistance, reflectDirTextureSpace.y < 0 ? (-startScreenTextureSpace.y / reflectDirTextureSpace.y) : ((1 - startScreenTextureSpace.y) / reflectDirTextureSpace.y));
+                    outMaxDistance = min(outMaxDistance, reflectDirTextureSpace.z < 0 ? (-startScreenTextureSpace.z / reflectDirTextureSpace.z) : ((1 - startScreenTextureSpace.z) / reflectDirTextureSpace.z));
+
+                  //  outMaxDistance=1;
+
+
+                    
+                       bool isIntersecting = false;
+
+                        int maxLevel = MaxHiZBufferTextureMipLevel;
+                        float2 crossStep = float2(reflectDirTextureSpace.x >= 0 ? 1 : -1, reflectDirTextureSpace.y >= 0 ? 1 : -1);
+                        float2 crossOffset = crossStep.xy / ( SSRSourceSize.xy) / 32.0;
                        
-            //    }    
-             //   return half4(0.0, 0.0, 0.0, 1.0);  
+                        crossStep = saturate(crossStep);
+        
+                        float3 ray = startScreenTextureSpace.xyz;
+                        float minZ = ray.z;
+                        float maxZ = ray.z + reflectDirTextureSpace.z * outMaxDistance;
+    
+                        float deltaZ = (maxZ - minZ);
+
+                        float3 o = ray;
+                        float3 d = reflectDirTextureSpace * outMaxDistance;
+    
+    
+                        int startLevel =0;
+                        int stopLevel = 0;
+    
+    
+                        float2 startCellCount = GetCellCount( SSRSourceSize.xy, startLevel);
+	
+                        float2 rayCell = GetCell(ray.xy, startCellCount);
+                        ray = IntersectCellBoundary(o, d, rayCell, startCellCount, crossStep, crossOffset);
+    
+                        int level = startLevel;
+                        uint iter = 0;
+                     #if UNITY_REVERSED_Z
+                        bool isBackwardRay = reflectDirTextureSpace.z> 0;
+                        float rayDir = isBackwardRay ? 1 : -1;
+                     #else
+                      bool isBackwardRay = reflectDirTextureSpace.z< 0;
+                        float rayDir = isBackwardRay ? -1 : 1;
+
+                     #endif
+                       
+                        UNITY_LOOP
+                        while (level >= stopLevel &&  ray.z*rayDir <= maxZ*rayDir &&iter <MaxIterations)
+                        {
+        
+                            float2 cellCount = GetCellCount( SSRSourceSize.xy, level);
+                             float2 oldCellIdx = GetCell(ray.xy, cellCount);
+                             
+                                     float cell_minZ =GetMinimumDepthPlane((oldCellIdx+0.5f) / cellCount, level);
+                                float cell_maxZ=GetMaximumDepthPlane((oldCellIdx+0.5f) / cellCount, level);
+                       
+                #if UNITY_REVERSED_Z
+                            float3 tmpRay = (((cell_minZ)< ray.z) && !isBackwardRay) ? IntersectDepthPlane(o, d, ((cell_minZ) - minZ) / deltaZ) : ray;
+
+                         /*   if(isBackwardRay==true){
+                            tmpRay = (((1-cell_maxZ)< ray.z)) ? IntersectDepthPlane(o, d,((1-cell_maxZ) - minZ) / deltaZ) : ray;
+                            }*/
+                #else
+                            float3 tmpRay = (((cell_minZ)> ray.z) && !isBackwardRay) ? IntersectDepthPlane(o, d,((cell_minZ) - minZ) / deltaZ) : ray;
+
+                            
+                             /*  if(isBackwardRay==true){
+                            tmpRay = (((cell_maxZ)< ray.z)) ? IntersectDepthPlane(o, d,((cell_maxZ) - minZ) / deltaZ) : ray;
+                            }*/
+                #endif
+                             float2 newCellIdx = GetCell(tmpRay.xy, cellCount);
+        
+                            float thickness = 0;
+                            float thicknessMaxZ=0;
+                            float rayZLinear = ProjectionDepthToLinearDepth(ray.z, true);
+                            float cellMinZLinear = ProjectionDepthToLinearDepth(cell_minZ,false);
+                             float cellMaxZLinear = ProjectionDepthToLinearDepth(cell_maxZ,false);
+                            if (level == stopLevel)
+                            {
+                                thickness = abs(rayZLinear
+                                 - cellMinZLinear);
+                                 thicknessMaxZ= abs(rayZLinear
+                                 - cellMaxZLinear);
+                            }
+                            else
+                            {
+                            thicknessMaxZ=0;
+                                thickness = 0;
+          
+                            }
+                            bool crossed = false;
+                            bool crossedBehind = false;
+                           // (isBackwardRay && ) ||
+                            if (isBackwardRay)
+                            {
+                                if ((cellMinZLinear > rayZLinear ))
+                                {
+                                    crossed = true;
+                                
+                                }else if((cellMinZLinear+0.02  <rayZLinear && thickness >= SSRThickness*1.1)){
+                                crossedBehind = true;
+                               
+          
+                                    }
+                                }
+                           else if ((cellMinZLinear+0.02< rayZLinear && thickness >= SSRThickness*1.1))
+                            {
+                                crossedBehind = true;//tracing ray behind downgrades into linear search
+      //
+                            }
+
+                            else if (CrossedCellBoundary(oldCellIdx, newCellIdx))
+                            {
+                                crossed = true;
+                            }
+                            else
+                            {
+                                crossed = false;
+                            }
+        
+       
+      
+                            if (crossed == true||crossedBehind == true)
+                            {
+                               ray = IntersectCellBoundary(o, d, oldCellIdx, cellCount, crossStep, crossOffset);
+                                    level = min(level + 1.0f,maxLevel);
+                            /*   if( rayZLinear >  _ProjectionParams.z*0.9 || cellMinZLinear > _ProjectionParams.z*0.9){
+                                        isIntersecting = false;
+                                        break;
+                                     }else{
+                                    
+                                     }*/
+                              
+         
+
+                            }
+                           
+                            else
+                            {
+                                ray = tmpRay;
+                                level = max(level - 1, 0);
+          
+
+                            }
+                            [branch]
+                            if (ray.x < 0 || ray.y < 0 || ray.x > 1 || ray.y > 1)
+                            {
+                                isIntersecting = false;
+                                break;
+                            }
+         
+                            
+                            if (level <= stopLevel&&crossed==false&&crossedBehind==false )
+                            {
+                                float2 cellCount1 = GetCellCount( SSRSourceSize.xy, level);
+                                 float2 oldCellIdx1 = GetCell(ray.xy, cellCount1);
+                                     float cell_minZ1 =GetMinimumDepthPlane((oldCellIdx1+0.5f) / cellCount1, level);
+                                float cell_maxZ1 =GetMaximumDepthPlane((oldCellIdx1+0.5f) / cellCount1, level);
+                              float   rayZLinear1 = ProjectionDepthToLinearDepth(ray.z,true);
+                                float cellMinZLinear1 = ProjectionDepthToLinearDepth(cell_minZ1,false);
+                               float thickness1 = (rayZLinear1
+                                 - cellMinZLinear1);
+         /*   if(isBackwardRay==true){
+             cellMinZLinear1 = ProjectionDepthToLinearDepth(cell_maxZ1,false);
+               thickness1 = (rayZLinear1
+                                 - cellMinZLinear1);
+            }*/
+
+                           
+                                if (thickness1 < SSRThickness && rayZLinear1 > cellMinZLinear1 -0.06 && rayZLinear1 <  _ProjectionParams.z*0.9 && cellMinZLinear1 < _ProjectionParams.z*0.9)
+                                {
+                                    if( rayZLinear1 >  _ProjectionParams.z*0.9 || cellMinZLinear1 > _ProjectionParams.z*0.9){
+                                        isIntersecting = false;
+                                        break;
+                                     }
+                                    
+                                    isIntersecting = true;
+                                    break;
+                                } 
+                                else{
+
+                                    isIntersecting=false;
+                                 }
+          
+            
+          
+                            }
+      
+                            ++iter;
+                            
+                        }
+
+                       
+                       /*   float3 dp = endScreenTextureSpace.xyz - startScreenTextureSpace.xyz;
+                            int2 sampleScreenPos = int2(startScreenTextureSpace.xy *SSRSourceSize.xy);
+                            int2 endPosScreenPos = int2(endScreenTextureSpace.xy * SSRSourceSize.xy);
+                            int2 dp2 = endPosScreenPos - sampleScreenPos;
+                            const int max_dist = max(abs(dp2.x), abs(dp2.y));
+                            dp /= max_dist;
+                               float4 rayPosInTS = float4(startScreenTextureSpace.xyz + dp, 0);
+                                float4 vRayDirInTS = float4(dp.xyz, 0);
+	                            float4 rayStartPos = rayPosInTS;
+                              
+                                UNITY_LOOP
+                                  for(int i = 0;i<max_dist && i<500;i ++)
+                                    {
+	                                float depth=GetMinimumDepthPlane(rayPosInTS.xy,0);
+                                      float depthLinear = ProjectionDepthToLinearDepth(depth,false);
+                                     float rayDepthLinear = ProjectionDepthToLinearDepth(rayPosInTS.z,true);
+	                                float thickness = rayDepthLinear - depthLinear;
+
+                                        if (rayPosInTS.x < 0 || rayPosInTS.y < 0 || rayPosInTS.x > 1 || rayPosInTS.y > 1)
+                                        {
+                                            isIntersecting = false;
+                                            break;
+                                        }
+	                                if( abs(thickness)<0.4&&rayDepthLinear>depthLinear )
+	                                {
+	                                     isIntersecting=true;
+		                                break;
+	                                } 
+		
+                                        rayPosInTS += vRayDirInTS;
+                                    }
+                                
+                                    */
+                    float2 uv =ray.xy;
+                
+                        if(isIntersecting==true){
+               //               return SAMPLE_TEXTURE2D_X(CameraLumTex,sampler_point_clamp,uv);
+                            
+                  float rawDepth2=SAMPLE_TEXTURE2D_X_LOD(HiZBufferTexture,sampler_point_clamp,uv,0);
+                  float linearDepth2 = LinearEyeDepth(rawDepth2, _ZBufferParams);
+                  float3 hitPosWorld = ReconstructViewPos(uv,linearDepth2)+ProjectionParams2.yzw; 
+                    float rayLength=length(hitPosWorld-rayOriginWorld);
+                            if(isBackwardRay==true){
+                          //      return float4(1,1,1,1);
+                            }
+                             return float4(uv.xy,rayLength/100.0f,1);//SAMPLE_TEXTURE2D_X(_BlitTexture,sampler_point_clamp,uv);
+                            }else{
+                          //    return float4(uv.xy,rayLength/100.0f,1);
+                                return float4(0,0,0,0);
+                          }
+            }
+            
+
+
+
+            #define PI 3.1415926
+        
+                float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+                {
+                    return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+                }
+
+                float fresnelSchlickRoughness(float cosTheta, float F0, float roughness)
+                {
+                    return F0 + (max(1.0 - roughness, F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+                }
+                    uniform Texture2D _GBuffer0;  
+                    uniform Texture2D _GBuffer1;  
+                    uniform Texture2D _GBuffer2;  
+                    SamplerState sampler_Point_Clamp;
+         
+                 uniform Texture2D SSRResultTex;
+                 uniform Texture2D BRDFLutTex;
+
+
+                   uniform Texture2D ColorPyramidTexture;
+                   uniform float MaxColorPyramidMipLevel;
+
+                   uniform Texture2D PrevSSRBlendResult;
+
+                   uniform float4 AmbientSH[7];
+
+
+
+                    TEXTURE2D_X(_MotionVectorTexture);
+                    SAMPLER(sampler_MotionVectorTexture);
+                    
+                   
+
+                    void AdjustColorBox(float2 uv, inout float3 boxMin, inout float3 boxMax,Texture2D tex) {
+                         const float2 kOffssets3x3[9]={
+                        float2(0,0),
+                        float2(1,1),
+                        float2(-1,-1),
+                        float2(-1,1),
+                        float2(1,-1),
+                        float2(0,1),
+                        float2(1,0),
+                        float2(0,-1),
+                        float2(-1,0)
+                        };
+                        boxMin = 1.0;
+                        boxMax = 0.0;
+
+                        UNITY_UNROLL
+                        for (int k = 0; k < 9; k++) {
+                            float3 C = RGBToYCoCg(SAMPLE_TEXTURE2D_X(tex,sampler_point_clamp,uv + kOffssets3x3[k] * SSRSourceSize.zw*2));
+                            boxMin = min(boxMin, C);
+                            boxMax = max(boxMax, C);
+                        }
+                    }
+                           #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"  
+                               #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"  
+
+
+
+
+ 
+
+half4 UniversalFragmentPBRCustom(InputData inputData, SurfaceData surfaceData,BRDFData brdfData)
+{
+
+   
+    #if defined(_SPECULARHIGHLIGHTS_OFF)
+    bool specularHighlightsOff = true;
+    #else
+    bool specularHighlightsOff = false;
+    #endif
+  //  BRDFData brdfData=(BRDFData)0;
+
+    // NOTE: can modify "surfaceData"...
+  //  InitializeBRDFData(surfaceData, brdfData);
+
+    #if defined(DEBUG_DISPLAY)
+    half4 debugColor;
+
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, brdfData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
+    // Clear-coat calculation...
+    BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
+    half4 shadowMask = CalculateShadowMask(inputData);
+    AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
+    uint meshRenderingLayers = GetMeshRenderingLayer();
+    Light mainLight = GetMainLight(inputData, float4(1,1,1,1), aoFactor);
+    
+  
+    // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
+    float3 diffuse=SampleSH9(AmbientSH,inputData.normalWS);
+
+    LightingData lightingData = CreateLightingData(inputData, surfaceData);
+
+    lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
+                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion, inputData.positionWS,
+                                              inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV,diffuse,0);
+ 
+    {
+        lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
+                                                              mainLight,
+                                                              inputData.normalWS, inputData.viewDirectionWS,
+                                                              surfaceData.clearCoatMask, specularHighlightsOff);
+    }
+
+   /* #if defined(_ADDITIONAL_LIGHTS)
+    uint pixelLightCount = GetAdditionalLightsCount();
+
+    #if USE_FORWARD_PLUS
+    for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
+    {
+        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+
+ 
+        {
+            lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
+                                                                          inputData.normalWS, inputData.viewDirectionWS,
+                                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+        }
+    }
+    #endif
+
+    LIGHT_LOOP_BEGIN(pixelLightCount)
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
+
+ 
+        {
+            lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
+                                                                          inputData.normalWS, inputData.viewDirectionWS,
+                                                                          surfaceData.clearCoatMask, specularHighlightsOff);
+        }
+    LIGHT_LOOP_END
+    #endif
+
+    #if defined(_ADDITIONAL_LIGHTS_VERTEX)
+    lightingData.vertexLightingColor += inputData.vertexLighting * brdfData.diffuse;
+    #endif*/
+
+#if REAL_IS_HALF
+    // Clamp any half.inf+ to HALF_MAX
+    return min(CalculateFinalColor(lightingData, surfaceData.alpha), HALF_MAX);
+#else
+    return CalculateFinalColor(lightingData, surfaceData.alpha);
+#endif
+}
+
+
+
+
+SurfaceData SurfaceDataFromGbufferCustom(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2, int lightingMode)
+{
+    SurfaceData surfaceData=(SurfaceData)0;
+
+    surfaceData.albedo = gbuffer0.rgb;
+    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+    surfaceData.occlusion = 1.0; // Not used by SimpleLit material.
+    surfaceData.specular = gbuffer1.rgb;
+    half smoothness = gbuffer2.a;
+
+    surfaceData.metallic = 0.0; // Not used by SimpleLit material.
+    surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
+    surfaceData.smoothness = smoothness;
+
+    surfaceData.emission = (half3)0; // Note: this is not made available at lighting pass in this renderer - emission contribution is included (with GI) in the value GBuffer3.rgb, that is used as a renderTarget during lighting
+    surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
+
+    return surfaceData;
+}
+
+     
+            float4 SSRGenerateReflectionFrag(Varyings input):SV_TARGET{
+                
+                if(SAMPLE_TEXTURE2D_X_LOD(SSRResultTex, sampler_point_clamp, input.texcoord, 0).a<0.1){
+                return float4(0,0,0,0);
+                }
+                float2 screen_uv=SAMPLE_TEXTURE2D_X_LOD(SSRResultTex, sampler_point_clamp, input.texcoord, 0);
+                float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, sampler_point_clamp, screen_uv, 0).x;
+                half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, sampler_point_clamp, screen_uv, 0);
+                half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_point_clamp, screen_uv, 0);
+                half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, sampler_point_clamp, screen_uv, 0);
+
+
+                float linearDepth = LinearEyeDepth(d, _ZBufferParams);
+
+                if(linearDepth>_ProjectionParams.z*0.9f){
+                return float4(0,0,0,0);
+                        }
+                float3 worldPos = ReconstructViewPos(screen_uv,linearDepth)+ProjectionParams2.yzw; 
+                SurfaceData surfaceData=(SurfaceData)0;
+                surfaceData=SurfaceDataFromGbufferCustom(gbuffer0,gbuffer1,gbuffer2,0);
+                InputData inputData=InputDataFromGbufferAndWorldPosition(gbuffer2,worldPos);
+
+                BRDFData brdfData= BRDFDataFromGbuffer(gbuffer0,gbuffer1,gbuffer2);
+                float4 shadowCoord = TransformWorldToShadowCoord(worldPos.xyz);
+                inputData.shadowCoord=shadowCoord;
+                #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                inputData.shadowCoord=float4(screen_uv.xy,0,1);
+                #endif
+                inputData.normalizedScreenSpaceUV=screen_uv;
+                half4 reflectedCol= UniversalFragmentPBRCustom(inputData,surfaceData,brdfData);
+
+
+
+                
+                float dOrigin        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, sampler_point_clamp, input.texcoord, 0).x;
+                half4 gbuffer0Origin = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, sampler_point_clamp, input.texcoord, 0);
+                half4 gbuffer1Origin = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_point_clamp, input.texcoord, 0);
+                half4 gbuffer2Origin = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, sampler_point_clamp, input.texcoord, 0);
+
+                float linearDepthOrigin = LinearEyeDepth(dOrigin, _ZBufferParams);
+                float3 worldPosOrigin = ReconstructViewPos(input.texcoord,linearDepthOrigin)+ProjectionParams2.yzw; 
+
+                SurfaceData surfaceDataOrigin=(SurfaceData)0;
+                surfaceDataOrigin=SurfaceDataFromGbufferCustom(gbuffer0Origin,gbuffer1Origin,gbuffer2Origin,0);
+                InputData inputDataOrigin=InputDataFromGbufferAndWorldPosition(gbuffer2Origin,worldPosOrigin);
+
+
+                    float3 diffuse=SampleSH9(AmbientSH,inputDataOrigin.normalWS);
+                   // BRDFData brdfDataOrigin;
+                    BRDFData brdfDataOrigin= BRDFDataFromGbuffer(gbuffer0Origin,gbuffer1Origin,gbuffer2Origin);
+                  //  InitializeBRDFData(surfaceDataOrigin.albedo, surfaceDataOrigin.metallic, surfaceDataOrigin.specular, surfaceDataOrigin.smoothness, surfaceDataOrigin.alpha, brdfDataOrigin);
+
+                    BRDFData brdfDataNoClearcoat=(BRDFData)0;
+                    half3 color = GlobalIllumination(brdfDataOrigin,brdfDataNoClearcoat,0, inputDataOrigin.bakedGI, surfaceDataOrigin.occlusion, inputDataOrigin.positionWS, inputDataOrigin.normalWS, inputDataOrigin.viewDirectionWS,float2(0,0),diffuse,reflectedCol.xyz);
+                        
+               
+                return float4(color,1);
             }
 
-
-
-
-
-
-            ENDHLSL
-        }
-        
+             float4 SSRFinalBlend(Varyings input):SV_TARGET{
+             return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_point_clamp, input.texcoord, 0);
+             }
+    ENDHLSL
+    
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline"}
+       
         Pass
         {
-         Name "Blending"
+            Name "SSRTracing"
 
-         ZTest NotEqual
-        ZWrite Off
-        Cull Off
-        Blend SrcAlpha OneMinusSrcAlpha
-         HLSLPROGRAM
+            HLSLPROGRAM
+            #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile _ SSR_USE_FORWARD_RENDERING
+            #pragma vertex Vert
+            #pragma fragment SSRTracing
             
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
-        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-
-          
-              #pragma vertex Vert
-              #pragma fragment Blending
-              half4 GetSource(half2 uv) {  
-                return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);  
-                }
-              
-              float4 Blending(Varyings input):SV_Target{
-             
-              return GetSource(input.texcoord);
-              }
-
-              ENDHLSL
-        
+            ENDHLSL
         }
-        
+        Pass
+        {
+            Name "SSRGenerateReflection"
+
+           
+            HLSLPROGRAM
+            #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile _ SSR_USE_FORWARD_RENDERING
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_SCREEN
+            
+
+           
+            #pragma vertex Vert
+            #pragma fragment SSRGenerateReflectionFrag
+            
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SSRFinalBlend"
+
+            ZTest Always
+            ZWrite Off
+            Cull Off
+            Blend  SrcAlpha OneMinusSrcAlpha
+            HLSLPROGRAM
+            #pragma multi_compile _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile _ SSR_USE_FORWARD_RENDERING
+ 
+            #pragma vertex Vert
+            #pragma fragment SSRFinalBlend
+            
+            ENDHLSL
+        }
     }
 }

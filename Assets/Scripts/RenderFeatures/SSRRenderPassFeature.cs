@@ -1,351 +1,428 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
+using Unity.Mathematics;
+ 
+using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System;
-using UnityEditor;
+using Object = UnityEngine.Object;
 
-public class SSRRenderFeature : ScriptableRendererFeature
+namespace UnityScreenSpaceReflections
 {
-    [SerializeField] private SSRSettings settings;
-    [SerializeField] private Shader shader;
- 
-    private Material hiZBufferMaterial;
- 
-    private SSRRenderPass ssrRenderPass;
-     
-    public override void Create()
+    [RequireComponent(typeof(HiZBufferRenderFeature))]
+
+    public class SSRRenderFeature : ScriptableRendererFeature
     {
-        if (shader == null)
+
+
+        [SerializeField] private SSRRenderFeatureSettings settings;
+        private Shader shader;
+        private Material material;
+        private SSRRenderPass ssrRenderPass;
+
+
+        public override void Create()
         {
-            return;
-        }
-        hiZBufferMaterial = new Material(shader);
-        ssrRenderPass = new SSRRenderPass(hiZBufferMaterial, settings);
-         
-        ssrRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
-        
-    }
-
-    public override void AddRenderPasses(ScriptableRenderer renderer,
-        ref RenderingData renderingData)
-    {
-       
-        renderer.EnqueuePass(ssrRenderPass);
-
-
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        ssrRenderPass.Dispose();
-      
-#if UNITY_EDITOR
-                    if (EditorApplication.isPlaying)
-                    {
-                       
-                        UnityEngine.Object.Destroy(hiZBufferMaterial);
-                    }
-                    else
-                    {
-                        
-                        UnityEngine.Object.DestroyImmediate(hiZBufferMaterial);
-                    }
-#else
-       
-        UnityEngine.Object.Destroy(hiZBufferMaterial);
-#endif
-
-    }
-}
-
-[Serializable]
-public class SSRSettings
-{
-    [Range(16, 256)] public int stepCount;
-    [Range(0.05f, 1.5f)] public float strideSize;
-    [Range(0.01f, 1f)] public float thickness;
-    [Range(0.1f, 200f)] public float fadeDistance;
-    [Range(-2f, 2f)] public float SSRBias;
-    public bool isUsingHalfResolusion = false;
-}
-
-/*public class HiZBufferPass : ScriptableRenderPass
-{
-    public int hiZMipCount = 6;
-    public RTHandle[] HiZBufferTextures;
-    public RenderTextureDescriptor[] HiZBufferTextureDescriptors;
-    public RTHandle HiZBufferTexture;
-    public RenderTextureDescriptor HiZBufferTextureDescriptor;
-    public Material hiZBufferMaterial;
-    public static readonly int HiZBufferFromMiplevelID = Shader.PropertyToID("HiZBufferFromMipLevel"),
-        HiZBufferToMiplevelID = Shader.PropertyToID("HiZBufferToMipLevel"),
-        SourceSizeID = Shader.PropertyToID("SourceSize"),
-        MaxHiZBufferTextureMipLevelID = Shader.PropertyToID("MaxHiZufferTextureMipLevel"),
-        HiZBufferTextureID = Shader.PropertyToID("HiZBufferTexture");
-
-    public HiZBufferPass(int hiZMipCount, Material hiZMaterial)
-    {
-        this.hiZMipCount = hiZMipCount;
-        this.hiZBufferMaterial = hiZMaterial;
-        HiZBufferTextures = new RTHandle[hiZMipCount];
-        HiZBufferTextureDescriptors = new RenderTextureDescriptor[hiZMipCount];
-    }
-
-    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-    {
 
 
 
 
-
-
-        Debug.Log("setup");
-        // 分配RTHandle
-        var desc = renderingData.cameraData.cameraTargetDescriptor;
-        // 把高和宽变换为2的整次幂 然后除以2
-        var width = Math.Max((int)Math.Ceiling(Mathf.Log(desc.width, 2) - 1.0f), 1);
-        var height = Math.Max((int)Math.Ceiling(Mathf.Log(desc.height, 2) - 1.0f), 1);
-        width = 1 << width;
-        height = 1 << height;
-
-        HiZBufferTextureDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.RFloat, 0, hiZMipCount);
-        HiZBufferTextureDescriptor.msaaSamples = 1;
-        HiZBufferTextureDescriptor.useMipMap = true;
-        HiZBufferTextureDescriptor.sRGB = false;// linear
-        RenderingUtils.ReAllocateIfNeeded(ref HiZBufferTexture, HiZBufferTextureDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp);
-        for (int i = 0; i < hiZMipCount; i++)
-        {
-            HiZBufferTextureDescriptors[i] = new RenderTextureDescriptor(width, height, RenderTextureFormat.RFloat, 0, 1);
-            HiZBufferTextureDescriptors[i].msaaSamples = 1;
-            HiZBufferTextureDescriptors[i].useMipMap = false;
-            HiZBufferTextureDescriptors[i].sRGB = false;// linear
-            RenderingUtils.ReAllocateIfNeeded(ref HiZBufferTextures[i], HiZBufferTextureDescriptors[i], FilterMode.Bilinear, TextureWrapMode.Clamp);
-            width = Math.Max(width / 2, 1);
-            height = Math.Max(height / 2, 1);
-        }
-
-    }
-    public override void OnCameraCleanup(CommandBuffer cmd)
-    {
-
-
-        base.OnCameraCleanup(cmd);
-    }
-    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-    {
-
-        var cmd = CommandBufferPool.Get();
-
-        var mCameraColorTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
-        var mCameraDepthTexture = renderingData.cameraData.renderer.cameraDepthTargetHandle;
-        Blit(cmd, mCameraDepthTexture, HiZBufferTextures[0]);
-        cmd.CopyTexture(HiZBufferTextures[0], 0, 0, HiZBufferTexture, 0, 0);
-        for (int i = 1; i < hiZMipCount; i++)
-        {
-            cmd.SetGlobalFloat(HiZBufferFromMiplevelID, i - 1);
-            cmd.SetGlobalFloat(HiZBufferToMiplevelID, i);
-            cmd.SetGlobalVector(SourceSizeID, new Vector4(HiZBufferTextureDescriptors[i - 1].width, HiZBufferTextureDescriptors[i - 1].height, 1.0f / HiZBufferTextureDescriptors[i - 1].width, 1.0f / HiZBufferTextureDescriptors[i - 1].height));
-            Blit(cmd, HiZBufferTextures[i - 1], HiZBufferTextures[i], material: hiZBufferMaterial, passIndex: 0);
-            cmd.CopyTexture(HiZBufferTextures[i], 0, 0, HiZBufferTexture, 0, i);
-        }
-        cmd.SetGlobalFloat(MaxHiZBufferTextureMipLevelID, hiZMipCount - 1);
-        cmd.SetGlobalTexture(HiZBufferTextureID, HiZBufferTexture);
-        // cmd.Blit(HiZBufferTextures[4], mCameraColorTexture);
-        context.ExecuteCommandBuffer(cmd);
-        CommandBufferPool.Release(cmd);
-
-    }
-    public void Dispose()
-    {
-#if UNITY_EDITOR
-                                if (EditorApplication.isPlaying)
-                                {
-                                    UnityEngine.Object.Destroy(hiZBufferMaterial);
-                                }
-                                else
-                                {
-                                    UnityEngine.Object.DestroyImmediate(hiZBufferMaterial);
-                                }
-#else
-        UnityEngine.Object.Destroy(hiZBufferMaterial);
-#endif
-        if (HiZBufferTextures != null)
-        {
-            for (int i = 0; i < HiZBufferTextures.Length; i++)
+            shader = Shader.Find("Hidden/SSRShader");
+            if (shader == null)
             {
-                if (HiZBufferTextures[i] != null) HiZBufferTextures[i].Release();
+                return;
             }
+            if (settings == null)
+            {
+                settings = new SSRRenderFeatureSettings();
+            }
+            material = CoreUtils.CreateEngineMaterial(shader);
+
+            //   material = new Material(shader);
+
+          
+
+            if (ssrRenderPass != null)
+            {
+                Debug.Log("dispose ssr");
+                ssrRenderPass.Dispose();
+            }
+            ssrRenderPass = new SSRRenderPass(material, settings, this);
+            if (settings.isUsingForwardRendering == true)
+            {
+                ssrRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;//forward rendering: prepass
+            }
+            else
+            {
+                ssrRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;//deferred rendering: gbuffer
+            }
+         
+
         }
 
-        if (HiZBufferTexture != null)
+        public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            HiZBufferTexture.Release();
+
+            if (renderingData.cameraData.cameraType == CameraType.Game||
+                renderingData.cameraData.cameraType == CameraType.SceneView
+               )
+            {
+                renderer.EnqueuePass(ssrRenderPass);
+            }
+
+
+
         }
-
-    }
-}*/
-public class SSRRenderPass : ScriptableRenderPass
-{
-
-    private UniversalRenderer m_Renderer;
-
-    private static readonly int mProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2"),
-               mCameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner"),
-               mCameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent"),
-               mCameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent"),
-                stepCountID = Shader.PropertyToID("StepCount"),
-                strideSizeID = Shader.PropertyToID("StrideSize"),
-                thicknessID = Shader.PropertyToID("SSRThickness"),
-         fadeDistanceID = Shader.PropertyToID("FadeDistance"),
-        biasID = Shader.PropertyToID("SSRBias");
-
-
-    private SSRSettings defaultSettings;
-    private Material material;
-
-    private RenderTextureDescriptor ssrTextureDescriptor;
-    private RTHandle ssrHandle;
-
-    public SSRRenderPass(Material material, SSRSettings settings)
-    {
-        this.material = material;
-
-        this.defaultSettings = settings;
-        ssrTextureDescriptor = new RenderTextureDescriptor(Screen.width,
-            Screen.height, RenderTextureFormat.Default, 0);
-    }
-    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-    {
-        Matrix4x4 view = renderingData.cameraData.GetViewMatrix();
-        Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix();
-        Matrix4x4 vp = proj * view;
-
-        // 将camera view space 的平移置为0，用来计算world space下相对于相机的vector
-        Matrix4x4 cview = view;
-        cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-        Matrix4x4 cviewProj = proj * cview;
-
-        // 计算viewProj逆矩阵，即从裁剪空间变换到世界空间
-        Matrix4x4 cviewProjInv = cviewProj.inverse;
-
-        // 计算世界空间下，近平面四个角的坐标
-        var near = renderingData.cameraData.camera.nearClipPlane;
-        // Vector4 topLeftCorner = cviewProjInv * new Vector4(-near, near, -near, near);
-        // Vector4 topRightCorner = cviewProjInv * new Vector4(near, near, -near, near);
-        // Vector4 bottomLeftCorner = cviewProjInv * new Vector4(-near, -near, -near, near);
-        Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, 1.0f, -1.0f, 1.0f));
-        Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1.0f, 1.0f, -1.0f, 1.0f));
-        Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, -1.0f, -1.0f, 1.0f));
-
-        // 计算相机近平面上方向向量
-        Vector4 cameraXExtent = topRightCorner - topLeftCorner;
-        Vector4 cameraYExtent = bottomLeftCorner - topLeftCorner;
-
-        near = renderingData.cameraData.camera.nearClipPlane;
-
-        // 发送ReconstructViewPos参数
-        material.SetVector(mCameraViewTopLeftCornerID, topLeftCorner);
-        material.SetVector(mCameraViewXExtentID, cameraXExtent);
-        material.SetVector(mCameraViewYExtentID, cameraYExtent);
-        material.SetVector(mProjectionParams2ID, new Vector4(1.0f / near, renderingData.cameraData.worldSpaceCameraPos.x, renderingData.cameraData.worldSpaceCameraPos.y, renderingData.cameraData.worldSpaceCameraPos.z));
-
-    }
-    public override void Configure(CommandBuffer cmd,
-        RenderTextureDescriptor cameraTextureDescriptor)
-    {
-
-        if (defaultSettings.isUsingHalfResolusion == false)
+        protected override void Dispose(bool disposing)
         {
-            // Set the blur texture size to be the same as the camera target size.
-            ssrTextureDescriptor.width = cameraTextureDescriptor.width;
-            ssrTextureDescriptor.height = cameraTextureDescriptor.height;
-
-        // Check if the descriptor has changed, and reallocate the RTHandle if necessary
-        RenderingUtils.ReAllocateIfNeeded(ref ssrHandle, ssrTextureDescriptor);
+            ssrRenderPass.Dispose();
+            /*   
+           #if UNITY_EDITOR
+                   if (EditorApplication.isPlaying)
+                   {
+                       Destroy(material);
+                   }
+                   else
+                   {
+                       DestroyImmediate(material);
+                   }
+           #else
+                                   Destroy(material);
+           #endif*/
+            CoreUtils.Destroy(material);
         }
-        else
+    }
+
+    public class SSRRenderPass : ScriptableRenderPass
+    {
+        private Material material;
+        private SSRRenderFeatureSettings settings;
+        private int sourceSizeUniformID;
+        private int cameraViewTopLeftCornerUniformID;
+        private int cameraViewXExtentUniformID;
+        private int cameraViewYExtentUniformID;
+        private int projectionParams2UniformID;
+        private int maxIterationsUniformID;
+        private int maxHiZMipLevelUniformID;
+        private int cameraColorTexUniformID;
+        private int ssrResultTexUniformID;
+
+        private int ssrThicknessUniformID;
+        private int maxTracingDistanceUniformID;
+        private int useColorPyramidUniformID;
+        private int useTemporalFilterUniformID;
+        private int prevSSRBlendResultUniformID;
+        private int useNormalImportanceSamplingUniformID;
+        private int ssrBlendFactorUniformID;
+        private int ssrMinSmoothnessUniformID;
+        private int ssrAmbientSHUniformID;
+        private RTHandle ssrRenderTarget;
+        private RTHandle prevSSRBlendTarget;
+        private RTHandle ssrBlendTarget;
+        private RTHandle tmpCameraColorTarget;
+        private RenderTextureDescriptor tmpCameraColorTextureDescriptor;
+        private RenderTextureDescriptor ssrBlendTextureDescriptor;
+        private RenderTextureDescriptor prevSSRBlendTextureDescriptor;
+        private RenderTextureDescriptor ssrRenderTextureDescriptor;
+        private SSRRenderFeature ssrRenderFeature;
+        private static readonly string ssrGlobalKeyword="_SCREEN_SPACE_REFLECTIONS";
+        public SSRRenderPass(Material material, SSRRenderFeatureSettings settings, SSRRenderFeature feature)
         {
-            // Set the blur texture size to be the same as the camera target size.
-            ssrTextureDescriptor.width = cameraTextureDescriptor.width/2;
-            ssrTextureDescriptor.height = cameraTextureDescriptor.height/2;
 
-            // Check if the descriptor has changed, and reallocate the RTHandle if necessary
-            RenderingUtils.ReAllocateIfNeeded(ref ssrHandle, ssrTextureDescriptor);
+            this.material = material;
+            this.settings = settings;
+            this.ssrRenderFeature = feature;
+            sourceSizeUniformID = Shader.PropertyToID("SSRSourceSize");
+            cameraViewTopLeftCornerUniformID = Shader.PropertyToID("CameraViewTopLeftCorner");
+            cameraViewXExtentUniformID = Shader.PropertyToID("CameraViewXExtent");
+            cameraViewYExtentUniformID = Shader.PropertyToID("CameraViewYExtent");
+            projectionParams2UniformID = Shader.PropertyToID("ProjectionParams2");
+            maxIterationsUniformID = Shader.PropertyToID("MaxIterations");
+            maxHiZMipLevelUniformID = Shader.PropertyToID("MaxHiZBufferTextureMipLevel");
+            cameraColorTexUniformID = Shader.PropertyToID("CameraLumTex");
+            ssrResultTexUniformID = Shader.PropertyToID("SSRResultTex");
+            useColorPyramidUniformID = Shader.PropertyToID("UseColorPyramid");
+            ssrThicknessUniformID = Shader.PropertyToID("SSRThickness");
+            maxTracingDistanceUniformID = Shader.PropertyToID("MaxTracingDistance");
+            useTemporalFilterUniformID = Shader.PropertyToID("UseTemporalFilter");
+            prevSSRBlendResultUniformID = Shader.PropertyToID("PrevSSRBlendResult");
+            useNormalImportanceSamplingUniformID = Shader.PropertyToID("UseNormalImportanceSampling");
+            ssrBlendFactorUniformID = Shader.PropertyToID("SSRBlendFactor");
+            ssrAmbientSHUniformID = Shader.PropertyToID("AmbientSH");
+            ssrMinSmoothnessUniformID = Shader.PropertyToID("SSRMinSmoothness");
+            ssrRenderTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.ARGBFloat, 0, 1);
+            ssrRenderTextureDescriptor.sRGB = false;
+            tmpCameraColorTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.Default, 0, 1);
+            tmpCameraColorTextureDescriptor.sRGB = false;
+            ssrBlendTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.ARGB64, 0, 1);
+            ssrBlendTextureDescriptor.sRGB = false;
+
+            prevSSRBlendTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.ARGB64, 0, 1);
+            prevSSRBlendTextureDescriptor.sRGB = false;
+
         }
-       
+
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            if (settings.isUsingForwardRendering == true)
+            {
+                material.EnableKeyword("SSR_USE_FORWARD_RENDERING");
+            }
+            else
+            {
+                material.DisableKeyword("SSR_USE_FORWARD_RENDERING");
+            }
+            if (material == null)
+            {
+                Debug.LogErrorFormat("{0}.Execute(): Missing material.", GetType().Name);
+                return;
+            }
+            ConfigureInput(ScriptableRenderPassInput.Normal);
+            ConfigureInput(ScriptableRenderPassInput.Motion);
+            Matrix4x4 view = renderingData.cameraData.GetViewMatrix();
+            Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix();
+            Matrix4x4 vp = proj * view;
+
+
+            Matrix4x4 cview = view;
+
+            cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+            Matrix4x4 cviewProj = proj * cview;
+
+            Matrix4x4 cviewProjInv = cviewProj.inverse;
+
+
+            var near = renderingData.cameraData.camera.nearClipPlane;
+
+            Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, 1.0f, -1.0f, 1.0f));
+            Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1.0f, 1.0f, -1.0f, 1.0f));
+            Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, -1.0f, -1.0f, 1.0f));
+
+
+            Vector4 cameraXExtent = topRightCorner - topLeftCorner;
+            Vector4 cameraYExtent = bottomLeftCorner - topLeftCorner;
+
+            near = renderingData.cameraData.camera.nearClipPlane;
+
+
+
+            material.SetVector(cameraViewTopLeftCornerUniformID, topLeftCorner);
+            material.SetVector(cameraViewXExtentUniformID, cameraXExtent);
+            material.SetVector(cameraViewYExtentUniformID, cameraYExtent);
+            material.SetVector(projectionParams2UniformID, new Vector4(1.0f / near, renderingData.cameraData.worldSpaceCameraPos.x, renderingData.cameraData.worldSpaceCameraPos.y, renderingData.cameraData.worldSpaceCameraPos.z));
+
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+
+            var width = Math.Max((int)Math.Ceiling(Mathf.Log(cameraTextureDescriptor.width, 2) - 1.0f), 1);
+            var height = Math.Max((int)Math.Ceiling(Mathf.Log(cameraTextureDescriptor.height, 2) - 1.0f), 1);
+            if (HiZBufferRenderPass.downSample == false)
+            {
+                width = 2 << width;
+                height = 2 << height;
+            }
+            else
+            {
+                width = 1 << width;
+                height = 1 << height;
+            }
+
+            ssrRenderTextureDescriptor.width = width;
+            ssrRenderTextureDescriptor.height = height;
+
+            tmpCameraColorTextureDescriptor.width = width;
+            tmpCameraColorTextureDescriptor.height = height;
+            ssrBlendTextureDescriptor.width = width;
+            ssrBlendTextureDescriptor.height = height;
+
+
+            prevSSRBlendTextureDescriptor.width = width;
+            prevSSRBlendTextureDescriptor.height = height;
+            //Check if the descriptor has changed, and reallocate the RTHandle if necessary.
+            RenderingUtils.ReAllocateIfNeeded(ref ssrRenderTarget, ssrRenderTextureDescriptor);
+
+            RenderingUtils.ReAllocateIfNeeded(ref prevSSRBlendTarget, prevSSRBlendTextureDescriptor);
+
+
+            RenderingUtils.ReAllocateIfNeeded(ref tmpCameraColorTarget, tmpCameraColorTextureDescriptor);
+            RenderingUtils.ReAllocateIfNeeded(ref ssrBlendTarget, ssrBlendTextureDescriptor);
+        }
+
+        public void GetSHVectorArrays(Vector4[] result, ref SphericalHarmonicsL2 sh)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                result[i].Set(sh[i, 3], sh[i, 1], sh[i, 2], sh[i, 0] - sh[i, 6]);
+            }
+            for (int i1 = 0; i1 < 3; i1++)
+            {
+                result[3 + i1].Set(sh[i1, 4], sh[i1, 5], sh[i1, 6] * 3.0f, sh[i1, 7]);
+            }
+            result[6].Set(sh[0, 8], sh[1, 8], sh[2, 8], 1.0f);
+        }
+        public void SetUniforms()
+        {
+
+
+            material.SetVector(sourceSizeUniformID, HiZBufferRenderPass.hiZTargetMip0SourceSize);
+
+            var sh = RenderSettings.ambientProbe;
+            Vector4[] SHVals = new Vector4[7];
+            GetSHVectorArrays(SHVals, ref sh);
+
+            material.SetVectorArray(ssrAmbientSHUniformID, SHVals);
+            material.SetFloat(ssrMinSmoothnessUniformID, settings.ssrMinSmoothness);
+            material.SetInt(maxIterationsUniformID, settings.maxIterations);
+            material.SetInt(maxHiZMipLevelUniformID, HiZBufferRenderPass.maxHiZMipLevel);
+            material.SetFloat(ssrThicknessUniformID, settings.ssrThickness);
+            material.SetFloat(maxTracingDistanceUniformID, settings.maxTracingDistance);
+            material.SetFloat(ssrBlendFactorUniformID, settings.ssrBlendFactor);
+            if (settings.glossyReflectionSimulatingMethod == GlossyReflectionSimulatingMethod.ColorPyramid)
+            {
+                material.SetInteger(useColorPyramidUniformID, 1);
+                material.SetInteger(useTemporalFilterUniformID, 0);
+                material.SetInteger(useNormalImportanceSamplingUniformID, 0);
+            }
+            else
+            {
+                material.SetInteger(useColorPyramidUniformID, 0);
+                material.SetInteger(useTemporalFilterUniformID, 1);
+                material.SetInteger(useNormalImportanceSamplingUniformID, 1);
+            }
+
+            //  material.SetFloat(maxColorPyramidMipLevelUniformID,ColorPyramidRenderPass.maxColorPyramidMipLevel-1);
+
+
+
+        }
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (material == null)
+            {
+
+                return;
+            }
+
+            if (ssrRenderTarget.rt == null)
+            {
+                Debug.Log("render target null");
+                return;
+            }
+            if (settings.isUsingForwardRendering==true)
+            {
+                //blending reflections with IBL in forward rendering is currently not supported
+                return;
+            }
+            SetUniforms();
+            var cmd = CommandBufferPool.Get("Screen Space Reflections");
+            CoreUtils.SetKeyword(cmd, ssrGlobalKeyword, true);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            var sourceTexture = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            //   Debug.Log("camera type:"+renderingData.cameraData.cameraType);
+            if (sourceTexture == null || sourceTexture.rt == null)
+            {
+                Debug.Log("camera color texture null");
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+                return;
+            }
+            cmd.SetGlobalTexture(prevSSRBlendResultUniformID, prevSSRBlendTarget);
+            //  Debug.Log(renderingData.cameraData.worldSpaceCameraPos);
+            Blit(cmd, sourceTexture, tmpCameraColorTarget);
+
+            material.SetTexture(cameraColorTexUniformID, tmpCameraColorTarget);
+            Blit(cmd, sourceTexture, ssrRenderTarget, material, 0);
+          
+            
+            material.SetTexture(ssrResultTexUniformID, ssrRenderTarget);
+
+
+            Blit(cmd, sourceTexture, ssrBlendTarget, material, 1);
+            context.ExecuteCommandBuffer(cmd);
+
+            CommandBufferPool.Release(cmd);
+
+            var cmd1 = CommandBufferPool.Get("Screen Space Reflections Composite");
+            CoreUtils.SetKeyword(cmd1, ssrGlobalKeyword, true);
+            context.ExecuteCommandBuffer(cmd1);
+            cmd1.Clear();
+            var sourceTextureColorAttachment = renderingData.cameraData.renderer.cameraColorTargetHandle;
+
+            if (!settings.isUsingForwardRendering)
+            {
+                Blit(cmd1, ssrBlendTarget, sourceTextureColorAttachment, material, 2);
+            }
+           
+            context.ExecuteCommandBuffer(cmd1);
+
+            CommandBufferPool.Release(cmd1);
+        }
+
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, ssrGlobalKeyword, false);
+        }
+        public void Dispose()
+        {
+
+            if (ssrRenderTarget != null) ssrRenderTarget.Release();
+            if (tmpCameraColorTarget != null) tmpCameraColorTarget.Release();
+            if (prevSSRBlendTarget != null) prevSSRBlendTarget.Release();
+            if (ssrBlendTarget != null) ssrBlendTarget.Release();
+        }
     }
 
-    private void UpdateSSRSettings()
+    public enum GlossyReflectionSimulatingMethod
     {
-        if (material == null) return;
-
-
-        // Use the Volume settings or the default settings if no Volume is set.
-        int stepCount = defaultSettings.stepCount;
-        float strideSize = defaultSettings.strideSize;
-        float thickness = defaultSettings.thickness;
-        float fadeDistance = defaultSettings.fadeDistance;
-        float bias=defaultSettings.SSRBias;
-        material.SetInt(stepCountID, stepCount);
-        material.SetFloat(strideSizeID, strideSize);
-        material.SetFloat(thicknessID, thickness);
-        material.SetFloat(fadeDistanceID, fadeDistance);
-        material.SetFloat(biasID, bias);
+        ColorPyramid = 0,
+        PhysicallyBased = 1
     }
-
-
-    public override void Execute(ScriptableRenderContext context,
-        ref RenderingData renderingData)
+    [Serializable]
+    public class SSRRenderFeatureSettings
     {
-        //Get a CommandBuffer from pool.
-        CommandBuffer cmd = CommandBufferPool.Get();
+        [Tooltip(
+            "Defines is the SSR render feature using forward rendering mode. In forward rendering mode the render feature cannot fetch PBR material data and use constant data values to calculate reflections.\r\n" +
+            "You may ask: Why we use a toggle to switch that instead of automatically detect the rendering mode of current renderer in the code? The answer is that we ACTUALLY CANNOT detect the rendering mode.")]
+        public bool isUsingForwardRendering = false;
 
-        RTHandle cameraTargetHandle =
-            renderingData.cameraData.renderer.cameraColorTargetHandle;
-        var camera = renderingData.cameraData.camera;
-        UpdateSSRSettings();
+        /// <summary>
+        /// Determines what method is used to simulate glossy reflections.
+        /// </summary>
+        [Tooltip("Determines what method is used to simulate glossy reflections.\r\nColor Pyramid: Samples blurred scene color generated by the Color Pyramid render feature on glossy surfaces as the reflection result.\r\n" +
+                 "Physically Based: Use importance sampling to generate rays with random directions,trace these rays and use temporal filter to reduce noise. More physically correct than the Color Pyramid method.")]
+        public GlossyReflectionSimulatingMethod glossyReflectionSimulatingMethod;
+        /// <summary>
+        /// Max iterations count of the reflection algorithm.
+        /// Higher value results to longer reflection distance. High performance impact.
+        /// </summary>
+        [Tooltip("Max iterations count of the reflection algorithm.\r\nHigher value results to longer reflection distance. High performance impact.")]
+        [Range(8, 1024)]
 
-        // Blit from the camera target to the temporary render texture,
-        // using the first shader pass.
-        //    Blit(cmd, cameraTargetHandle, blurTextureHandle, material);
-        // Blit from the temporary render texture to the camera target,
-        // using the second shader pass.
+        public int maxIterations;
 
-        material.SetMatrix("matView", camera.worldToCameraMatrix);
-        material.SetMatrix("matProjection", camera.projectionMatrix);
-        material.SetMatrix("matInverseView", camera.worldToCameraMatrix.inverse);
-        material.SetMatrix("matInverseProjection", camera.projectionMatrix.inverse);
-        //     material.SetVector("CameraPos", WorldHelper.instance.cameraPos);
+        [Tooltip("The \"object thickness\" value used in ray intersecting progress.\r\nTune this value according to the scene to reduce artifacts.")]
+        [Range(0.01f, 2f)]
+        public float ssrThickness;
 
-        //  cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        //   cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-        //   cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-        Blit(cmd, cameraTargetHandle, ssrHandle, material, 0);
-        Blit(cmd, ssrHandle, cameraTargetHandle, material, 1);
+        [Tooltip("The max tracing distance of the ray. Currently not functional.")]
+        [Range(10f, 1000f)]
+        public float maxTracingDistance;
 
-        //Execute the command buffer and release it back to the pool.
-        context.ExecuteCommandBuffer(cmd);
-        CommandBufferPool.Release(cmd);
-    }
+        [Tooltip("A blending factor to mix the reflection result with the rendered image.")]
+        [Range(0f, 1f)]
+        public float ssrBlendFactor = 0.8f;
 
-    public void Dispose()
-    {
-
-#if UNITY_EDITOR
-                if (EditorApplication.isPlaying)
-                {
-                    UnityEngine.Object.Destroy(material);
-                }
-                else
-                {
-                    UnityEngine.Object.DestroyImmediate(material);
-                }
-#else
-        UnityEngine.Object.Destroy(material);
-#endif
-
-
-        if (ssrHandle != null) ssrHandle.Release();
+        [Tooltip("The minimum material smoothness required to trace a reflection ray.\r\nA surface with lower smoothness than this value will not receive reflections.")]
+        [Range(0f, 1f)]
+        public float ssrMinSmoothness = 0.8f;
     }
 }

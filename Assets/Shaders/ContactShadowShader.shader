@@ -1,4 +1,4 @@
-Shader "Unlit/ContactShadowShader"
+Shader "Hidden/ContactShadowShader"
 {
     Properties
     {
@@ -11,11 +11,11 @@ Shader "Unlit/ContactShadowShader"
 
         Pass
         {
+             ZTest Always Cull Off ZWrite Off
              HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment frag
-            #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+        
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -26,20 +26,21 @@ Shader "Unlit/ContactShadowShader"
               #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
              
-        uniform int SampleCount;
-        uniform float EdgeWidth;
-        uniform float StepLength;
-        uniform float ShadowWeight;
-        uniform float ContactShadowBias;
-        uniform float FadeDistance;
+            uniform int SampleCount;
+            uniform float EdgeWidth;
+            uniform float StepLength;
+            uniform float ShadowWeight;
+            uniform float ContactShadowBias;
+            uniform float FadeDistance;
+            uniform float4 _BlitScreenParams;
 
-
-                             uniform float4 ProjectionParams2;
+            uniform float4 ProjectionParams2;
             uniform float4 CameraViewTopLeftCorner;
             uniform float4 CameraViewXExtent;
             uniform float4 CameraViewYExtent;
             float3 ReconstructViewPos(float2 uv, float linearEyeDepth) {  
-                // Screen is y-inverted  
+                // Screen is y-inverted 
+                
                 uv.y = 1.0 - uv.y;  
 
                 float zScale = linearEyeDepth * ProjectionParams2.x; // divide by near plane  
@@ -74,36 +75,39 @@ Shader "Unlit/ContactShadowShader"
             float4 frag (Varyings input) : SV_Target
             {
                 
-         //       if(SampleSceneDepth(i.texcoord)<=0.0001){
+         
+              
+         //       if(SampleS      ceneDepth(i.texcoord)<=0.0001){
          //       return float4(0,0,0,0);
           //      }
-             
+               
                 float rawDepth = SampleSceneDepth(input.texcoord).r;  
-                      float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);  
-                      float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
-                      float3 worldPos=vpos+_WorldSpaceCameraPos;
-                      if(length(vpos)>FadeDistance){
-                          return float4(0,0,0,0);
-                          }
+                float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams); 
+             //    return float4(1,1,1,1);
+                float3 vpos = ReconstructViewPos(input.texcoord,linearDepth);  
+                float3 worldPos=vpos+_WorldSpaceCameraPos;
+                      
                 float3 normal=SampleSceneNormals(input.texcoord).xyz;
-             //   worldPos=worldPos+ normal * (length(worldPos-_WorldSpaceCameraPos) / _ProjectionParams.z *0.5) ;
+                worldPos=worldPos+ normal * 0.01 ;
           //       return float4((worldPos-_WorldSpaceCameraPos),1);
                 float3 lightDir=GetMainLight().direction;
-               float3 lightDirView=mul(UNITY_MATRIX_V,float4(lightDir,0));
-                   float nDotL=(dot(normal,lightDir));
+                float3 lightDirView=mul(UNITY_MATRIX_V,float4(lightDir,0));
+                  
                 
-                float magnitude = 10;  
-                 float3 startView=mul(UNITY_MATRIX_V,float4(vpos,0));
-                 
-                 float end = startView.z + lightDirView.z * magnitude;  
+                float magnitude = 1000;  
+                float3 startView=mul(UNITY_MATRIX_V,float4(worldPos,1));
+                if(length(startView.z)>FadeDistance){
+                          return float4(1,1,1,1);
+                }
+                float end = startView.z + lightDirView.z * magnitude;  
                 if (end > -_ProjectionParams.y)  
-                magnitude = (-_ProjectionParams.y - startView.z) / lightDirView.z;  
+                magnitude = abs(-_ProjectionParams.y - startView.z) / lightDirView.z;  
                 
                  
-                 float3 endView = startView + lightDirView * magnitude;  
+                    float3 endView = startView + lightDirView * magnitude;  
               
-                 float4 startHScreen = TransformViewToHScreen(startView, _ScreenParams.xy);  
-                    float4 endHScreen = TransformViewToHScreen(endView, _ScreenParams.xy);  
+                    float4 startHScreen = TransformViewToHScreen(startView, _BlitScreenParams.xy);  
+                    float4 endHScreen = TransformViewToHScreen(endView, _BlitScreenParams.xy);  
                  
 
                     float startK = 1.0 / startHScreen.w;  
@@ -114,12 +118,12 @@ Shader "Unlit/ContactShadowShader"
                     float2 endScreen = endHScreen.xy * endK;  
                  //   return float4(input.texcoord.xy,1,1);
                   
-                    // æ≠π˝∆Î¥Œ≥˝∑®µƒ ”Ω«◊¯±Í  
+                    // ÁªèËøáÈΩêÊ¨°Èô§Ê≥ïÁöÑËßÜËßíÂùêÊ†á  
                     float3 startQ = startView * startK;  
                     float3 endQ = endView * endK;  
                     float2 diff = endScreen - startScreen;  
                   
-                   bool permute = false;  
+                    bool permute = false;  
                     if (abs(diff.x) < abs(diff.y)) {  
                         permute = true;  
 
@@ -142,14 +146,14 @@ Shader "Unlit/ContactShadowShader"
                     float K = startK;  
                     float testDepth=0;
 
-                       float jitter = (Random2DTo1D(input.texcoord)*0.2+0.8);  
+                       float jitter = 1;  
                      dp*=jitter;  
                      dq*=jitter;  
                      dk*=jitter;
 
                      float contactShadow=1;
                      float endX=endScreen.x ;
-                      
+                      float2 finalHitUV=0;
                     UNITY_LOOP
                     for(int i=0;i<SampleCount;i++){
                        
@@ -159,17 +163,21 @@ Shader "Unlit/ContactShadowShader"
                         testDepth = ( Q.z) / ( K);  
 
                           hitUV = permute ? P.yx : P;  
-                        hitUV /= _ScreenParams.xy;  
+                        hitUV /= _BlitScreenParams.xy;  
 
                           if (any(hitUV < 0.0) || any(hitUV > 1.0)){ 
                           
                             break;
                             }
-                       float surfaceDepth = -LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture,sampler_point_clamp,hitUV), _ZBufferParams); 
-                       
+                            float surfaceDepth = -LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture,sampler_point_clamp,hitUV), _ZBufferParams); 
+                          
+                            if(-surfaceDepth>_ProjectionParams.z*0.99||-surfaceDepth<_ProjectionParams.y||SAMPLE_TEXTURE2D_X(_CameraDepthTexture,sampler_point_clamp,hitUV).x==0){
+                             break;
+                            }
                             if(testDepth<surfaceDepth){
                                 if(abs(testDepth-surfaceDepth)<EdgeWidth){
                                     contactShadow=0;
+                              //      finalHitUV=hitUV;
                                     break;
                                   
                                     }
@@ -177,7 +185,7 @@ Shader "Unlit/ContactShadowShader"
                              }
                         }
                       
-             float shadow=MainLightRealtimeShadow(TransformWorldToShadowCoord(worldPos));
+          /*   float shadow=MainLightRealtimeShadow(TransformWorldToShadowCoord(worldPos));
                 if(shadow<0.001){
                return float4(0,0,0,0);
               }
@@ -185,9 +193,9 @@ Shader "Unlit/ContactShadowShader"
                             if((nDotL)<0.1){
                                 return float4(0,0,0,0);
                                     }
-              float finalVal=0;
+              float finalVal=0;*/
 
-                return float4(0,0,0,contactShadow>0.1?0:ShadowWeight);
+                return float4(contactShadow,contactShadow,contactShadow,1);
                 
 
         //       return float4(shadow.xxxx);
@@ -195,39 +203,6 @@ Shader "Unlit/ContactShadowShader"
             ENDHLSL
         }
 
-             Pass
-        {
-         Name "Blending"
-
-         ZTest NotEqual
-        ZWrite Off
-        Cull Off
-       
-        Blend SrcAlpha OneMinusSrcAlpha
-         HLSLPROGRAM
-            
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"  
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"  
-         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl" 
-        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-
-             
-              #pragma vertex Vert
-              #pragma fragment Blending
-              half4 GetSource(half2 uv) {  
-                return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);  
-                }
-              
-              float4 Blending(Varyings input):SV_Target{
-              
-                return GetSource(input.texcoord);
-              
-               
-              }
-
-              ENDHLSL
-        
-        }
+         
     }
 }

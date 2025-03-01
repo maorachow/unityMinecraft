@@ -187,8 +187,11 @@ public class GameUIBeh : MonoBehaviour
 
     public void CloseCraftingUI()
     {
-        
-            Time.timeScale = 1;
+        if (RespawnUI.instance != null && RespawnUI.instance.gameObject.activeInHierarchy == false)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        Time.timeScale = 1;
             GlobalGameOptions.isGamePaused = false;
         
       
@@ -207,8 +210,8 @@ public class GameUIBeh : MonoBehaviour
     public void OpenCraftingUI()
     {
 
-        
-            Time.timeScale = 0;
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 0;
             GlobalGameOptions.isGamePaused = true;
         
         isCraftingMenuOpened = true;
@@ -225,6 +228,7 @@ public class GameUIBeh : MonoBehaviour
 
     public void PauseGame()
     {
+        Cursor.lockState = CursorLockMode.None;
         //   Debug.Log("UIPause");
         pauseMenu = transform.Find("pausemenuUI").gameObject;
         GlobalGameOptions.isGamePaused = true;
@@ -237,6 +241,11 @@ public class GameUIBeh : MonoBehaviour
 
     public void Resume()
     {
+        if (RespawnUI.instance != null && RespawnUI.instance.gameObject.activeInHierarchy == false)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+      
         //   Debug.Log("UIResume");
         pauseMenu = transform.Find("pausemenuUI").gameObject;
 

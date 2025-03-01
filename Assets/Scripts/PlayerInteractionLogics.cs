@@ -212,7 +212,7 @@ public partial class PlayerMove
 
         Ray ray = new Ray(playerHeadCenterRef.position, playerHeadCenterRef.forward); 
         RaycastHit info;
-        if (Physics.Raycast(ray, out info, 10f, ~LayerMask.GetMask("Ignore Raycast")))
+        if (Physics.Raycast(ray, out info, 5f, ~LayerMask.GetMask("Ignore Raycast")))
         {
             if (info.collider.gameObject.tag == "Entity")
             {

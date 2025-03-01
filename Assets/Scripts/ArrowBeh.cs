@@ -127,7 +127,7 @@ public class ArrowBeh : MonoBehaviour
         {
             float arrowVelocityMagnitude = arrowRigidbody.velocity.magnitude;
             
-            if (c.GetComponent(typeof(ILivingEntity)) != null)
+            if (c.GetComponent(typeof(ILivingEntity)) != null && arrowVelocityMagnitude > 0.1f)
             {
 
             //    Debug.Log("damage success:entity");
@@ -137,7 +137,7 @@ public class ArrowBeh : MonoBehaviour
                 return;
             }
 
-            if (c.GetComponent<PlayerMove>() != null)
+            if (c.GetComponent<PlayerMove>() != null&& arrowVelocityMagnitude > 0.1f)
             {
          //       Debug.Log("damage success:player");
                 c.GetComponent<PlayerMove>().ApplyDamageAndKnockback((arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f)) *Mathf.Min(arrowVelocityMagnitude, 1f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));

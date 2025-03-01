@@ -16,7 +16,7 @@ public class CameraFrustumRayRenderPassFeature : ScriptableRendererFeature
     public override void Create()
     {
         renderPass = new CameraFrustumRenderPass();
-        renderPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
+        renderPass.renderPassEvent = RenderPassEvent.BeforeRenderingPrePasses;
     }
 
     public class CameraFrustumRenderPass : ScriptableRenderPass
@@ -37,12 +37,12 @@ public class CameraFrustumRayRenderPassFeature : ScriptableRendererFeature
             Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix();
             Matrix4x4 vp = proj * view;
 
-            // ½«camera view space µÄÆ½ÒÆÖÃÎª0£¬ÓÃÀ´¼ÆËãworld spaceÏÂÏà¶ÔÓÚÏà»úµÄvector  
+            // å°†camera view space çš„å¹³ç§»ç½®ä¸º0ï¼Œç”¨æ¥è®¡ç®—world spaceä¸‹ç›¸å¯¹äºç›¸æœºçš„vector  
             Matrix4x4 cview = view;
             cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             Matrix4x4 cviewProj = proj * cview;
 
-            // ¼ÆËãviewProjÄæ¾ØÕó£¬¼´´Ó²Ã¼ô¿Õ¼ä±ä»»µ½ÊÀ½ç¿Õ¼ä  
+            // è®¡ç®—viewProjé€†çŸ©é˜µï¼Œå³ä»è£å‰ªç©ºé—´å˜æ¢åˆ°ä¸–ç•Œç©ºé—´  
             Matrix4x4 cviewProjInv = cviewProj.inverse;
             var near = renderingData.cameraData.camera.nearClipPlane;
 

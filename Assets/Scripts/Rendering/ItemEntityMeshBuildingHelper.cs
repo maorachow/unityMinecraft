@@ -123,24 +123,24 @@ public static class ItemEntityMeshBuildingHelper
                     case BlockShape.Torch:
                         Matrix4x4 transformMat = Matrix4x4.identity;
 
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), Chunk.blockInfosNew[blockID].uvCorners[0], Chunk.blockInfosNew[blockID].uvSizes[0], false, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), Chunk.blockInfosNew[blockID].uvCorners[0], Chunk.blockInfosNew[blockID].uvSizes[0], true, verts, uvs, tris, norms);
                         //Right
 
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), Chunk.blockInfosNew[blockID].uvCorners[1], Chunk.blockInfosNew[blockID].uvSizes[1], true, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0.125f, 0f, 0f), new Vector3(0f, 0.625f, 0f), new Vector3(0f, 0f, 0.125f), Chunk.blockInfosNew[blockID].uvCorners[1], Chunk.blockInfosNew[blockID].uvSizes[1], false, verts, uvs, tris, norms);
 
                         //Bottom
 
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[2], Chunk.blockInfosNew[blockID].uvSizes[2], false, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[2], Chunk.blockInfosNew[blockID].uvSizes[2], true, verts, uvs, tris, norms);
                         //Top
 
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0.625f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[3], Chunk.blockInfosNew[blockID].uvSizes[3], true, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0.625f, 0.4375f), new Vector3(0f, 0f, 0.125f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[3], Chunk.blockInfosNew[blockID].uvSizes[3], false, verts, uvs, tris, norms);
 
                         //Back
                             
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[4], Chunk.blockInfosNew[blockID].uvSizes[4], true, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[4], Chunk.blockInfosNew[blockID].uvSizes[4], false, verts, uvs, tris, norms);
                         //Front
 
-                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0f, 0f, 0.125f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[5], Chunk.blockInfosNew[blockID].uvSizes[5], false, verts, uvs, tris, norms);
+                        BlockMeshBuildingHelper.BuildFaceComplex(new Vector3(x, y, z), transformMat, new Vector3(x, y, z) + new Vector3(0.4375f, 0f, 0.4375f) + new Vector3(0f, 0f, 0.125f), new Vector3(0f, 0.625f, 0f), new Vector3(0.125f, 0f, 0f), Chunk.blockInfosNew[blockID].uvCorners[5], Chunk.blockInfosNew[blockID].uvSizes[5], true, verts, uvs, tris, norms);
 
                         break;
 

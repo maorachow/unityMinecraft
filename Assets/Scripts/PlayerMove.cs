@@ -347,7 +347,7 @@ public partial class PlayerMove: MonoBehaviour
             return;
         }
 
-        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true||GameUIBeh.instance.isPauseMenuOpened==true)
         {
             return;
         }
@@ -474,7 +474,7 @@ public partial class PlayerMove: MonoBehaviour
     public void PauseOrResume()
     {
         //     Debug.Log("Pause");
-        Cursor.lockState = CursorLockMode.None;
+    
         if (GlobalGameOptions.isGamePaused == false)
         {
             GameUIBeh.instance.PauseGame();
@@ -495,7 +495,7 @@ public partial class PlayerMove: MonoBehaviour
     public void OpenOrCloseCraftingUI()
     {
        
-        Cursor.lockState = CursorLockMode.None;
+        
         if (GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             GameUIBeh.instance.CloseCraftingUI();
@@ -592,8 +592,12 @@ public partial class PlayerMove: MonoBehaviour
         //     blockOnHandID+=(int)(Input.GetAxis("Mouse ScrollWheel")*15f);
 
 
-        currentSelectedHotbar += (int)PlayerInputBeh.instance.switchItemSlotAxis;
-        currentSelectedHotbar = Mathf.Clamp(currentSelectedHotbar, 1, 9);
+        if (isPlayerWieldingItem == false)
+        {
+            currentSelectedHotbar += (int)PlayerInputBeh.instance.switchItemSlotAxis;
+            currentSelectedHotbar = Mathf.Clamp(currentSelectedHotbar, 1, 9);
+        }
+   
 
 
         GameUIBeh.instance.UpdateBlockOnHandText();
