@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using monogameMinecraftShared.World;
 using UnityEngine;
 using UnityEngine.Pool;
 public class VoxelWorld
@@ -45,6 +46,7 @@ public class VoxelWorld
     public Task tryReleaseChunksThread;
     public Task tryUpdateChunksThread;
     public Action actionOnSwitchedWorld;
+    public WorldUpdater worldUpdater;
     public Chunk GetChunk(Vector2Int chunkPos)
     {
      //   Debug.Log(VoxelWorld.currentWorld.chunks.Count);
@@ -451,6 +453,7 @@ public class VoxelWorld
         this.curWorldSaveName = curWorldSaveName;
         this.worldGenType = worldGenType;
         this.worldID = worldID;
+        worldUpdater = new WorldUpdater(this);
     }
 
     public void InitChunkLoader()
@@ -721,7 +724,8 @@ public class VoxelWorld
         tryReleaseChunksThread = Task.Run(() => VoxelWorld.currentWorld.TryReleaseChunkThread());
         //   t3.Start();
         tryUpdateChunksThread = Task.Run(() => VoxelWorld.currentWorld.TryUpdateChunkThread());
-        if(actionOnSwitchedWorld != null)
+        worldUpdater.Init();
+        if (actionOnSwitchedWorld != null)
         {
         actionOnSwitchedWorld();
             actionOnSwitchedWorld=null;
@@ -729,7 +733,10 @@ public class VoxelWorld
         
 
     }
-
+    public void FrameUpdate(float deltaTime)
+    {
+        worldUpdater.MainThreadUpdate(deltaTime);
+    }
     public void DestroyAllChunks()
     {
         

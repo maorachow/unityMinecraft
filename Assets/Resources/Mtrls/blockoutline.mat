@@ -16,7 +16,7 @@ Material:
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3000
   stringTagMap:
@@ -332,7 +332,6 @@ Material:
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &309225662312229386
 MonoBehaviour:
   m_ObjectHideFlags: 11

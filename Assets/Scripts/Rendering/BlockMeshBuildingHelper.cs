@@ -948,7 +948,7 @@ public static partial class BlockMeshBuildingHelper
         //    uvs.Add(new Vector2(uvCorner.x + uvWidth.x, uvCorner.y));
 
 
-        if (!reversed)
+        if (reversed)
         {
 
 
@@ -978,7 +978,7 @@ public static partial class BlockMeshBuildingHelper
             //    tris.Add(index + 2);
 
             //   tris.Add(index + 0);
-            Vector3 v1 = -Vector3.Cross(transformMat.MultiplyVector(up), transformMat.MultiplyVector(right));
+            Vector3 v1 = Vector3.Cross(transformMat.MultiplyVector(up), transformMat.MultiplyVector(right));
             norms.Add(v1);
             norms.Add(v1);
             norms.Add(v1);
@@ -1012,7 +1012,7 @@ public static partial class BlockMeshBuildingHelper
             tris.Add((index + 3));
             tris.Add((index + 2));
             tris.Add((index + 0));
-            Vector3 v1 = Vector3.Cross(transformMat.MultiplyVector(up), transformMat.MultiplyVector(right));
+            Vector3 v1 = -Vector3.Cross(transformMat.MultiplyVector(up), transformMat.MultiplyVector(right));
             norms.Add(v1);
             norms.Add(v1);
             norms.Add(v1);

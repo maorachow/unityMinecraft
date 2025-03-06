@@ -3591,8 +3591,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 511692652}
   m_HandleRect: {fileID: 511692651}
   m_Direction: 0
-  m_Value: 1
-  m_Size: 1
+  m_Value: 0
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3849,8 +3849,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2119413568}
   m_HandleRect: {fileID: 2119413567}
   m_Direction: 2
-  m_Value: 0.99999994
-  m_Size: 0.23299997
+  m_Value: 1.0000001
+  m_Size: 0.233
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -16022,7 +16022,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
-  m_Antialiasing: 0
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0

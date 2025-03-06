@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
-public class EndermanBeh : MonoBehaviour, ILivingEntity
+public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
 {
     public int curBlockOnFootID;
     public int prevBlockOnFootID;
     public AudioSource AS;
     public static AudioClip endermanIdleClip;
-    public static Transform playerPosition;
+   
     public Transform currentTrans;
     public static GameObject diedEndermanPrefab;
-    public bool isEndermanDied = false;
+    public bool isDied { get; set; } = false;
     private CharacterController cc;
     public Animator am;
     public Transform headTransform;
@@ -34,7 +34,27 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
     public float timeUsedToReachTarget;
     public bool hasReachedTarget;
     public static bool isEndermanPrefabLoaded = false;
-   
+    public IAttackableEntityTarget primaryTargetEntity
+    {
+        get;
+        set;
+    }
+    public List<IAttackableEntityTarget> primaryAttackerEntities
+    {
+        get;
+        set;
+    }
+
+    public void ClearPrimaryTarget()
+    {
+        this.primaryTargetEntity = null;
+    }
+
+    public Transform entityTransformRef
+    {
+        get;
+        set;
+    }
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
         AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
@@ -71,7 +91,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
             endermanIdleClip = Resources.Load<AudioClip>("Audios/Enderman_idle1");
             diedEndermanPrefab = Resources.Load<GameObject>("Prefabs/diedenderman");
             isEndermanPrefabLoaded = true;
-            playerPosition = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+          
         }
         currentTrans = transform;
 
@@ -82,7 +102,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         cc = GetComponent<CharacterController>();
         am = GetComponent<Animator>();
         isIdling = true;
-
+        entityTransformRef = headTransform;
     }
 
     public void InitPos()
@@ -96,16 +116,60 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
     public void OnDisable()
     {
         entityMotionVec = Vector3.zero;
-        isEndermanDied = false;
+        isDied = false;
         entityHealth = 30f;
         isIdling = true;
         isPosInited = false;
+
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities != null)
+            {
+                item.primaryAttackerEntities.Clear();
+
+                item.ClearPrimaryTarget();
+            }
+
+        }
+        primaryAttackerEntities.Clear();
+        primaryTargetEntity = null;
+    }
+
+    public void OnEnable()
+    {
+        if (primaryAttackerEntities != null)
+        {
+            foreach (var item in primaryAttackerEntities)
+            {
+                if (item.primaryAttackerEntities != null)
+                {
+                    item.primaryAttackerEntities.Clear();
+
+                    item.ClearPrimaryTarget();
+                }
+
+            }
+            primaryAttackerEntities.Clear();
+        }
+        this.primaryTargetEntity = null;
+        primaryAttackerEntities = new List<IAttackableEntityTarget>();
     }
 
     public void DieWithKnockback(Vector3 knockback)
     {
+
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities != null)
+            {
+                item.primaryAttackerEntities.Clear();
+
+                item.ClearPrimaryTarget();
+            }
+
+        }
         AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
-        isEndermanDied = true;
+        isDied = true;
         Transform curTrans = transform;
         Transform diedEndermanTrans = Instantiate(diedEndermanPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
 
@@ -150,12 +214,20 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
 
     public void TryAttack()
     {
-        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < endermanTargetRadius*1.2f && isIdling == false)
+        if (primaryTargetEntity == null)
+        {
+            return;
+        }
+        if (Vector3.Magnitude(currentTrans.position - primaryTargetEntity.entityTransformRef.position) < endermanTargetRadius*1.2f && isIdling == false)
         {
 
             if (attackCD <= 0f)
             {
-                playerPosition.gameObject.GetComponent<PlayerMove>().ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 15f);
+                primaryTargetEntity.ApplyDamageAndKnockback(2f, transform.forward * 20f + transform.up * 15f);
+                if (primaryTargetEntity.primaryAttackerEntities != null)
+                {
+                    primaryTargetEntity.primaryAttackerEntities.Add(this);
+                }
                 am.SetBool("attack", true);
                 attackCD = 1.2f;
                 Invoke("CancelAttack", 0.2f);
@@ -197,9 +269,52 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         {
             return;
         }
-     
-      
-        
+        foreach (var item in primaryAttackerEntities)
+        {
+            
+                primaryTargetEntity = item;
+                break;
+            
+        }
+        if (primaryTargetEntity != null)
+        {
+            RaycastHit hitInfo;
+
+            Physics.Linecast((primaryTargetEntity.entityTransformRef.position), (headTransform.position), out hitInfo, LayerMask.GetMask("Default"));
+            Debug.DrawLine((primaryTargetEntity.entityTransformRef.position), (headTransform.position), Color.green, Time.fixedDeltaTime);
+            if (hitInfo.collider != null)
+            {
+
+
+                isIdling = true;
+            }
+            else
+            {
+                if ((primaryTargetEntity.entityTransformRef.position - headTransform.position)
+                    .magnitude < 16f)
+                {
+                    if (primaryTargetEntity.isDied == true)
+                    {
+                        isIdling = true;
+                    }
+                    else
+                    {
+                        isIdling = false;
+                    }
+                }
+                else
+                {
+                    isIdling = true;
+                }
+
+            }
+
+        }
+        else
+        {
+            isIdling = true;
+        }
+
         curBlockOnFootID = WorldHelper.instance.GetBlock(currentTrans.position, entity.currentChunk);
         if (curBlockOnFootID == 0 || (101 <= curBlockOnFootID && curBlockOnFootID <= 200))
         {
@@ -227,11 +342,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
             AudioSource.PlayClipAtPoint(endermanIdleClip, currentTrans.position, 1f);
         }
 
-
-        if (PlayerMove.instance.isPlayerKilled == true)
-        {
-            isIdling = true;
-        }
+ 
        //     
         
 
@@ -261,7 +372,14 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
         else
         {
             timeUsedToReachTarget = 0f;
-            targetPos = playerPosition.position;
+            if (primaryTargetEntity != null)
+            {
+                targetPos = primaryTargetEntity.entityTransformRef.position;
+            }
+            else
+            {
+                isIdling = true;
+            }
         }
        
     }
@@ -284,7 +402,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
             gravity = -9.8f;
         }
     }
-    public static readonly float endermanTargetRadius = 1.4f;
+    public static readonly float endermanTargetRadius = 2.4f;
     public void MoveToTarget(CharacterController cc, Vector3 pos, float dt)
     {
 
@@ -414,12 +532,12 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity
        
         ApplyGravity(cc, gravity, dt);
 
-        if (entityHealth <= 0f && isEndermanDied == false)
+        if (entityHealth <= 0f && isDied == false)
         {
             DieWithKnockback(entityMotionVec);
         }
 
-
+        
 
         // Quaternion targetRotation = Quaternion.LookRotation(targetDir);
         // entityFacingPos=targetRotation.eulerAngles;

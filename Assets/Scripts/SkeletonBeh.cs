@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SkeletonBeh : MonoBehaviour,ILivingEntity
+public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
 {
 
-    public static Transform playerPosition;
+   
     public static AudioClip skeletonIdleClip;
     public static AudioClip skeletonShootClip;
     public static GameObject diedSkeletonPrefab;
@@ -18,7 +21,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     public EntityBeh entity;
     public static bool isSkeletonPrefabLoaded=false;
     public CharacterController cc;
-    public bool isSkeletonDied = false;
+    public bool isDied { get; set; }= false;
     public Transform currentTrans;
     public bool isPosInited = false;
     public float attackCD;
@@ -31,7 +34,29 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     public bool hasReachedTarget = false;
     public float entityHealth { get ; set ; }
     public float moveSpeed { get { return 5f; } set { moveSpeed = 5f; } }
+    [SerializeField]
+    public IAttackableEntityTarget primaryTargetEntity
+    {
+        get;
+        set;
+    }
+    [SerializeField]
+    public List<IAttackableEntityTarget> primaryAttackerEntities
+    {
+        get;
+        set;
+    }
 
+    public void ClearPrimaryTarget()
+    {
+         this.primaryTargetEntity=null;
+    }
+
+    public Transform entityTransformRef
+    {
+        get;
+        set;
+    }
     public void ApplyGravity(CharacterController cc, float gravity, float dt)
     {
         //   Debug.Log("gra");
@@ -68,8 +93,18 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
     public void DieWithKnockback(Vector3 knockback)
     {
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities!=null)
+            {
+                item.primaryAttackerEntities.Clear();
+                
+                item.ClearPrimaryTarget();
+            }
+           
+        }
         AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
-        isSkeletonDied = true;
+        isDied = true;
         Transform curTrans = transform;
         Transform diedSkeletonTrans = Instantiate(diedSkeletonPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
 
@@ -194,9 +229,22 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
     public void OnDisable()
     {
         entityMotionVec = Vector3.zero;
-        isSkeletonDied = false;
+        isDied = false;
         entityHealth = 20f;
         isPosInited = false;
+
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities != null)
+            {
+                item.primaryAttackerEntities.Clear();
+
+                item.ClearPrimaryTarget();
+            }
+
+        }
+        primaryAttackerEntities.Clear();
+        primaryTargetEntity = null;
     }
     public void OnEnable()
     {
@@ -204,7 +252,23 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             cc.enabled = true;
         }
+        this.primaryTargetEntity = null;
+        if (primaryAttackerEntities != null)
+        {
+            foreach (var item in primaryAttackerEntities)
+            {
+                if (item.primaryAttackerEntities != null)
+                {
+                    item.primaryAttackerEntities.Clear();
 
+                    item.ClearPrimaryTarget();
+                }
+
+            }
+            primaryAttackerEntities.Clear();
+        }
+
+        primaryAttackerEntities = new List<IAttackableEntityTarget>();
     }
     void Start()
     {
@@ -214,7 +278,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
 
             isSkeletonPrefabLoaded = true;
-            playerPosition = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+           
             skeletonIdleClip = Resources.Load<AudioClip>("Audios/Skeleton_say1");
             diedSkeletonPrefab = Resources.Load<GameObject>("Prefabs/diedskeleton");
             skeletonShootClip = Resources.Load<AudioClip>("Audios/Bow_shoot");
@@ -225,6 +289,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         entity = GetComponent<EntityBeh>();
         AS=GetComponent<AudioSource>();
         headTransform = transform.GetChild(0).GetChild(1);
+        entityTransformRef = headTransform;
+     
     }
     public void ChangeHeadPos(Vector3 pos)
     {
@@ -309,6 +375,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
        
        
     }
+
+    
     public void Update()
     {
         
@@ -359,19 +427,24 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             attackCD -= dt;
         }
+
        
-
         MoveToTarget(cc, targetPos, dt);
-        if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < 12f&&isIdling==false)
-        {
- ;
-           Attack();
 
+        if (primaryTargetEntity != null)
+        {
+            if (Vector3.Magnitude(currentTrans.position - primaryTargetEntity.entityTransformRef.position) < 12f && isIdling == false)
+            {
+                
+                Attack();
+
+            }
         }
+       
         ApplyGravity(cc, gravity, dt);
 
 
-        if (entityHealth <= 0f && isSkeletonDied == false)
+        if (entityHealth <= 0f && isDied == false)
         {
             DieWithKnockback(entityMotionVec);
         }
@@ -388,6 +461,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
 
     public int curBlockOnFootID;
     public int prevBlockOnFootID;
+
+
     public void FixedUpdate()
     {
         if (!isPosInited)
@@ -398,8 +473,79 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         {
             return;
         }
-       
-      
+
+
+        primaryTargetEntity = PlayerMove.instance;
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item is not PlayerMove)
+            {
+                primaryTargetEntity = item;
+                break;
+            }
+        }
+
+        if (primaryTargetEntity != null)
+        {
+            RaycastHit hitInfo;
+
+            Vector3 rayDirection =
+                Vector3.Normalize((primaryTargetEntity.entityTransformRef.position) - (headTransform.position));
+            Ray playerDirectionRay = new Ray(headTransform.position, rayDirection);
+            Physics.Linecast((primaryTargetEntity.entityTransformRef.position), (headTransform.position), out hitInfo,
+                LayerMask.GetMask("Default"));
+            Debug.DrawLine((primaryTargetEntity.entityTransformRef.position),
+                (transform.position + new Vector3(0f, 1.5f, 0f)), Color.green, Time.fixedDeltaTime);
+            if (hitInfo.collider != null)
+            {
+                /*    if (hitInfo.collider.gameObject.layer == LayerMask.NameToLayer("Ignore Raycast"))
+                    {
+                        // Debug.Log("hitplayer");
+                        if (PlayerMove.instance.isPlayerKilled == false)
+                        {
+                            isIdling = false;
+                        }
+                        else
+                        {
+                            isIdling = true;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("hit terrain");
+                        isIdling = true;
+                    }*/
+                isIdling = true;
+            }
+            else
+            {
+                if ((primaryTargetEntity.entityTransformRef.position - headTransform.position)
+                    .magnitude < 32f)
+                {
+                    if (primaryTargetEntity.isDied == true)
+                    {
+                        isIdling = true;
+                    }
+                    else
+                    {
+                        isIdling = false;
+                    }
+                   
+                       
+                    
+                }
+                else
+                {
+                    isIdling = true;
+                }
+            }
+        }
+        else
+        {
+            isIdling = true;
+        }
+        
+
         curBlockOnFootID = WorldHelper.instance.GetBlock(currentTrans.position, entity.currentChunk);
         if (curBlockOnFootID == 0 || (101 <= curBlockOnFootID && curBlockOnFootID <= 200))
         {
@@ -424,33 +570,21 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         //  targetPos = playerPosition.position;
         if (Random.Range(0f, 100f) > 99f)
         {
-            AudioSource.PlayClipAtPoint(skeletonIdleClip, currentTrans.position, 1f);
+            AudioSource.PlayClipAtPoint(skeletonIdleClip, headTransform.position, 1f);
         }
-         
-        if ((playerPosition.position-transform.position).magnitude<32f)
-        {
-            //  Debug.Log("hit");
 
-
-            if (PlayerMove.instance.isPlayerKilled == true)
-            {
-                isIdling = true;
-            }
-            else
-            {
-                isIdling = false;
-            }
+        TryFindNextTarget(Time.fixedDeltaTime);
+        //  isIdling=true;
+        // RaycastHit info;
+        //isIdling=false;
+        //Debug.DrawLine(transform.position+new Vector3(0f,1f,0f),playerPosition.position+new Vector3(0f,1f,0f),Color.green,0.05f);
 
 
 
-        }
-        else
-        {
-          
-                isIdling=true;
-             
-           
-        }
+    }
+
+    public void TryFindNextTarget(float deltaTime)
+    {
         if (isIdling == true)
         {
             if (hasReachedTarget == true)
@@ -462,7 +596,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
             }
             else
             {
-                timeUsedToReachTarget += Time.deltaTime;
+                timeUsedToReachTarget += deltaTime;
                 if (timeUsedToReachTarget >= 5f)
                 {
                     hasReachedTarget = true;
@@ -477,8 +611,15 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity
         else
         {
             timeUsedToReachTarget = 0f;
-            targetPos =playerPosition.position+new Vector3(0f,0.6f,0f);
+            if (primaryTargetEntity != null)
+            {
+                targetPos = primaryTargetEntity.entityTransformRef.position;
+            }
+            else
+            {
+                isIdling=true;
+            }
+          
         }
-       
     }
 }

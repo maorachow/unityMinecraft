@@ -12,6 +12,7 @@ using Unity.Burst;
 using Unity.Jobs;
 using System;
 using Cysharp.Threading.Tasks;
+using UnityEditor.Experimental.Licensing;
 using Object=UnityEngine.Object;
 using Random=UnityEngine.Random;
 public class ChunkLoadingQueueItem{
@@ -89,18 +90,19 @@ public class WorldManager : MonoBehaviour
         //    EntityBeh.SpawnEntityFromFile();
          //   await Task.Run(()=>ItemEntityBeh.ReadItemEntityJson());
             ItemEntityBeh.playerPos=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-           // StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
-    //        chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
-     //       chunkLoadingQueue=new SimplePriorityQueue<ChunkLoadingQueueItem>();
-     //       chunkUnloadingQueue=new  SimplePriorityQueue<Vector2Int>();
-     //       isGoingToQuitGame=false;
+            EntityBeh.playerTransform= GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        // StartCoroutine(ItemEntityBeh.SpawnItemEntityFromFile());
+        //        chunkSpawningQueue=new SimplePriorityQueue<Vector2Int>();
+        //       chunkLoadingQueue=new SimplePriorityQueue<ChunkLoadingQueueItem>();
+        //       chunkUnloadingQueue=new  SimplePriorityQueue<Vector2Int>();
+        //       isGoingToQuitGame=false;
         //    UnityAction t2ThreadFunc=new UnityAction(playerPos.GetComponent<PlayerMove>().TryUpdateWorldThread);
-           
-  
-       //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
-         // SceneManager.activeSceneChanged-=sceneChangedEvent;  
+
+
+        //     sceneChangedEvent=(Scene s,Scene s2)=>{t2.Abort();t3.Abort();t4.Abort();Debug.Log("ChangeScene");};
+        // SceneManager.activeSceneChanged-=sceneChangedEvent;  
         //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
-     //     Chunk.Chunks.Clear();
+        //     Chunk.Chunks.Clear();
 
         VoxelWorld.currentWorld.InitObjectPools();
         VoxelWorld.currentWorld.InitWorld(); 
@@ -372,49 +374,49 @@ void OnApplicationQuit(){
       Chunk.playerPosVec=playerPos.position;
       lightSource.transform.Rotate(new Vector3(Time.deltaTime,0f,0f));
         Vector3 lightSourceDir= lightSource.transform.forward.normalized;
-        
+        VoxelWorld.currentWorld.FrameUpdate(Time.deltaTime);
    //   if(isChunkFastLoadingEnabled==true){
-    //  BuildAllChunksAsync();  
+   //  BuildAllChunksAsync();  
    //   }
-       
-  
-   /*            if(Input.GetKeyDown(KeyCode.H)){
 
-                       EntityBeh.SpawnNewEntity(0,100,0,0);
 
-                }
-        //   EntityBeh.SpawnNewEntity(0,100,0,0);
-        // EntityBeh.SpawnNewEntity(0,100,0,1);
-        if (Input.GetKeyDown(KeyCode.I))
-        {
+        /*            if(Input.GetKeyDown(KeyCode.H)){
 
-            EntityBeh.SpawnNewEntity(0, 100, 0, 3);
-      //      ItemEntityBeh.SpawnNewItem(0, 100, 0, 157, new Vector3(0, 0, 0));
-        }*/
- /*       if(Input.GetKeyDown(KeyCode.J))
-        {
-            
-            SceneManagementHelper. SwitchToWorldWithSceneChanged(1, 2);
-            VoxelWorld.worlds[1].actionOnSwitchedWorld = delegate () {
-           
-                PlayerMove.instance.cc.enabled = false;
-                PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
-                PlayerMove.instance.cc.enabled = true;
-                Debug.Log("action executed");
-            };
-        }
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-           
-            SceneManagementHelper.SwitchToWorldWithSceneChanged(0, 1);
-            VoxelWorld.worlds[0].actionOnSwitchedWorld = delegate () {
-               
-                PlayerMove.instance.cc.enabled = false;
-                PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
-                PlayerMove.instance.cc.enabled = true;
-                Debug.Log("action executed world 0");
-            };
-        }*/
+                            EntityBeh.SpawnNewEntity(0,100,0,0);
+
+                     }
+             //   EntityBeh.SpawnNewEntity(0,100,0,0);
+             // EntityBeh.SpawnNewEntity(0,100,0,1);
+             if (Input.GetKeyDown(KeyCode.I))
+             {
+
+                 EntityBeh.SpawnNewEntity(0, 100, 0, 3);
+           //      ItemEntityBeh.SpawnNewItem(0, 100, 0, 157, new Vector3(0, 0, 0));
+             }*/
+        /*       if(Input.GetKeyDown(KeyCode.J))
+               {
+
+                   SceneManagementHelper. SwitchToWorldWithSceneChanged(1, 2);
+                   VoxelWorld.worlds[1].actionOnSwitchedWorld = delegate () {
+
+                       PlayerMove.instance.cc.enabled = false;
+                       PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
+                       PlayerMove.instance.cc.enabled = true;
+                       Debug.Log("action executed");
+                   };
+               }
+               if (Input.GetKeyDown(KeyCode.K))
+               {
+
+                   SceneManagementHelper.SwitchToWorldWithSceneChanged(0, 1);
+                   VoxelWorld.worlds[0].actionOnSwitchedWorld = delegate () {
+
+                       PlayerMove.instance.cc.enabled = false;
+                       PlayerMove.instance.transform.position = new Vector3(0, 150, 0);
+                       PlayerMove.instance.cc.enabled = true;
+                       Debug.Log("action executed world 0");
+                   };
+               }*/
         // foreach(ItemEntityBeh i in ItemEntityBeh.worldItemEntities){
         //   i.AddForceInvoke(Vector3.up*10f);
         //  }

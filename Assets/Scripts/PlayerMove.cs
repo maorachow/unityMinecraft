@@ -61,7 +61,7 @@ public class PlayerData
     }
 }
 
-public partial class PlayerMove: MonoBehaviour
+public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 {
     public static AudioClip playerSinkClip
     {
@@ -116,11 +116,31 @@ public partial class PlayerMove: MonoBehaviour
     public float currentSpeed;
     public Vector3 playerVec;
     public Vector3 playerMotionVec;
-    public bool isPlayerKilled = false;
+    public bool isDied { get; set; }= false;
     public ItemOnHandBeh playerHandItem;
     public int currentSelectedHotbar = 5;
-  
-    
+
+    public IAttackableEntityTarget primaryTargetEntity
+    {
+        get;
+        set;
+    }
+    public List<IAttackableEntityTarget> primaryAttackerEntities
+    {
+        get;
+        set;
+    }
+
+    public void ClearPrimaryTarget()
+    {
+         
+    }
+
+    public Transform entityTransformRef
+    {
+        get;
+        set;
+    }
 
     public static float chunkStrongLoadingRange = 48;
 
@@ -258,7 +278,7 @@ public partial class PlayerMove: MonoBehaviour
 
     public void BreakBlockButtonPress()
     {
-        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isDied == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             return;
         }
@@ -272,7 +292,7 @@ public partial class PlayerMove: MonoBehaviour
 
     public void PlaceBlockButtonPress()
     {
-        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
+        if (isDied == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true)
         {
             return;
         }
@@ -315,8 +335,8 @@ public partial class PlayerMove: MonoBehaviour
         //  InvokeRepeating("SendChunkReleaseMessage",1f,3f);
       
 
-        transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, 0f);
-        transform.GetChild(0).localPosition = new Vector3(0f, 0f, 0f);
+      //  transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, 0f);
+     //   transform.GetChild(0).localPosition = new Vector3(0f, 0f, 0f);
         playerSweepParticlePrefab = Resources.Load<GameObject>("Prefabs/playersweepparticle");
         //     playerBound=new SimpleAxisAlignedBB(transform.position-new Vector3(0.3f,0.5f,0.3f),transform.position+new Vector3(0.3f,0.9f,0.3f));
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
@@ -331,6 +351,8 @@ public partial class PlayerMove: MonoBehaviour
 
         PlayerInputBeh.instance.playerRightClickActions.Add(PlaceBlockButtonPress);
         PlayerInputBeh.instance.AddButtonActions();
+        entityTransformRef = headPos;
+        primaryAttackerEntities = new List<IAttackableEntityTarget>();
     }
 
 
@@ -347,7 +369,7 @@ public partial class PlayerMove: MonoBehaviour
             return;
         }
 
-        if (isPlayerKilled == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true||GameUIBeh.instance.isPauseMenuOpened==true)
+        if (isDied == true || GlobalGameOptions.isGamePaused == true || GameUIBeh.instance.isCraftingMenuOpened == true||GameUIBeh.instance.isPauseMenuOpened==true)
         {
             return;
         }
@@ -398,7 +420,9 @@ public partial class PlayerMove: MonoBehaviour
         playerCameraZShakeLerpValue = Random.Range(-15f, 15f);
         float reducedDamage = Mathf.Max((1f - (playerArmorPoints * 4f / 100f)) * damageAmount, 0f);
         playerHealth -= reducedDamage;
+
         playerArmorPoints -= damageAmount * 0.1f;
+        playerArmorPoints = MathF.Max(playerArmorPoints, 0f);
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
         playerMotionVec = knockback;
@@ -432,13 +456,28 @@ public partial class PlayerMove: MonoBehaviour
             }
         }
 
-        Cursor.lockState = CursorLockMode.Confined;
-        cc.enabled = false;
-        transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, -90f);
-        transform.GetChild(0).localPosition = new Vector3(0.65f, -0.68f, 0f);
-        cc.enabled = true;
 
-        isPlayerKilled = true;
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities != null)
+            {
+                item.primaryAttackerEntities.Clear();
+
+                item.ClearPrimaryTarget();
+            }
+
+        }
+        primaryAttackerEntities.Clear();
+        primaryTargetEntity = null;
+
+
+        Cursor.lockState = CursorLockMode.Confined;
+        /*    cc.enabled = false;
+            transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, -90f);
+            transform.GetChild(0).localPosition = new Vector3(0.65f, -0.68f, 0f);
+            cc.enabled = true;*/
+
+        isDied = true;
         am.SetBool("iskilled", true);
         am.SetFloat("speed", 0f);
         RespawnUI.instance.gameObject.SetActive(true);
@@ -455,17 +494,16 @@ public partial class PlayerMove: MonoBehaviour
         transform.rotation = Quaternion.identity;
         transform.position = new Vector3(0f, 150f, 0f);
         //     playerBound=new SimpleAxisAlignedBB(new Vector3(0f,150f,0f)-new Vector3(0.3f,0.5f,0.3f),new Vector3(0f,150f,0f)+new Vector3(0.3f,0.9f,0.3f));
-        headPos.rotation = Quaternion.identity;
-        playerBodyPos.rotation = Quaternion.identity;
-        transform.GetChild(0).rotation = Quaternion.Euler(0f, 0f, 0f);
-        transform.GetChild(0).localPosition = new Vector3(0f, 0f, 0f);
+        headPos.localRotation = Quaternion.identity;
+        playerBodyPos.localRotation = Quaternion.identity;
+     
 
-        transform.GetChild(0).GetChild(1).rotation = Quaternion.Euler(0f, 0f, 0f);
+     //   transform.GetChild(0).GetChild(1).rotation = Quaternion.Euler(0f, 0f, 0f);
         cc.enabled = true;
 
 
         playerHealth = 20f;
-        isPlayerKilled = false;
+        isDied = false;
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         RespawnUI.instance.gameObject.SetActive(false);
         transform.position = new Vector3(0f, 150f, 0f);
@@ -544,17 +582,17 @@ public partial class PlayerMove: MonoBehaviour
             playerHandItem.blockID = inventoryDic[currentSelectedHotbar - 1];
         }
 
-        if (playerHealth <= 0f && isPlayerKilled == false)
+        if (playerHealth <= 0f && isDied == false)
         {
             PlayerDie();
         }
 
-        if (transform.position.y < -40f && isPlayerKilled == false)
+        if (transform.position.y < -40f && isDied == false)
         {
             PlayerDie();
         }
 
-        if (isPlayerKilled == true)
+        if (isDied == true)
         {
             return;
         }
@@ -844,7 +882,7 @@ public partial class PlayerMove: MonoBehaviour
 
     public void PlayerGroundSinkPrevent(CharacterController cc, int blockID, float dt)
     {
-        if (blockID > 0f && blockID < 100f)
+        if (WorldHelper.instance.GetBlockShape(blockID) is BlockShape.Solid|| WorldHelper.instance.GetBlockShape(blockID) is BlockShape.SolidTransparent) 
         {
             //      cc.Move(new Vector3(0f,dt*5f,0f));
             gravity = 0f;
@@ -892,7 +930,7 @@ public partial class PlayerMove: MonoBehaviour
 
             if (info.collider.GetComponent<EndermanBeh>() != null)
             {
-                info.collider.GetComponent<EndermanBeh>().isIdling = false;
+                info.collider.GetComponent<EndermanBeh>().primaryAttackerEntities.Add(this);
             }
         }
         else
@@ -941,8 +979,8 @@ public partial class PlayerMove: MonoBehaviour
         }
 
         // Debug.Log(finalMoveVec);
-        curFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f, -0.2f, 0f), curChunk);
-        curUnderFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f, -1.2f, 0f), curChunk);
+        curFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f,0.2f, 0f), curChunk);
+        curUnderFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f, -0.2f, 0f), curChunk);
         curHeadBlockID = WorldHelper.instance.GetBlock(cameraPos.position, curChunk);
         //     Debug.Log("block ID:"+ curUnderFootBlockID);
         //   Debug.Log(curChunk.ToString());

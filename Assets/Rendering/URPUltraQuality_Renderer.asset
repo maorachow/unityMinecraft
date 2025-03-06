@@ -30,9 +30,9 @@ MonoBehaviour:
   settings:
     isUsingForwardRendering: 0
     glossyReflectionSimulatingMethod: 1
-    maxIterations: 64
+    maxIterations: 50
     ssrThickness: 0.228
-    maxTracingDistance: 629
+    maxTracingDistance: 1000
     ssrBlendFactor: 0.882
     ssrMinSmoothness: 0
 --- !u!114 &-5350234899490559189
@@ -51,7 +51,7 @@ MonoBehaviour:
   settings:
     sampleCount: 64
     edgeWidth: 0.05
-    stepLength: 1.8
+    stepLength: 2.7
     fadeDistance: 45
     downSample: 0
     currentEntryPoint: 1

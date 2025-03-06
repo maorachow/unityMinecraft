@@ -5,7 +5,7 @@ public static class ChunkCoordsHelper
 {
     public static Vector3Int Vec3ToBlockPos(Vector3 pos)
     {
-        Vector3Int intPos = new Vector3Int(FloatToInt(pos.x), FloatToInt(pos.y), FloatToInt(pos.z));
+        Vector3Int intPos = Vector3Int.FloorToInt(pos);
         return intPos;
     }
     public static int FloatToInt(float f)

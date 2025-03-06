@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.IO;
 using Cysharp.Threading.Tasks;
-using System.Threading.Tasks;
-using System.Threading;
 using MessagePack;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using UnityEngine;
 [MessagePackObject]
 public struct ItemData{
     [Key(0)]
@@ -307,8 +305,9 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
     public bool isInUnloadedChunks=false;
 
 
-    public async void OnDisable(){
-
+    public async void OnDisable()
+    {
+        rb.velocity = new Vector3(0, 0, 0);
         lastItemPos=transform.position;
         RemoveItemEntityFromSave();
         worldItemEntities.Remove(this); 
@@ -511,7 +510,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
          if( playerPos.gameObject.GetComponent<PlayerMove>().CheckInventoryIsFull(itemID)==true){
             return;
         }
-        if(playerPos.gameObject.GetComponent<PlayerMove>().isPlayerKilled==true){
+        if(playerPos.gameObject.GetComponent<PlayerMove>().isDied==true){
             return;
         }
         AudioSource.PlayClipAtPoint(PlayerMove.playerDropItemClip,transform.position,1f);

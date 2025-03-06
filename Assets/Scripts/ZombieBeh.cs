@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
-public class ZombieBeh : MonoBehaviour,ILivingEntity
+public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
 {   
     public int curBlockOnFootID;
     public int prevBlockOnFootID;
@@ -12,7 +12,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
     public static Transform playerPosition;
     public Transform currentTrans;
     public static GameObject diedZombiePrefab;
-    public bool isZombieDied=false;
+    public bool isDied { get; set; } = false;
     private CharacterController cc;
     public Animator am;
     public Transform headTransform;
@@ -29,7 +29,28 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
     public bool isJumping=false;
     public float entitySpeed;
     public EntityBeh entity;
-     public bool isIdling{get;set;}
+    public IAttackableEntityTarget primaryTargetEntity
+    {
+        get;
+        set;
+    }
+    public List<IAttackableEntityTarget> primaryAttackerEntities
+    {
+        get;
+        set;
+    }
+
+    public void ClearPrimaryTarget()
+    {
+        primaryTargetEntity = null;
+    }
+
+    public Transform entityTransformRef
+    {
+        get;
+        set;
+    }
+    public bool isIdling{get;set;}
      public float timeUsedToReachTarget;
      public bool hasReachedTarget;
     public static bool isZombiePrefabLoaded=false;
@@ -73,7 +94,8 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
     
         cc = GetComponent<CharacterController>();
         am=GetComponent<Animator>();
-    
+        entityTransformRef = headTransform;
+     
     }
     
     public void InitPos(){
@@ -84,14 +106,63 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
     }
     public void OnDisable(){
             entityMotionVec=Vector3.zero;
-            isZombieDied=false;
+        isDied = false;
             entityHealth=20f;
             isPosInited=false;
+
+            foreach (var item in primaryAttackerEntities)
+            {
+                if (item.primaryAttackerEntities != null)
+                {
+                    item.primaryAttackerEntities.Clear();
+
+                    item.ClearPrimaryTarget();
+                }
+
+            }
+            primaryAttackerEntities.Clear();
+            primaryTargetEntity = null;
     }
-    
+
+    void OnEnable()
+    {
+        if (cc != null)
+        {
+            cc.enabled = true;
+        }
+        if (primaryAttackerEntities != null)
+        {
+            foreach (var item in primaryAttackerEntities)
+            {
+                if (item.primaryAttackerEntities != null)
+                {
+                    item.primaryAttackerEntities.Clear();
+
+                    item.ClearPrimaryTarget();
+                }
+
+            }
+            primaryAttackerEntities.Clear();
+        }
+        this.primaryTargetEntity = null;
+        primaryAttackerEntities = new List<IAttackableEntityTarget>();
+    }
     public void DieWithKnockback(Vector3 knockback){
-    AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
-        isZombieDied=true;
+
+
+
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item.primaryAttackerEntities != null)
+            {
+                item.primaryAttackerEntities.Clear();
+
+                item.ClearPrimaryTarget();
+            }
+
+        }
+        AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
+    isDied = true;
             Transform curTrans=transform;
             Transform diedZombieTrans=Instantiate(diedZombiePrefab,curTrans.position,curTrans.rotation).GetComponent<Transform>();
        
@@ -130,13 +201,23 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
 
 
        public void TryAttack(){
-           if (Vector3.Magnitude(currentTrans.position - playerPosition.position) < zombieTargetRadius * 1.2f &&
+           if (primaryTargetEntity == null)
+           {
+               return;
+           }
+           if (Vector3.Magnitude(entityTransformRef.position - primaryTargetEntity.entityTransformRef.position) < zombieTargetRadius * 1.2f &&
                isIdling == false)
            {
                if (attackCD <= 0f)
                {
-                   playerPosition.gameObject.GetComponent<PlayerMove>()
-                       .ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 15f);
+                primaryTargetEntity
+                     .ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 5f);
+
+                if (primaryTargetEntity.primaryAttackerEntities != null)
+                {
+                    primaryTargetEntity.primaryAttackerEntities.Add(this);
+                }
+                
                    am.SetBool("attack", true);
                    attackCD = 1.2f;
                    Invoke("CancelAttack", 0.2f);
@@ -172,91 +253,149 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
         if (entity.isInUnloadedChunks==true){
             return;
         }
-         var results = new NativeArray<RaycastHit>(1, Allocator.TempJob);
-        var commands = new NativeArray<RaycastCommand>(1, Allocator.TempJob);
-        Vector3 rayDirection=Vector3.Normalize(playerPosition.position-(transform.position+new Vector3(0f,1f,0f)));
-        commands[0]=new RaycastCommand(transform.position+new Vector3(0f,1f,0f),rayDirection,new QueryParameters((1 << 0) | (1 << 2) ),16f);
-        JobHandle handle = RaycastCommand.ScheduleBatch(commands, results, 1, 1, default(JobHandle));
-        curBlockOnFootID=WorldHelper.instance.GetBlock(currentTrans.position,entity.currentChunk);
-         if(curBlockOnFootID==0||(101<=curBlockOnFootID&&curBlockOnFootID<=200)){
-        gravity=-9.8f;
-        }
-          EntityGroundSinkPrevent(cc,curBlockOnFootID,Time.deltaTime);
-          if(prevBlockOnFootID!=curBlockOnFootID){
-            if(curBlockOnFootID==100){
-             gravity=-1f;
-             AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
-             ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
-            }else{
-               gravity=-9.8f;
-            }
-             
-        }
-        prevBlockOnFootID=curBlockOnFootID;
-      //  targetPos = playerPosition.position;
-        if(Random.Range(0f,100f)>99f){
-             AudioSource.PlayClipAtPoint(zombieIdleClip,currentTrans.position,1f);
-        }
-        handle.Complete();
-         if(results[0].collider!=null){
-          //  Debug.Log("hit");
-           
-            if(results[0].collider.gameObject.tag=="Player"){
-            //    Debug.Log("hitplayer");
-            if (PlayerMove.instance.isPlayerKilled == false)
+        primaryTargetEntity = PlayerMove.instance;
+        foreach (var item in primaryAttackerEntities)
+        {
+            if (item is not PlayerMove)
             {
-                isIdling = false;
+                primaryTargetEntity = item;
+                break;
+            }
+        }
+
+        if (primaryTargetEntity != null)
+        {
+            RaycastHit hitInfo;
+
+            Physics.Linecast((primaryTargetEntity.entityTransformRef.position), (headTransform.position), out hitInfo, LayerMask.GetMask("Default"));
+            Debug.DrawLine((primaryTargetEntity.entityTransformRef.position), (headTransform.position), Color.green, Time.fixedDeltaTime);
+            if (hitInfo.collider != null)
+            {
+
+
+                isIdling = true;
+            }
+            else
+            {
+                if ((primaryTargetEntity.entityTransformRef.position - headTransform.position)
+                    .magnitude < 16f)
+                {
+                    if (primaryTargetEntity.isDied == true)
+                    {
+                        isIdling = true;
+                    }
+                    else
+                    {
+                        isIdling = false;
+                    }
                 }
+                else
+                {
+                    isIdling = true;
+                }
+
+            }
+
+        }
+        else
+        {
+            isIdling = true;
+        }
+     
+        curBlockOnFootID = WorldHelper.instance.GetBlock(currentTrans.position, entity.currentChunk);
+        if (curBlockOnFootID == 0 || (101 <= curBlockOnFootID && curBlockOnFootID <= 200))
+        {
+            gravity = -9.8f;
+        }
+
+        EntityGroundSinkPrevent(cc, curBlockOnFootID, Time.deltaTime);
+        if (prevBlockOnFootID != curBlockOnFootID)
+        {
+            if (curBlockOnFootID == 100)
+            {
+                gravity = -1f;
+                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
+            }
+            else
+            {
+                gravity = -9.8f;
+            }
+        }
+
+        prevBlockOnFootID = curBlockOnFootID;
+        //  targetPos = playerPosition.position;
+        if (Random.Range(0f, 100f) > 99f)
+        {
+            AudioSource.PlayClipAtPoint(zombieIdleClip, currentTrans.position, 1f);
+        }
+ 
+
+        if (isIdling == true)
+        {
+            if (hasReachedTarget == true)
+            {
+                timeUsedToReachTarget = 0f;
+                Vector2 randomTargetPos =
+                    new Vector2(Random.Range(transform.position.x - 8f, transform.position.x + 8f),
+                        Random.Range(transform.position.z - 8f, transform.position.z + 8f));
+                Vector3 finalTargetPos = new Vector3(randomTargetPos.x,
+                    WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x, randomTargetPos.y) + 1f,
+                    randomTargetPos.y);
+                targetPos = finalTargetPos;
+            }
+            else
+            {
+                timeUsedToReachTarget += Time.deltaTime;
+                if (timeUsedToReachTarget >= 5f)
+                {
+                    hasReachedTarget = true;
+                    timeUsedToReachTarget = 0f;
+                    Vector2 randomTargetPos =
+                        new Vector2(Random.Range(transform.position.x - 8f, transform.position.x + 8f),
+                            Random.Range(transform.position.z - 8f, transform.position.z + 8f));
+                    Vector3 finalTargetPos = new Vector3(randomTargetPos.x,
+                        WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x, randomTargetPos.y) + 1f,
+                        randomTargetPos.y);
+                    targetPos = finalTargetPos;
+                }
+            }
+        }
+        else
+        {
+            timeUsedToReachTarget = 0f;
+            if (primaryTargetEntity != null)
+            {
+                targetPos = primaryTargetEntity.entityTransformRef.position;
+            }
             else
             {
                 isIdling=true;
             }
-                
-            }else{
-                isIdling=true; 
-            }
             
-        }else{
-            isIdling=true;
         }
-
-        if(isIdling==true){
-        if(hasReachedTarget==true){
-            timeUsedToReachTarget=0f;
-            Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
-            Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
-            targetPos=finalTargetPos;  
-        }else{
-            timeUsedToReachTarget+=Time.deltaTime;
-            if(timeUsedToReachTarget>=5f){
-                hasReachedTarget=true;
-                timeUsedToReachTarget=0f;
-                Vector2 randomTargetPos=new Vector2(Random.Range(transform.position.x-8f,transform.position.x+8f),Random.Range(transform.position.z-8f,transform.position.z+8f));
-                Vector3 finalTargetPos=new Vector3(randomTargetPos.x,WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x,randomTargetPos.y)+1f,randomTargetPos.y);
-                targetPos=finalTargetPos;  
-            }
-        }
-           
-    }else{
-         timeUsedToReachTarget=0f;
-        targetPos=playerPosition.position;
+         
     }
-        results.Dispose();
-        commands.Dispose();
-    }
-    
 
-        Vector3 targetPos;
-          public void EntityGroundSinkPrevent(CharacterController cc,int blockID,float dt){
-             if(cc.enabled==false){
+
+    Vector3 targetPos;
+
+    public void EntityGroundSinkPrevent(CharacterController cc, int blockID, float dt)
+    {
+        if (cc.enabled == false)
+        {
             return;
         }
-         if(blockID>0f&&blockID<100f){
-            cc.Move(new Vector3(0f,dt*5f,0f));
-            gravity=0f;
-         }  else{
-            gravity=-9.8f;
-         }
+
+        if (blockID > 0f && blockID < 100f)
+        {
+            cc.Move(new Vector3(0f, dt * 5f, 0f));
+            gravity = 0f;
+        }
+        else
+        {
+            gravity = -9.8f;
+        }
     }
 
     public static readonly float zombieTargetRadius=1.4f;
@@ -399,7 +538,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity
         ApplyGravity(cc,gravity,dt);
 
 
-        if (entityHealth <= 0f && isZombieDied == false)
+        if (entityHealth <= 0f && isDied == false)
         {
             DieWithKnockback(entityMotionVec);
         }

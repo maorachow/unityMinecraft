@@ -1,0 +1,346 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: NewShaderVariants
+  m_Shaders:
+  - first: {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: UNITY_UI_ALPHACLIP
+        passType: 0
+  - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 104, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: _SUNDISK_HIGH_QUALITY
+        passType: 0
+  - first: {fileID: 211, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: FOG_EXP2 _ALPHABLEND_ON
+        passType: 0
+      - keywords: PROCEDURAL_INSTANCING_ON _ALPHABLEND_ON
+        passType: 8
+      - keywords: _ALPHABLEND_ON
+        passType: 8
+  - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9001, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9002, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9003, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9004, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9007, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9103, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _OUTPUT_DEPTH
+        passType: 0
+  - first: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd, type: 3}
+    second:
+      variants:
+      - keywords: _MAIN_LIGHT_SHADOWS
+        passType: 0
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 0
+  - first: {fileID: 4800000, guid: 65df88701913c224d95fc554db28381a, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc, type: 3}
+    second:
+      variants:
+      - keywords: _TONEMAP_NEUTRAL
+        passType: 0
+  - first: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
+    second:
+      variants:
+      - keywords: _BLOOM_LQ _HDR_GRADING
+        passType: 0
+      - keywords: _BLOOM_LQ _TONEMAP_NEUTRAL
+        passType: 0
+  - first: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
+    second:
+      variants:
+      - keywords: FOG_EXP2
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _CONTACT_SHADOW _DEFERRED_FIRST_LIGHT
+          _DEFERRED_MAIN_LIGHT _MAIN_LIGHT_SHADOWS_SCREEN _SCREEN_SPACE_OCCLUSION
+          _SHADOWS_SOFT
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT
+          _MAIN_LIGHT_SHADOWS _SCREEN_SPACE_OCCLUSION
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS _SCREEN_SPACE_OCCLUSION
+        passType: 0
+  - first: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 93446b5c5339d4f00b85c159e1159b7c, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: c56b7e0d4c7cb484e959caeeedae9bbf, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 12
+  - first: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _BLUE_NOISE _SAMPLE_COUNT_HIGH _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _BLUE_NOISE _SAMPLE_COUNT_LOW _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _BLUE_NOISE _SAMPLE_COUNT_MEDIUM _SOURCE_DEPTH_NORMALS
+        passType: 0
+  - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: INSTANCING_ON
+        passType: 8
+      - keywords: LOD_FADE_CROSSFADE _ALPHATEST_ON
+        passType: 8
+      - keywords: _ALPHATEST_ON
+        passType: 8
+      - keywords: 
+        passType: 13
+      - keywords: EVALUATE_SH_VERTEX FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _CONTACT_SHADOW _MAIN_LIGHT_SHADOWS_CASCADE _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT
+          _SPECULAR_SETUP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: EVALUATE_SH_VERTEX FOG_EXP2 _ADDITIONAL_LIGHTS _CONTACT_SHADOW
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: FOG_EXP2
+        passType: 13
+      - keywords: FOG_EXP2 LOD_FADE_CROSSFADE _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _ALPHATEST_ON _CONTACT_SHADOW _MAIN_LIGHT_SHADOWS_SCREEN _SCREEN_SPACE_OCCLUSION
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: FOG_EXP2 LOD_FADE_CROSSFADE _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _ALPHATEST_ON _MAIN_LIGHT_SHADOWS_CASCADE _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: FOG_EXP2 LOD_FADE_CROSSFADE _ADDITIONAL_LIGHTS _ALPHATEST_ON
+        passType: 13
+      - keywords: FOG_EXP2 LOD_FADE_CROSSFADE _ALPHATEST_ON
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _CONTACT_SHADOW _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS_SCREEN
+          _NORMALMAP _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _CONTACT_SHADOW _MAIN_LIGHT_SHADOWS_SCREEN _NORMALMAP _SCREEN_SPACE_OCCLUSION
+          _SHADOWS_SOFT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _CONTACT_SHADOW _MAIN_LIGHT_SHADOWS_SCREEN _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _SCREEN_SPACE_OCCLUSION
+          _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _SHADOWS_SOFT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _ALPHATEST_ON
+          _MAIN_LIGHT_SHADOWS_CASCADE _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _CONTACT_SHADOW
+          _MAIN_LIGHT_SHADOWS_CASCADE _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT _SPECULAR_SETUP
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _CONTACT_SHADOW
+          _MAIN_LIGHT_SHADOWS_SCREEN _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _CONTACT_SHADOW
+          _MAIN_LIGHT_SHADOWS_SCREEN _SCREEN_SPACE_OCCLUSION _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SCREEN_SPACE_OCCLUSION _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SCREEN_SPACE_OCCLUSION _SPECULAR_SETUP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ALPHATEST_ON
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _ALPHATEST_ON _ENVIRONMENTREFLECTIONS_OFF
+          _NORMALMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _CONTACT_SHADOW _MAIN_LIGHT_SHADOWS_SCREEN
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _NORMALMAP
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ADDITIONAL_LIGHTS _SPECULAR_SETUP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: FOG_EXP2 _ALPHATEST_ON
+        passType: 13
+      - keywords: FOG_EXP2 _ALPHATEST_ON _ENVIRONMENTREFLECTIONS_OFF _NORMALMAP _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _ALPHATEST_ON _NORMALMAP
+        passType: 13
+      - keywords: FOG_EXP2 _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: FOG_EXP2 _SPECULAR_SETUP _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: LOD_FADE_CROSSFADE _ALPHATEST_ON
+        passType: 13
+      - keywords: _ALPHATEST_ON
+        passType: 13
+      - keywords: _ALPHATEST_ON _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS_CASCADE
+          _NORMALMAP _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _ALPHATEST_ON _MAIN_LIGHT_SHADOWS _NORMALMAP
+        passType: 13
+      - keywords: _ALPHATEST_ON _MAIN_LIGHT_SHADOWS_CASCADE _NORMALMAP _SHADOWS_SOFT
+        passType: 13
+      - keywords: _ALPHATEST_ON _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: _ALPHATEST_ON _NORMALMAP
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS _NORMALMAP
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+  - first: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
+    second:
+      variants:
+      - keywords: UNDERLAY_ON
+        passType: 0
+  - first: {fileID: 4800000, guid: 1edcd131364091c46a17cbff0b1de97a, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 5f1864addb451f54bae8c86d230f736e, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: e8ee25143a34b8c4388709ea947055d1, type: 3}
+    second:
+      variants:
+      - keywords: _FXAA
+        passType: 0
+      - keywords: _FXAA_AND_GAMMA_20
+        passType: 0
+  - first: {fileID: 4800000, guid: 562b7ae4f629f144aa97780546fce7c6, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: c49e63ed1bbcb334780a3bd19dfed403, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _FXAA
+        passType: 0
+      - keywords: _RCAS
+        passType: 0
+  - first: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
+    second:
+      variants:
+      - keywords: BEVEL_ON UNDERLAY_ON
+        passType: 0
+  - first: {fileID: 4800000, guid: 36e335017ad71d54fbb10842863188ae, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 26a89892250e3aa469e3158aa8312b28, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 88ec353ef56d4bf4390d94916b5a6d18, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _MAIN_LIGHT_SHADOWS_SCREEN
+        passType: 0
+  - first: {fileID: 4800000, guid: c8b3eb286f9ecf1478a72e426e6ab8de, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0

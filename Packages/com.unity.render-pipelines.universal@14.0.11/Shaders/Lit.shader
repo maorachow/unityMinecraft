@@ -138,7 +138,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
 
 
-            #pragma multi_compile_fragment _ _CONTACT_SHADOW
+            #pragma multi_compile _ _CONTACT_SHADOW
 
 
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS

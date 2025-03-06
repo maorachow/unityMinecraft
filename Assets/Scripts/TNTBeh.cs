@@ -74,7 +74,7 @@ public class TNTBeh : MonoBehaviour
                     {
                         if (WorldHelper.instance.GetBlock(blockPoint) != 0)
                         {
-                    WorldHelper.instance.BreakBlockAtPoint(blockPoint);
+                            WorldHelper.instance.SendBreakBlockOperation(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint) );
                         }
                        
                     }

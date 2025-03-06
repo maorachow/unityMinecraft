@@ -68,7 +68,9 @@ public class EntityBeh : MonoBehaviour
     public int entityTypeID;
     public int entityInWorldID;
     public string guid;
-    public static bool isWorldEntityDataSaved=false;
+    public static bool isWorldEntityDataSaved = false;
+
+    public static Transform playerTransform;
     public bool isInUnloadedChunks=false;
     public void OnDisable(){
      

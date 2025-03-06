@@ -133,6 +133,28 @@ public class ArrowBeh : MonoBehaviour
             //    Debug.Log("damage success:entity");
                 ILivingEntity livingEntity = (ILivingEntity)c.GetComponent(typeof(ILivingEntity));
                 livingEntity.ApplyDamageAndKnockback((arrowDamage + Random.Range(-arrowDamageRandomRange / 2.0f, arrowDamageRandomRange / 2.0f))* Mathf.Min(arrowVelocityMagnitude,1f), (sourceTrans.position - c.transform.position).normalized * Random.Range(-5f, -10f));
+
+                if(c.GetComponent(typeof(IAttackableEntityTarget))!=null)
+                {
+                    IAttackableEntityTarget attackableTarget = (IAttackableEntityTarget)c.GetComponent(typeof(IAttackableEntityTarget));
+                    IAttackableEntityTarget attackSource = (IAttackableEntityTarget)sourceTrans.GetComponent(typeof(IAttackableEntityTarget));
+                    if (attackableTarget != null && attackSource != null)
+                    {
+                        if (attackSource.entityTransformRef.gameObject.activeInHierarchy == true)
+                        {
+                            if (attackableTarget.primaryAttackerEntities != null)
+                            {
+                                if (!attackableTarget.primaryAttackerEntities.Contains(attackSource))
+                                {
+                                    attackableTarget.primaryAttackerEntities.Add(attackSource);
+                                }
+                            }
+                        }
+                      
+                        
+                       
+                    }
+                }
                 VoxelWorld.currentWorld.arrowEntityPool.Release(this.gameObject);
                 return;
             }
