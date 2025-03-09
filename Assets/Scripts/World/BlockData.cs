@@ -1,7 +1,8 @@
+using System;
 using MessagePack;
 using System.Collections.Generic;
 using UnityEngine;
-
+[Serializable]
 public enum BlockShape
 {
     Solid = 0,
@@ -17,6 +18,7 @@ public enum BlockShape
 
 }
 [MessagePackObject]
+ 
 public struct BlockData
 {
     [Key(0)]
@@ -38,10 +40,10 @@ public struct BlockData
     public static implicit operator short(BlockData data) => data.blockID;
 
 }
-
+ 
 public struct BlockInfo
 {
-
+  
     public List<Vector2> uvCorners;
     public List<Vector2> uvSizes;
 

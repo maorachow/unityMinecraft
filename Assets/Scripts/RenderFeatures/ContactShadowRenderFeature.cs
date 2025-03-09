@@ -3,8 +3,6 @@ using UnityEngine.Rendering;
 using UnityEngine;
  
 using System;
-using UnityEditor;
-using UnityEngine.Experimental.Rendering;
 
 
 public class ContactShadowRenderFeature : ScriptableRendererFeature
@@ -149,15 +147,16 @@ public class ContactShadowRenderPass : ScriptableRenderPass
     {
        
         CommandBuffer cmd = CommandBufferPool.Get("Generate Contact Shadowmap");
-        CoreUtils.SetKeyword(cmd, contactShadowKeyword, true);
+        CoreUtils.SetKeyword(cmd, contactShadowKeyword, true); 
+        CoreUtils.SetKeyword(cmd, "_ORTHOGRAPHIC", renderingData.cameraData.camera.orthographic);
         RTHandle cameraTargetHandle =
             renderingData.cameraData.renderer.cameraColorTargetHandle;
         var camera = renderingData.cameraData.camera;
  
         UpdateSettings();
- 
+      
         Blit(cmd, cameraTargetHandle, contactShadowMap, material);
-
+        
         cmd.SetGlobalTexture("_ContactShadowMap", contactShadowMap);
     
         context.ExecuteCommandBuffer(cmd);
@@ -167,6 +166,7 @@ public class ContactShadowRenderPass : ScriptableRenderPass
     public override void OnCameraCleanup(CommandBuffer cmd)
     {
         CoreUtils.SetKeyword(cmd, contactShadowKeyword, false);
+       
     }
 
     public void Dispose()

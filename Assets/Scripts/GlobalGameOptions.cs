@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class GlobalGameOptions  
 {
     public static bool isGamePaused=false;

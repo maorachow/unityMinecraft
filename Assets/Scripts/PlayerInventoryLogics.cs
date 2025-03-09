@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public partial class PlayerMove
@@ -248,7 +246,7 @@ public partial class PlayerMove
 
         if (inventoryItemNumberDic[slotID] > 0)
         {
-            AudioSource.PlayClipAtPoint(playerDropItemClip, gameObject.transform.position, 1f);
+           AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("itemPopClip"));
             ItemEntityBeh.SpawnNewItem(headPos.position.x, headPos.position.y, headPos.position.z, inventoryDic[slotID],
                 (headPos.forward * 12));
             inventoryItemNumberDic[slotID]--;

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System;
 using UnityEngine;
 
 
@@ -31,8 +29,31 @@ public static partial class BlockMeshBuildingHelper
 
         )
     {
-        if (blockData.blockID == 0 || !Chunk.blockInfosNew.ContainsKey(blockData.blockID))
+        if (blockData.blockID == 0)
         {
+            return;
+        }
+        if ( !Chunk.IsBlockIDValid(blockData))
+        {
+            if (curChunk.CheckNeedBuildFace(x - 1, y, z, blockData))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.unknownBlockInfo.uvCorners[0], Chunk.unknownBlockInfo.uvSizes[0], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
+            //Right
+            if (curChunk.CheckNeedBuildFace(x + 1, y, z, blockData))
+                BuildFaceComplex(new Vector3(x + 1, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.unknownBlockInfo.uvCorners[1], Chunk.unknownBlockInfo.uvSizes[1], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
+
+            //Bottom
+            if (curChunk.CheckNeedBuildFace(x, y - 1, z, blockData))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.unknownBlockInfo.uvCorners[2], Chunk.unknownBlockInfo.uvSizes[2], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
+            //Top
+            if (curChunk.CheckNeedBuildFace(x, y + 1, z, blockData))
+                BuildFaceComplex(new Vector3(x, y + 1, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.unknownBlockInfo.uvCorners[3], Chunk.unknownBlockInfo.uvSizes[3], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
+
+            //Back
+            if (curChunk.CheckNeedBuildFace(x, y, z - 1, blockData))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.unknownBlockInfo.uvCorners[4], Chunk.unknownBlockInfo.uvSizes[4], true, OpqVerts, OpqUVs, OpqTris, OpqNorms);
+            //Front
+            if (curChunk.CheckNeedBuildFace(x, y, z + 1, blockData))
+                BuildFaceComplex(new Vector3(x, y, z + 1), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.unknownBlockInfo.uvCorners[5], Chunk.unknownBlockInfo.uvSizes[5], false, OpqVerts, OpqUVs, OpqTris, OpqNorms);
             return;
         }
         short typeid = blockData.blockID;
@@ -355,7 +376,7 @@ public static partial class BlockMeshBuildingHelper
                         BuildFaceComplex(new Vector3(x + 1, y, z), new Vector3(0, 0.5f, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true,OpqVerts,OpqUVs,OpqTris,OpqNorms);
 
                         //Bottom
-                        if (curChunk.CheckNeedBuildFace(x, y - 1, z, false))
+                        if (curChunk.CheckNeedBuildFace(x, y - 1, z, blockData))
                             BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         //Top
 
@@ -380,7 +401,7 @@ public static partial class BlockMeshBuildingHelper
 
                         BuildFaceComplex(new Vector3(x, y + 0.5f, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         //Top
-                        if (curChunk.CheckNeedBuildFace(x, y + 1, z, false))
+                        if (curChunk.CheckNeedBuildFace(x, y + 1, z, blockData))
                             BuildFaceComplex(new Vector3(x, y + 1f, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,OpqVerts,OpqUVs,OpqTris,OpqNorms);
 
                         //Back
@@ -391,24 +412,24 @@ public static partial class BlockMeshBuildingHelper
                         BuildFaceComplex(new Vector3(x, y + 0.5f, z + 1), new Vector3(0, 0.5f, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         break;
                     case 2:
-                        if (curChunk.CheckNeedBuildFace(x - 1, y, z, false))
+                        if (curChunk.CheckNeedBuildFace(x - 1, y, z, blockData))
                             BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[0], Chunk.blockInfosNew[blockData.blockID].uvSizes[0], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         //Right
-                        if (curChunk.CheckNeedBuildFace(x + 1, y, z, false))
+                        if (curChunk.CheckNeedBuildFace(x + 1, y, z, blockData))
                             BuildFaceComplex(new Vector3(x + 1, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1), Chunk.blockInfosNew[blockData.blockID].uvCorners[1], Chunk.blockInfosNew[blockData.blockID].uvSizes[1], true,OpqVerts,OpqUVs,OpqTris,OpqNorms);
 
                         //Bottom
-                        if (curChunk.CheckNeedBuildFace(x, y - 1, z, false))
+                        if (curChunk.CheckNeedBuildFace(x, y - 1, z, blockData))
                             BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[2], Chunk.blockInfosNew[blockData.blockID].uvSizes[2], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         //Top
-                        if (curChunk.CheckNeedBuildFace(x, y + 1, z, false))
+                        if (curChunk.CheckNeedBuildFace(x, y + 1, z, blockData))
                             BuildFaceComplex(new Vector3(x, y + 1, z), new Vector3(0, 0, 1), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[3], Chunk.blockInfosNew[blockData.blockID].uvSizes[3], true,OpqVerts,OpqUVs,OpqTris,OpqNorms);
 
                         //Back
-                        if (curChunk.CheckNeedBuildFace(x, y, z - 1, false))
+                        if (curChunk.CheckNeedBuildFace(x, y, z - 1, blockData))
                             BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[4], Chunk.blockInfosNew[blockData.blockID].uvSizes[4], true,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         //Front
-                        if (curChunk.CheckNeedBuildFace(x, y, z + 1, false))
+                        if (curChunk.CheckNeedBuildFace(x, y, z + 1, blockData))
                             BuildFaceComplex(new Vector3(x, y, z + 1), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Chunk.blockInfosNew[blockData.blockID].uvCorners[5], Chunk.blockInfosNew[blockData.blockID].uvSizes[5], false,OpqVerts,OpqUVs,OpqTris,OpqNorms);
                         break;
                 }
@@ -772,8 +793,32 @@ public static partial class BlockMeshBuildingHelper
 
     public static void BuildSingleBlockLOD(int LODSkipBlockCount, IChunkFaceBuildingChecks curChunk, int x, int y, int z, BlockData blockData, ref List<Vector3> verts, ref List<Vector2> uvs, ref List<int> tris, ref List<Vector3> norms)
     {
-        if (blockData.blockID == 0 || !Chunk.blockInfosNew.ContainsKey(blockData.blockID))
+        if (blockData.blockID == 0)
         {
+            return;
+        }
+
+        if (!Chunk.IsBlockIDValid(blockData))
+        {
+            if (curChunk.CheckNeedBuildFace(x - LODSkipBlockCount, y, z, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[0], Chunk.unknownBlockInfo.uvSizes[0], false, verts, uvs, tris, norms);
+            //Right
+            if (curChunk.CheckNeedBuildFace(x + LODSkipBlockCount, y, z, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x + 1 * LODSkipBlockCount, y, z), new Vector3(0, 1, 0), new Vector3(0, 0, 1) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[1], Chunk.unknownBlockInfo.uvSizes[1], true, verts, uvs, tris, norms);
+
+            //Bottom
+            if (curChunk.CheckNeedBuildFace(x, y - 1, z, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 0, 1) * LODSkipBlockCount, new Vector3(1, 0, 0) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[2], Chunk.unknownBlockInfo.uvSizes[2], false, verts, uvs, tris, norms);
+            //Top
+            if (curChunk.CheckNeedBuildFace(x, y + 1, z, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x, y + 1, z), new Vector3(0, 0, 1) * LODSkipBlockCount, new Vector3(1, 0, 0) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[3], Chunk.unknownBlockInfo.uvSizes[3], true, verts, uvs, tris, norms);
+
+            //Back
+            if (curChunk.CheckNeedBuildFace(x, y, z - LODSkipBlockCount, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x, y, z), new Vector3(0, 1, 0), new Vector3(1, 0, 0) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[4], Chunk.unknownBlockInfo.uvSizes[4], true, verts, uvs, tris, norms);
+            //Front
+            if (curChunk.CheckNeedBuildFace(x, y, z + LODSkipBlockCount, blockData, LODSkipBlockCount))
+                BuildFaceComplex(new Vector3(x, y, z + 1 * LODSkipBlockCount), new Vector3(0, 1, 0), new Vector3(1, 0, 0) * LODSkipBlockCount, Chunk.unknownBlockInfo.uvCorners[5], Chunk.unknownBlockInfo.uvSizes[5], false, verts, uvs, tris, norms);
             return;
         }
         switch (Chunk.blockInfosNew[blockData.blockID].shape)

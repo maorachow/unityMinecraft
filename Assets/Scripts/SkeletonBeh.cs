@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -10,8 +7,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
 {
 
    
-    public static AudioClip skeletonIdleClip;
-    public static AudioClip skeletonShootClip;
+    
     public static GameObject diedSkeletonPrefab;
     public AudioSource AS;
     public Vector3 entityVec;
@@ -103,7 +99,8 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
             }
            
         }
-        AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
+        primaryAttackerEntities.Clear();
+        primaryTargetEntity = null;
         isDied = true;
         Transform curTrans = transform;
         Transform diedSkeletonTrans = Instantiate(diedSkeletonPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
@@ -160,7 +157,11 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
 
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
-        AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
+        if (entityHealth - damageAmount > 0f)
+        {
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("skeletonHurtClip"));
+        }
+        
         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
         transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
         transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
@@ -208,7 +209,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
             arrow.GetComponent<Rigidbody>().constraints=RigidbodyConstraints.None;
             arrow.GetComponent<Rigidbody>().WakeUp();
             arrow.GetComponent<Rigidbody>().AddForce( headTransform.forward*20f+new Vector3(Random.Range(-0.5f,0.5f), Random.Range(-0.5f, 4.5f), Random.Range(-0.5f, 0.5f)),ForceMode.VelocityChange);
-            AudioSource.PlayClipAtPoint(skeletonShootClip, transform.position);
+           AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("skeletonShootClip"));
             Invoke("CancelAttack", 0.2f);
         }
 
@@ -279,16 +280,17 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
 
             isSkeletonPrefabLoaded = true;
            
-            skeletonIdleClip = Resources.Load<AudioClip>("Audios/Skeleton_say1");
             diedSkeletonPrefab = Resources.Load<GameObject>("Prefabs/diedskeleton");
-            skeletonShootClip = Resources.Load<AudioClip>("Audios/Bow_shoot");
+           
         }
         currentTrans = transform;
         cc=GetComponent<CharacterController>(); 
         am=GetComponent<Animator>();
         entity = GetComponent<EntityBeh>();
-        AS=GetComponent<AudioSource>();
+       
         headTransform = transform.GetChild(0).GetChild(1);
+
+        AS = headTransform. GetComponent<AudioSource>();
         entityTransformRef = headTransform;
      
     }
@@ -476,12 +478,27 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
 
 
         primaryTargetEntity = PlayerMove.instance;
-        foreach (var item in primaryAttackerEntities)
+        for (int i = 0; i < primaryAttackerEntities.Count; i++)
         {
+            var item = primaryAttackerEntities[i];
             if (item is not PlayerMove)
             {
-                primaryTargetEntity = item;
-                break;
+                if (item.entityTransformRef != null)
+                {
+                    if (item.entityTransformRef.gameObject.activeInHierarchy == true)
+                    {
+                        primaryTargetEntity = item;
+                        break;
+                    }
+                    else
+                    {
+                        primaryAttackerEntities.RemoveAt(i);
+                        break;
+
+                    }
+
+                }
+
             }
         }
 
@@ -557,7 +574,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
             if (curBlockOnFootID == 100)
             {
                 gravity = -1f;
-                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip1"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
             else
@@ -570,7 +587,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
         //  targetPos = playerPosition.position;
         if (Random.Range(0f, 100f) > 99f)
         {
-            AudioSource.PlayClipAtPoint(skeletonIdleClip, headTransform.position, 1f);
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("skeletonIdleClip"));
         }
 
         TryFindNextTarget(Time.fixedDeltaTime);

@@ -1,21 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TNTBeh : MonoBehaviour
 {
 
-    public Rigidbody rigidbody;
+    public Rigidbody rb;
     public Transform currentTrans;
     public MeshRenderer meshRenderer;
     public bool isPosInited;
     public EntityBeh entityBeh;
-   public static AudioClip explosionClip { get { return CreeperBeh.explosionClip; } } 
+   
  
     public float fuseTime = 4f;
     void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         currentTrans = transform;
         meshRenderer = GetComponent<MeshRenderer>();
         entityBeh = GetComponent<EntityBeh>();
@@ -42,18 +40,18 @@ public class TNTBeh : MonoBehaviour
     private void OnDisable()
     {
         fuseTime = 4f;
-        rigidbody.velocity = Vector3.zero;  
+        rb.velocity = Vector3.zero;  
         
     }
     public void FixedUpdate()
     {
         if(entityBeh.isInUnloadedChunks)
         {
-            rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
         }
         else
         {
-            rigidbody.constraints = RigidbodyConstraints.None;
+            rb.constraints = RigidbodyConstraints.None;
         }
 
 
@@ -106,11 +104,11 @@ public class TNTBeh : MonoBehaviour
             }
         }
         ParticleEffectManagerBeh.instance.EmitExplodeParticleAtPosition(new Vector3(transform.position.x, transform.position.y, transform.position.z));
-        AudioSource.PlayClipAtPoint(explosionClip, transform.position, 5f);
+        GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetEntityAudioClip("entityExplodeClip"), transform.position, 1f, 40f);
     }
     public void AddForce(Vector3 force)
     {
-        rigidbody.velocity=force;
+        rb.velocity=force;
     }
     public void InitPos()
     {

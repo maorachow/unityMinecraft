@@ -1,6 +1,3 @@
-using MessagePack.Formatters;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TerrainTextureMipmapAdjusting : MonoBehaviour

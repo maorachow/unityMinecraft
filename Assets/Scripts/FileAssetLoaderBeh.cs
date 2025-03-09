@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using MessagePack;
@@ -55,7 +53,7 @@ public class FileAssetLoaderBeh : MonoBehaviour
                 audioAB.Unload(true);
             }
       audioAB=AssetBundle.LoadFromFile(path);
-        Chunk.blockAudioDic.Clear();
+    /*   Chunk.blockAudioDic.Clear();
         Chunk.blockAudioDic.TryAdd(1,audioAB.LoadAsset<AudioClip>("Stone_dig2"));
          Chunk.blockAudioDic.TryAdd(2,audioAB.LoadAsset<AudioClip>("Grass_dig1"));
          Chunk.blockAudioDic.TryAdd(3,audioAB.LoadAsset<AudioClip>("Gravel_dig1"));
@@ -69,7 +67,8 @@ public class FileAssetLoaderBeh : MonoBehaviour
          Chunk.blockAudioDic.TryAdd(11,audioAB.LoadAsset<AudioClip>("Sand_dig1"));
          Chunk.blockAudioDic.TryAdd(100,audioAB.LoadAsset<AudioClip>("Stone_dig2"));
          Chunk.blockAudioDic.TryAdd(101,audioAB.LoadAsset<AudioClip>("Grass_dig1"));
-         Chunk.blockAudioDic.TryAdd(102,audioAB.LoadAsset<AudioClip>("Wood_dig1"));
+         Chunk.blockAudioDic.TryAdd(102,audioAB.LoadAsset<AudioClip>("Wood_dig1"));*/
+
          return true;
         }catch(Exception e){
               Debug.Log("Loading block audio failed: "+e.ToString());

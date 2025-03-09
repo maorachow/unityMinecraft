@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
@@ -11,8 +8,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
     public int prevFootBlockID;
    
     public AudioSource AS;
-    public static AudioClip creeperHurtClip;
-    public static AudioClip explosionClip;
+  
     public static GameObject diedCreeperPrefab;
  
     public static bool isCreeperPrefabLoaded=false;
@@ -66,20 +62,21 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
 
     public void Start () {
         entity=GetComponent<EntityBeh>();
-        AS=GetComponent<AudioSource>();
+       
         entityHealth=20f;
         isDied=false;
         if(isCreeperPrefabLoaded==false){
             isCreeperPrefabLoaded = true;
-            creeperHurtClip =Resources.Load<AudioClip>("Audios/Creeper_say2");
+         
                 diedCreeperPrefab=Resources.Load<GameObject>("Prefabs/diedcreeper");
                // explosionPrefab=Resources.Load<GameObject>("Prefabs/creeperexploeffect");
        
-            explosionClip = Resources.Load<AudioClip>("Audios/Explosion4");
+         
         }
        
         headTransform=transform.GetChild(1);
-        entityFacingPos=transform.rotation.eulerAngles;
+        AS = headTransform.GetComponent<AudioSource>();
+        entityFacingPos =transform.rotation.eulerAngles;
     
         cc = GetComponent<CharacterController>();
         am=GetComponent<Animator>();
@@ -119,7 +116,11 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
 
     }
     public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
-        AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
+        if (entityHealth - damageAmount > 0f)
+        {
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("creeperHurtClip"));
+        }
+       
         transform.GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
          transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
           transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
@@ -182,12 +183,12 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             }
         }
         ParticleEffectManagerBeh.instance.EmitExplodeParticleAtPosition(new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z));
-        AudioSource.PlayClipAtPoint(explosionClip,transform.position,5f);
+        GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetEntityAudioClip("entityExplodeClip"), transform.position,1f,40f);
       
            VoxelWorld.currentWorld.creeperEntityPool.Release(gameObject);
     }
     public void DieWithKnockback(Vector3 knockback){
-         AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
+       //  AudioSource.PlayClipAtPoint(creeperHurtClip,transform.position,1f);
          isDied = true;
       //  cc.enabled=false;
           Transform diedCreeperTrans=Instantiate(diedCreeperPrefab,transform.position,transform.rotation).GetComponent<Transform>();
@@ -256,12 +257,27 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
         }
 
         primaryTargetEntity = PlayerMove.instance;
-        foreach (var item in primaryAttackerEntities)
+        for (int i = 0; i < primaryAttackerEntities.Count; i++)
         {
+            var item = primaryAttackerEntities[i];
             if (item is not PlayerMove)
             {
-                primaryTargetEntity = item;
-                break;
+                if (item.entityTransformRef != null)
+                {
+                    if (item.entityTransformRef.gameObject.activeInHierarchy == true)
+                    {
+                        primaryTargetEntity = item;
+                        break;
+                    }
+                    else
+                    {
+                        primaryAttackerEntities.RemoveAt(i);
+                        break;
+
+                    }
+
+                }
+
             }
         }
         RaycastHit hitInfo;
@@ -308,7 +324,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             {
                 gravity = -0.1f;
                 entityMoveDrag = 0.6f;
-                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip1"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
 
@@ -316,7 +332,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             {
                 entityMoveDrag = 0f;
                 gravity = -9.8f;
-                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip1"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
         }

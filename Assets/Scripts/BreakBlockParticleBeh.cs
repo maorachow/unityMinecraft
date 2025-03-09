@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,11 +38,9 @@ void OnEnable(){
 }
 public void EmitParticle(){
    //     Debug.Log(blockID);
-    if(Chunk.blockAudioDic.ContainsKey(blockID)){
-    AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockID],transform.position,1f);    
-    }else{
-        Debug.Log("missing file");
-    }
+   
+    GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetBlockAudioClip(blockID),transform.position,1f,40f);    
+    
     
     particleMesh=new Mesh();
     int x=0;

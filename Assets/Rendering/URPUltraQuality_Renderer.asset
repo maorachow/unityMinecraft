@@ -30,12 +30,12 @@ MonoBehaviour:
   settings:
     isUsingForwardRendering: 0
     glossyReflectionSimulatingMethod: 1
-    maxIterations: 50
-    ssrThickness: 0.228
+    maxIterations: 55
+    ssrThickness: 0.059
     maxTracingDistance: 1000
-    ssrBlendFactor: 0.882
-    ssrMinSmoothness: 0
---- !u!114 &-5350234899490559189
+    ssrBlendFactor: 1
+    ssrMinSmoothness: 0.5
+--- !u!114 &-5869135477663177623
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -50,12 +50,12 @@ MonoBehaviour:
   m_Active: 1
   settings:
     sampleCount: 64
-    edgeWidth: 0.05
-    stepLength: 2.7
+    edgeWidth: 0.06
+    stepLength: 4
     fadeDistance: 45
     downSample: 0
     currentEntryPoint: 1
---- !u!114 &-2615407741814916166
+--- !u!114 &-3488045591536737049
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -83,7 +83,7 @@ MonoBehaviour:
   m_Active: 1
   settings:
     downSample: 1
-    hiZMipCount: 11
+    hiZMipCount: 13
     currentEntryPoint: 1
 --- !u!114 &11400000
 MonoBehaviour:
@@ -103,11 +103,11 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 6044100050397551840}
   - {fileID: -7686375350317754820}
-  - {fileID: -2615407741814916166}
-  - {fileID: -5350234899490559189}
+  - {fileID: -3488045591536737049}
+  - {fileID: -5869135477663177623}
   - {fileID: -378054102043931838}
   - {fileID: -7300233831133818117}
-  m_RendererFeatureMap: e0dcdd0af9f4e0533cd6fdd157825495babb500e8434b4db2babf7a6b425c0b542cbca15cce1c0fafbd2fa45025cb09a
+  m_RendererFeatureMap: e0dcdd0af9f4e0533cd6fdd157825495e7e415d403f997cf69643e0b61a48cae42cbca15cce1c0fafbd2fa45025cb09a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}

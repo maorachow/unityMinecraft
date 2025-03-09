@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Jobs;
-using Unity.Collections;
-using Unity.Burst;
+
 public class MeshTest : MonoBehaviour
 {
     public Mesh mesh;

@@ -1,14 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
+
 public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
 {
     public int curBlockOnFootID;
     public int prevBlockOnFootID;
     public AudioSource AS;
-    public static AudioClip endermanIdleClip;
+ 
    
     public Transform currentTrans;
     public static GameObject diedEndermanPrefab;
@@ -57,7 +55,11 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
     }
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
-        AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
+        if (entityHealth - damageAmount > 0f)
+        {
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("endermanHurtClip"));
+        }
+      
         transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
         transform.GetChild(0).GetChild(1).GetComponent<MeshRenderer>().material.color = Color.red;
         transform.GetChild(1).GetComponent<MeshRenderer>().material.color = Color.red;
@@ -85,10 +87,10 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
     {
         entityHealth = 30f;
         entity = GetComponent<EntityBeh>();
-        AS = GetComponent<AudioSource>();
+       
         if (isEndermanPrefabLoaded == false)
         {
-            endermanIdleClip = Resources.Load<AudioClip>("Audios/Enderman_idle1");
+        
             diedEndermanPrefab = Resources.Load<GameObject>("Prefabs/diedenderman");
             isEndermanPrefabLoaded = true;
           
@@ -96,6 +98,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
         currentTrans = transform;
 
         headTransform = transform.GetChild(0);
+        AS = headTransform.GetComponent<AudioSource>();
         headHatTransform = headTransform.GetChild(1);
         entityFacingPos = transform.rotation.eulerAngles;
 
@@ -168,7 +171,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
             }
 
         }
-        AudioSource.PlayClipAtPoint(AS.clip, transform.position, 1f);
+        
         isDied = true;
         Transform curTrans = transform;
         Transform diedEndermanTrans = Instantiate(diedEndermanPrefab, curTrans.position, curTrans.rotation).GetComponent<Transform>();
@@ -269,11 +272,26 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
         {
             return;
         }
-        foreach (var item in primaryAttackerEntities)
+        for (int i = 0; i < primaryAttackerEntities.Count; i++)
         {
-            
-                primaryTargetEntity = item;
-                break;
+            var item = primaryAttackerEntities[i];
+             
+                if (item.entityTransformRef != null)
+                {
+                    if (item.entityTransformRef.gameObject.activeInHierarchy == true)
+                    {
+                        primaryTargetEntity = item;
+                      
+                    }
+                    else
+                    {
+                        primaryAttackerEntities.RemoveAt(i);
+                        break;
+
+                    }
+
+                }
+
             
         }
         if (primaryTargetEntity != null)
@@ -326,7 +344,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
             if (curBlockOnFootID == 100)
             {
                 gravity = -1f;
-                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
             else
@@ -339,7 +357,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
         //  targetPos = playerPosition.position;
         if (Random.Range(0f, 100f) > 99f)
         {
-            AudioSource.PlayClipAtPoint(endermanIdleClip, currentTrans.position, 1f);
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("endermanIdleClip"));
         }
 
  

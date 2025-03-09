@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace UnityScreenSpaceReflections
 {
@@ -133,7 +129,7 @@ namespace UnityScreenSpaceReflections
 
             int minLength = Math.Min(width, height);
 
-            int maxMipLevel = (int)Math.Ceiling(Mathf.Log(desc.height, 2));
+            int maxMipLevel = (int)Math.Ceiling(Mathf.Log(minLength*2, 2));
             actualMaxMipCount = Math.Min(maxMipLevel, defaultSettings.hiZMipCount);
             finalHiZTextureDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.RFloat, 0,
                 actualMaxMipCount);
@@ -208,7 +204,7 @@ namespace UnityScreenSpaceReflections
 
             maxHiZMipLevel = actualMaxMipCount;
             // set global hiz texture
-            cmd.SetGlobalFloat(maxHiZMipLevelID, actualMaxMipCount - 1);
+            cmd.SetGlobalFloat(maxHiZMipLevelID, actualMaxMipCount);
             cmd.SetGlobalTexture(hizBufferTextureID, finalHiZTarget);
             //   Blitter.BlitCameraTexture(cmd, finalHiZTarget, cameraColorTexture);
 

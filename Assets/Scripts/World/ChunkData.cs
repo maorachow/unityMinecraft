@@ -1,5 +1,4 @@
 using MessagePack;
-using UnityEngine;
 
 [MessagePackObject]
 public class ChunkData

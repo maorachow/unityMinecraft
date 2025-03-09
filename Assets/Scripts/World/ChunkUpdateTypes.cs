@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -203,12 +202,7 @@ namespace monogameMinecraftShared.World
             BlockShape? shapeUp =
                 WorldHelper.instance.GetBlockShape((position + new Vector3Int(0, 1, 0)));
 
-            if (shapeUp is BlockShape.CrossModel || shapeUp is BlockShape.Torch)
-            {
-
-                worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(new Vector3Int(position.x, position.y + 1, position.z), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 1, 0))));
-                worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x, position.y + 1, position.z), worldUpdater, 0));
-            }
+           
             if (shapeThis is BlockShape.Door)
             {
                 Debug.Log("break door");
@@ -276,6 +270,51 @@ namespace monogameMinecraftShared.World
 
             }
             if (shapeBack != null && shapeBack.Value == BlockShape.WallAttachment)
+            {
+                if (WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 0, -1)).optionalDataValue == 3)
+                {
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(position + new Vector3Int(0, 0, -1), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 0, -1))));
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x, position.y, position.z - 1), worldUpdater, 0));
+                }
+
+            }
+
+
+            if (shapeUp is BlockShape.CrossModel || shapeUp is BlockShape.Torch)
+            {
+
+                worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(new Vector3Int(position.x, position.y + 1, position.z), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 1, 0))));
+                worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x, position.y + 1, position.z), worldUpdater, 0));
+            }
+
+            if (shapeLeft is BlockShape.Torch)
+            {
+                if (WorldHelper.instance.GetBlockData(position + new Vector3Int(-1, 0, 0)).optionalDataValue == 1)
+                {
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(position + new Vector3Int(-1, 0, 0), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(-1, 0, 0))));
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x - 1, position.y, position.z), worldUpdater, 0));
+                }
+
+            }
+            if (shapeRight is BlockShape.Torch)
+            {
+                if (WorldHelper.instance.GetBlockData(position + new Vector3Int(1, 0, 0)).optionalDataValue == 2)
+                {
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(position + new Vector3Int(1, 0, 0), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(1, 0, 0))));
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x + 1, position.y, position.z), worldUpdater, 0));
+                }
+
+            }
+            if (shapeFront is BlockShape.Torch)
+            {
+                if (WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 0, 1)).optionalDataValue == 4)
+                {
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new BreakBlockOperation(position + new Vector3Int(0, 0, 1), worldUpdater, WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 0, 1))));
+                    worldUpdater.queuedChunkUpdatePoints.Enqueue(new PlacingBlockOperation(new Vector3Int(position.x, position.y, position.z + 1), worldUpdater, 0));
+                }
+
+            }
+            if (shapeBack is BlockShape.Torch)
             {
                 if (WorldHelper.instance.GetBlockData(position + new Vector3Int(0, 0, -1)).optionalDataValue == 3)
                 {

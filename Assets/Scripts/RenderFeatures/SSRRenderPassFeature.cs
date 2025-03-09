@@ -1,16 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-
-using Unity.Mathematics;
- 
-using UnityEditor;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace UnityScreenSpaceReflections
 {
@@ -106,6 +97,8 @@ namespace UnityScreenSpaceReflections
         private int cameraViewTopLeftCornerUniformID;
         private int cameraViewXExtentUniformID;
         private int cameraViewYExtentUniformID;
+        private int cameraViewZExtentUniformID;
+        private int cameraViewProjectionMatrixUniformID;
         private int projectionParams2UniformID;
         private int maxIterationsUniformID;
         private int maxHiZMipLevelUniformID;
@@ -118,6 +111,8 @@ namespace UnityScreenSpaceReflections
         private int useTemporalFilterUniformID;
         private int prevSSRBlendResultUniformID;
         private int useNormalImportanceSamplingUniformID;
+        private int cameraViewMatrixUniformID;
+        private int cameraProjectionMatrixUniformID;
         private int ssrBlendFactorUniformID;
         private int ssrMinSmoothnessUniformID;
         private int ssrAmbientSHUniformID;
@@ -138,10 +133,7 @@ namespace UnityScreenSpaceReflections
             this.settings = settings;
             this.ssrRenderFeature = feature;
             sourceSizeUniformID = Shader.PropertyToID("SSRSourceSize");
-            cameraViewTopLeftCornerUniformID = Shader.PropertyToID("CameraViewTopLeftCorner");
-            cameraViewXExtentUniformID = Shader.PropertyToID("CameraViewXExtent");
-            cameraViewYExtentUniformID = Shader.PropertyToID("CameraViewYExtent");
-            projectionParams2UniformID = Shader.PropertyToID("ProjectionParams2");
+          
             maxIterationsUniformID = Shader.PropertyToID("MaxIterations");
             maxHiZMipLevelUniformID = Shader.PropertyToID("MaxHiZBufferTextureMipLevel");
             cameraColorTexUniformID = Shader.PropertyToID("CameraLumTex");
@@ -155,6 +147,16 @@ namespace UnityScreenSpaceReflections
             ssrBlendFactorUniformID = Shader.PropertyToID("SSRBlendFactor");
             ssrAmbientSHUniformID = Shader.PropertyToID("AmbientSH");
             ssrMinSmoothnessUniformID = Shader.PropertyToID("SSRMinSmoothness");
+
+            cameraViewTopLeftCornerUniformID = Shader.PropertyToID("_CameraViewTopLeftCorner");
+            cameraViewXExtentUniformID = Shader.PropertyToID("_CameraViewXExtent");
+            cameraViewYExtentUniformID = Shader.PropertyToID("_CameraViewYExtent");
+            cameraViewZExtentUniformID = Shader.PropertyToID("_CameraViewZExtent");
+            projectionParams2UniformID = Shader.PropertyToID("ProjectionParams2");
+            cameraViewProjectionMatrixUniformID = Shader.PropertyToID("_CameraViewProjections");
+
+            cameraViewMatrixUniformID = Shader.PropertyToID("_CameraViews");
+            cameraProjectionMatrixUniformID = Shader.PropertyToID("_CameraProjections");
             ssrRenderTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.ARGBFloat, 0, 1);
             ssrRenderTextureDescriptor.sRGB = false;
             tmpCameraColorTextureDescriptor = new RenderTextureDescriptor(0, 0, RenderTextureFormat.Default, 0, 1);
@@ -166,6 +168,16 @@ namespace UnityScreenSpaceReflections
             prevSSRBlendTextureDescriptor.sRGB = false;
 
         }
+        private Vector4[] cameraTopLeftCorner = new Vector4[2];
+        private Vector4[] cameraXExtent = new Vector4[2];
+        private Vector4[] cameraYExtent = new Vector4[2];
+        private Vector4[] cameraZExtent = new Vector4[2];
+        private Matrix4x4[] cameraViewProjections = new Matrix4x4[2];
+
+        private Matrix4x4[] cameraViews = new Matrix4x4[2];
+        private Matrix4x4[] cameraProjections = new Matrix4x4[2];
+       
+
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -184,37 +196,54 @@ namespace UnityScreenSpaceReflections
             }
             ConfigureInput(ScriptableRenderPassInput.Normal);
             ConfigureInput(ScriptableRenderPassInput.Motion);
-            Matrix4x4 view = renderingData.cameraData.GetViewMatrix();
-            Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix();
-            Matrix4x4 vp = proj * view;
 
 
-            Matrix4x4 cview = view;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                int eyeCount = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.singlePassEnabled ? 2 : 1;
+#else
+            int eyeCount = 1;
+#endif
+            for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
+            {
+                Matrix4x4 view = renderingData.cameraData.GetViewMatrix(eyeIndex);
+                Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix(eyeIndex);
+                cameraViewProjections[eyeIndex] = proj * view;
+                cameraViews[eyeIndex] =view;
+                cameraProjections[eyeIndex] = proj;
+                // camera view space without translation, used by SSAO.hlsl ReconstructViewPos() to calculate view vector.
+                Matrix4x4 cview = view;
+                cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                Matrix4x4 cviewProj = proj * cview;
+                Matrix4x4 cviewProjInv = cviewProj.inverse;
 
-            cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Matrix4x4 cviewProj = proj * cview;
+                Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, 1, -1, 1));
+                Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1, 1, -1, 1));
+                Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, -1, -1, 1));
+                Vector4 farCentre = cviewProjInv.MultiplyPoint(new Vector4(0, 0, 1, 1));
+                Vector4 nearCentre = cviewProjInv.MultiplyPoint(new Vector4(0, 0, -1, 1));
+                cameraTopLeftCorner[eyeIndex] = topLeftCorner;
+                cameraXExtent[eyeIndex] = topRightCorner - topLeftCorner;
+                cameraYExtent[eyeIndex] = bottomLeftCorner - topLeftCorner;
+                cameraZExtent[eyeIndex] = farCentre - nearCentre;
+            }
 
-            Matrix4x4 cviewProjInv = cviewProj.inverse;
+            material.SetVector(projectionParams2UniformID, new Vector4(1.0f / renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.worldSpaceCameraPos.x, renderingData.cameraData.worldSpaceCameraPos.y, renderingData.cameraData.worldSpaceCameraPos.z));
+            material.SetMatrixArray(cameraViewProjectionMatrixUniformID, cameraViewProjections);
 
+            material.SetMatrixArray(cameraViewMatrixUniformID, cameraViews);
+            material.SetMatrixArray(cameraProjectionMatrixUniformID, cameraProjections);
 
-            var near = renderingData.cameraData.camera.nearClipPlane;
+            material.SetVectorArray(cameraViewTopLeftCornerUniformID, cameraTopLeftCorner);
+            material.SetVectorArray(cameraViewXExtentUniformID, cameraXExtent);
+            material.SetVectorArray(cameraViewYExtentUniformID, cameraYExtent);
+            material.SetVectorArray(cameraViewZExtentUniformID, cameraZExtent);
 
-            Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, 1.0f, -1.0f, 1.0f));
-            Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1.0f, 1.0f, -1.0f, 1.0f));
-            Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1.0f, -1.0f, -1.0f, 1.0f));
+            CoreUtils.SetKeyword(material, "_ORTHOGRAPHIC", renderingData.cameraData.camera.orthographic);
 
-
-            Vector4 cameraXExtent = topRightCorner - topLeftCorner;
-            Vector4 cameraYExtent = bottomLeftCorner - topLeftCorner;
-
-            near = renderingData.cameraData.camera.nearClipPlane;
-
-
-
-            material.SetVector(cameraViewTopLeftCornerUniformID, topLeftCorner);
-            material.SetVector(cameraViewXExtentUniformID, cameraXExtent);
-            material.SetVector(cameraViewYExtentUniformID, cameraYExtent);
-            material.SetVector(projectionParams2UniformID, new Vector4(1.0f / near, renderingData.cameraData.worldSpaceCameraPos.x, renderingData.cameraData.worldSpaceCameraPos.y, renderingData.cameraData.worldSpaceCameraPos.z));
+            //   material.SetVector(cameraViewTopLeftCornerUniformID, topLeftCorner);
+            //    material.SetVector(cameraViewXExtentUniformID, cameraXExtent);
+            //   material.SetVector(cameraViewYExtentUniformID, cameraYExtent);
+            //  material.SetVector(projectionParams2UniformID, new Vector4(1.0f / near, renderingData.cameraData.worldSpaceCameraPos.x, renderingData.cameraData.worldSpaceCameraPos.y, renderingData.cameraData.worldSpaceCameraPos.z));
 
         }
 
@@ -340,7 +369,7 @@ namespace UnityScreenSpaceReflections
             Blit(cmd, sourceTexture, tmpCameraColorTarget);
 
             material.SetTexture(cameraColorTexUniformID, tmpCameraColorTarget);
-            Blit(cmd, sourceTexture, ssrRenderTarget, material, 0);
+            Blit(cmd, ssrRenderTarget, ssrRenderTarget, material, 0);
           
             
             material.SetTexture(ssrResultTexUniformID, ssrRenderTarget);

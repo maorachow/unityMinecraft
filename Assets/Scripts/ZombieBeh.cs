@@ -1,15 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
+
 public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
 {   
     public int curBlockOnFootID;
     public int prevBlockOnFootID;
     public AudioSource AS;
-    public static AudioClip zombieIdleClip;
-    public static Transform playerPosition;
+  
+  
     public Transform currentTrans;
     public static GameObject diedZombiePrefab;
     public bool isDied { get; set; } = false;
@@ -56,8 +54,12 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
     public static bool isZombiePrefabLoaded=false;
 
      public void ApplyDamageAndKnockback(float damageAmount,Vector3 knockback){
-     
-       AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
+
+         if (entityHealth - damageAmount > 0f)
+         {
+             AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("zombieHurtClip"));
+        }
+      
         transform.GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
          transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
           transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.red;
@@ -80,17 +82,18 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
     public void Start () {
         entityHealth=20f;
        entity=GetComponent<EntityBeh>();
-        AS=GetComponent<AudioSource>();
+       
         if(isZombiePrefabLoaded==false){
-            zombieIdleClip=Resources.Load<AudioClip>("Audios/Zombie_say1");
+     
          diedZombiePrefab=Resources.Load<GameObject>("Prefabs/diedzombie");
          isZombiePrefabLoaded=true;
-       playerPosition=GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+     
         }
             currentTrans=transform;
         
         headTransform=transform.GetChild(0).GetChild(1);
-        entityFacingPos=transform.rotation.eulerAngles;
+        AS = headTransform.GetComponent<AudioSource>();
+        entityFacingPos =transform.rotation.eulerAngles;
     
         cc = GetComponent<CharacterController>();
         am=GetComponent<Animator>();
@@ -161,7 +164,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             }
 
         }
-        AudioSource.PlayClipAtPoint(AS.clip,transform.position,1f);
+       
     isDied = true;
             Transform curTrans=transform;
             Transform diedZombieTrans=Instantiate(diedZombiePrefab,curTrans.position,curTrans.rotation).GetComponent<Transform>();
@@ -253,13 +256,30 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
         if (entity.isInUnloadedChunks==true){
             return;
         }
+
+       
         primaryTargetEntity = PlayerMove.instance;
-        foreach (var item in primaryAttackerEntities)
+        for (int i=0;i< primaryAttackerEntities.Count;i++)
         {
+            var item = primaryAttackerEntities[i];
             if (item is not PlayerMove)
             {
-                primaryTargetEntity = item;
-                break;
+                if (item.entityTransformRef != null)
+                {
+                    if (item.entityTransformRef.gameObject.activeInHierarchy == true)
+                    {
+                        primaryTargetEntity = item;
+                        break;
+                    }
+                    else
+                    {
+                        primaryAttackerEntities.RemoveAt(i);
+                        break;
+
+                    }
+                  
+                }
+            
             }
         }
 
@@ -314,7 +334,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             if (curBlockOnFootID == 100)
             {
                 gravity = -1f;
-                AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
             else
@@ -327,7 +347,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
         //  targetPos = playerPosition.position;
         if (Random.Range(0f, 100f) > 99f)
         {
-            AudioSource.PlayClipAtPoint(zombieIdleClip, currentTrans.position, 1f);
+            AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("zombieIdleClip"));
         }
  
 

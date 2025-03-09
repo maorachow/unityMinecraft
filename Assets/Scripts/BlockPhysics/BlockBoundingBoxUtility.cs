@@ -226,7 +226,12 @@ public static class BlockBoundingBoxUtility
         {
             return new SimpleAxisAlignedBB();
         }
-        BlockShape shape = Chunk.blockInfosNew[blockData].shape;
+
+        if (!Chunk.IsBlockIDValid(blockData))
+        {
+            return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+        }
+          BlockShape shape = Chunk.blockInfosNew[blockData].shape;
         if (shape == BlockShape.Solid)
         {
             return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));

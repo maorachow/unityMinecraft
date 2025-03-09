@@ -1,5 +1,5 @@
+using System;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum ChunkUpdateTypes
 {
@@ -11,11 +11,12 @@ public enum ChunkUpdateTypes
 public partial class Chunk 
 {
 
+    [Obsolete]
     public void BFSInit(int x, int y, int z,ChunkUpdateTypes updatingType= ChunkUpdateTypes.BlockRefreshedUpdate, BlockData? optionalPrevBlockData = null)
     {
         BFSMapUpdate(x, y, z, updatingType,optionalPrevBlockData);
     }
-
+    [Obsolete]
     public void UpdateBlock(int x, int y, int z, ChunkUpdateTypes updatingType = ChunkUpdateTypes.BlockRefreshedUpdate,BlockData? optionalPrevBlockData=null)
     {
 
@@ -173,13 +174,13 @@ public partial class Chunk
                 BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                 switch (curBlockData.optionalDataValue)
                 {
-                    case 0:
+                    case 0://positiveY
                         if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z)) == 0)
                         {
                             WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                         }
                         break;
-                    case 1:
+                    case 1://negativeX
                         if (WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x + 1, y, chunkPos.y + z)) == 0)
                         {
                             WorldHelper.instance.BreakBlockAtPoint(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
@@ -298,7 +299,7 @@ public partial class Chunk
             WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1), 100);
         }
     }
-
+    [Obsolete]
     public void BFSMapUpdate(int x, int y, int z,ChunkUpdateTypes updatingType= ChunkUpdateTypes.BlockRefreshedUpdate, BlockData? optionalPrevBlockData = null)
     {
         //left right bottom top back front

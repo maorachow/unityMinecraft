@@ -1,19 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using System.Threading;
 using System.Threading.Tasks;
 using Priority_Queue;
-using UnityEngine.Events;
+ 
 using UnityEngine.SceneManagement;
-using System.Collections.Concurrent;
-using Unity.Collections;
-using Unity.Burst;
-using Unity.Jobs;
-using System;
-using Cysharp.Threading.Tasks;
-using UnityEditor.Experimental.Licensing;
-using Object=UnityEngine.Object;
 using Random=UnityEngine.Random;
 public class ChunkLoadingQueueItem{
   public Chunk c;
@@ -108,9 +97,9 @@ public class WorldManager : MonoBehaviour
         VoxelWorld.currentWorld.InitWorld(); 
         TerrainTextureMipmapAdjusting.SetTerrainTexMipmap();
         TerrainTextureMipmapAdjusting.SetTerrainNormalMipmap();
-       
-       
-       
+        GlobalAudioResourcesManager.LoadDefaultBlockAudioResources();
+        GlobalAudioResourcesManager.LoadDefaultEntityAudioResources();
+
     }
 
     void FixedUpdate(){

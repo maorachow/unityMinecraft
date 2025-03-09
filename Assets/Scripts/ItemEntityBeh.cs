@@ -513,7 +513,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         if(playerPos.gameObject.GetComponent<PlayerMove>().isDied==true){
             return;
         }
-        AudioSource.PlayClipAtPoint(PlayerMove.playerDropItemClip,transform.position,1f);
+        GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetEntityAudioClip("itemPopClip"),transform.position,1f,40f);
         playerPos.gameObject.GetComponent<PlayerMove>().AddItem(itemID,1);
        //playerPos.gameObject.GetComponent<PlayerMove>().playerHandItem.BuildItemModel(playerPos.gameObject.GetComponent<PlayerMove>().inventoryDic[playerPos.gameObject.GetComponent<PlayerMove>().currentSelectedHotbar-1]);
         ReleaseItem();
@@ -543,8 +543,8 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
         }
         if(prevBlockOnItemID!=curBlockOnItemID){
             if(curBlockOnItemID==100){
-            rb.AddForce(new Vector3(0,2f,0f));   
-             AudioSource.PlayClipAtPoint(PlayerMove.playerSinkClip,transform.position,1f);
+            rb.AddForce(new Vector3(0,2f,0f));
+            GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip1"), transform.position, 1f, 40f);
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }else{
             //    rb.linearDamping=0f;

@@ -1,10 +1,5 @@
-using Cysharp.Threading.Tasks;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
-using System.Threading;
-using System.Threading.Tasks;
+
 public class ArrowBeh : MonoBehaviour
 {
     //public static GameObject arrowPrefab;

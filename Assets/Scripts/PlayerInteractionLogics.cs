@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using monogameMinecraftShared.World;
 using System;
 using UnityEngine;
-using Random=UnityEngine.Random;
+using Random = UnityEngine.Random;
 
 public partial class PlayerMove
 {
@@ -29,7 +29,7 @@ public partial class PlayerMove
          a.GetComponent<ParticleSystem>().Emit(1);
          Destroy(a,2f);*/
         ParticleEffectManagerBeh.instance.EmitPlayerSweepParticleAtPosition(attackEffectPoint);
-        AudioSource.PlayClipAtPoint(playerSweepAttackClip, headPos.position, 1f);
+        GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerSweepAttackClip"),attackEffectPoint,1,40f);
         Collider[] colliders = Physics.OverlapSphere(transform.position, 4f);
         foreach (var c in colliders)
         {
@@ -78,7 +78,7 @@ public partial class PlayerMove
             arrow.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
             arrow.GetComponent<Rigidbody>().WakeUp();
             arrow.GetComponent<Rigidbody>().AddForce(playerHeadCenterRef.forward * 40f, ForceMode.Impulse);
-            AudioSource.PlayClipAtPoint(playerBowShootClip, transform.position);
+           AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerShootClip"));
 
             await UniTask.Delay(TimeSpan.FromSeconds(0.1), ignoreTimeScale: false);
         }
@@ -280,7 +280,7 @@ public partial class PlayerMove
             for (int i = 0; i < 3; i++)
             {
                 await UniTask.Delay(300);
-                AudioSource.PlayClipAtPoint(playerEatClip, transform.position + new Vector3(0f, 0.5f, 0f), 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerEatClip"));
             }
 
             Invoke("PlayerCancelEatAnimateInvoke", 0f);
@@ -301,7 +301,7 @@ public partial class PlayerMove
     {
         Vector3 tntPos = headPos.position + headPos.forward;
         EntityBeh tntEntity = EntityBeh.SpawnNewEntity(tntPos.x, tntPos.y, tntPos.z, 2);
-        await UniTask.WaitUntil(() => tntEntity.GetComponent<TNTBeh>().rigidbody != null);
+        await UniTask.WaitUntil(() => tntEntity.GetComponent<TNTBeh>().GetComponent<Rigidbody>() != null);
         tntEntity.GetComponent<TNTBeh>().AddForce((headPos.forward * 16));
         inventoryItemNumberDic[currentSelectedHotbar - 1]--;
         AttackAnimate();
@@ -316,7 +316,7 @@ public partial class PlayerMove
         }
 
         playerArmorPoints = Mathf.Min(playerArmorPoints + 2f, playerMaxArmorPoints);
-        AudioSource.PlayClipAtPoint(playerEquipArmorClip, transform.position + new Vector3(0f, 0.5f, 0f), 1f);
+        AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("equipDiamondClip"));
         GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
         inventoryItemNumberDic[currentSelectedHotbar - 1]--;
         AttackAnimate();
@@ -394,15 +394,8 @@ public partial class PlayerMove
 
             if (isBlockPlaced)
             {
-                if (Chunk.blockAudioDic.ContainsKey(inventoryDic[currentSelectedHotbar - 1]))
-                {
-                    AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[inventoryDic[currentSelectedHotbar - 1]], blockPoint,
-                        1f);
-                }
-                else
-                {
-                    Debug.Log("missing file");
-                }
+                GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetBlockAudioClip(inventoryDic[currentSelectedHotbar - 1]),transform.position,1f,40f);
+                
 
                 inventoryItemNumberDic[currentSelectedHotbar - 1]--;
 
@@ -430,11 +423,10 @@ public partial class PlayerMove
         {
             BlockData blockData = WorldHelper.instance.GetBlockData(result1 + new Vector3(0.5f, 0.5f, 0.5f));
 
-            if (Chunk.blockAudioDic.ContainsKey(blockData.blockID))
-            {
-                AudioSource.PlayClipAtPoint(Chunk.blockAudioDic[blockData.blockID], result1 + new Vector3(0.5f, 0.5f, 0.5f),
-                    1f);
-            }
+            
+                GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalAudioResourcesManager.TryGetBlockAudioClip(blockData.blockID), result1 + new Vector3(0.5f, 0.5f, 0.5f),
+                    1f,40f);
+            
 
             VoxelWorld.currentWorld.worldUpdater.queuedChunkUpdatePoints.Enqueue(new DoorInteractingOperation(result1));
 

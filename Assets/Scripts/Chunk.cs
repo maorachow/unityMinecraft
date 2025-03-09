@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MessagePack;
+using Newtonsoft.Json;
 
 //using FastNoise;
 /*[MessagePackObject]
@@ -33,21 +34,31 @@ public struct WorldData
 public struct RandomGenerator3D
 {
     //  public System.Random rand=new System.Random(0);
-    public static FastNoise randomNoiseGenerator = new FastNoise();
+    public static FastNoiseLite randomNoiseGenerator = new FastNoiseLite();
 
     public static void InitNoiseGenerator()
     {
         //  randomNoiseGenerator.SetSeed(0);
-        randomNoiseGenerator.SetNoiseType(FastNoise.NoiseType.Value);
-        randomNoiseGenerator.SetFrequency(100f);
+        randomNoiseGenerator.SetNoiseType(FastNoiseLite.NoiseType.Value);
+        randomNoiseGenerator.SetFrequency(1);
         // randomNoiseGenerator.SetFractalType(FastNoise.FractalType.None);
     }
 
     public static int GenerateIntFromVec3(Vector3Int pos)
     {
-        float value = randomNoiseGenerator.GetSimplex(pos.x * 2f, pos.y * 2f, pos.z * 2f);
+        float value = randomNoiseGenerator.GetNoise(pos.x, pos.y, pos.z);
         value += 1f;
-        int finalValue = (int)(value * 53f);
+        int finalValue = (int)(value * 50f);
+        finalValue = Mathf.Clamp(finalValue, 0, 100);
+        //   Debug.Log(finalValue);
+        //   System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
+        return finalValue;
+    }
+    public static int GenerateIntFromVec2(Vector2Int pos)
+    {
+        float value = randomNoiseGenerator.GetNoise(pos.x, pos.y);
+        value += 1f;
+        int finalValue = (int)(value * 50f);
         finalValue = Mathf.Clamp(finalValue, 0, 100);
         //   Debug.Log(finalValue);
         //   System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
@@ -176,19 +187,20 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     //0-99solid blocks
     //100-199no hitbox blocks
     //200-299hitbox nonsolid blocks
+    [Obsolete]
     public static Dictionary<int, AudioClip> blockAudioDic = new Dictionary<int, AudioClip>();
 
-    public static FastNoise noiseGenerator
+    public static FastNoiseLite noiseGenerator
     {
         get { return VoxelWorld.currentWorld.noiseGenerator; }
     }
 
-    public static FastNoise frequentNoiseGenerator
+    public static FastNoiseLite frequentNoiseGenerator
     {
         get { return VoxelWorld.currentWorld.frequentNoiseGenerator; }
     }
 
-    public static FastNoise biomeNoiseGenerator
+    public static FastNoiseLite biomeNoiseGenerator
     {
         get { return VoxelWorld.currentWorld.biomeNoiseGenerator; }
     }
@@ -825,32 +837,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
     public static void AddBlockInfo()
     {
+       
         //left right bottom top back front
-        blockAudioDic.Clear();
-        blockAudioDic.TryAdd(1, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(2, Resources.Load<AudioClip>("Audios/Grass_dig1"));
-        blockAudioDic.TryAdd(3, Resources.Load<AudioClip>("Audios/Gravel_dig1"));
-        blockAudioDic.TryAdd(4, Resources.Load<AudioClip>("Audios/Grass_dig1"));
-        blockAudioDic.TryAdd(5, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(6, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-        blockAudioDic.TryAdd(7, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-        blockAudioDic.TryAdd(8, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-        blockAudioDic.TryAdd(9, Resources.Load<AudioClip>("Audios/Grass_dig1"));
-        blockAudioDic.TryAdd(10, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(11, Resources.Load<AudioClip>("Audios/Sand_dig1"));
-        blockAudioDic.TryAdd(12, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(13, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(100, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(101, Resources.Load<AudioClip>("Audios/Grass_dig1"));
-        blockAudioDic.TryAdd(102, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-        blockAudioDic.TryAdd(103, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-        blockAudioDic.TryAdd(104, Resources.Load<AudioClip>("Audios/Wood_dig1"));
-
-        blockAudioDic.TryAdd(107, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(108, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(109, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(110, Resources.Load<AudioClip>("Audios/Stone_dig2"));
-        blockAudioDic.TryAdd(111, Resources.Load<AudioClip>("Audios/Stone_dig2"));
+       
         blockInfo.Clear();
         blockInfo.TryAdd(1,
             new List<Vector2>
@@ -1547,8 +1536,34 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 }, BlockShape.Solid)
         },
     };
+       
         isBlockInfoAdded = true;
     }
+
+    public static bool IsBlockIDValid(BlockData data)
+    {
+        return blockInfosNew.ContainsKey(data.blockID);
+    }
+
+    public static bool IsBlockIDValid(short data)
+    {
+        return blockInfosNew.ContainsKey(data);
+    }
+
+    public static BlockInfo unknownBlockInfo = new BlockInfo(
+
+            new List<Vector2>
+            {
+                new Vector2(0, 1-0.0625f), new Vector2(0, 1-0.0625f),
+                new Vector2(0, 1-0.0625f),new Vector2(0, 1-0.0625f),
+                new Vector2(0, 1-0.0625f),new Vector2(0, 1-0.0625f),
+            },
+            new List<Vector2>
+            {
+                new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f),
+                new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f), new Vector2(0.0625f, 0.0625f)
+            }, BlockShape.Solid
+        );
     /*   public static void ReadJson(){
        chunkDataReadFromDisk.Clear();
         gameWorldDataPath=WorldManager.gameWorldDataPath;
@@ -2086,7 +2101,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
                 //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
 
-                biomeMapInter[i, j] = (int)(1f + biomeNoiseGenerator.GetSimplexFractal(pos.x + (i - 1) * 8, pos.y + (j - 1) * 8) * 3f);
+                biomeMapInter[i, j] = (int)(1f + biomeNoiseGenerator.GetNoise(pos.x + (i - 1) * 8, pos.y + (j - 1) * 8) * 3f);
             }
         }//32,32
 
@@ -2094,25 +2109,73 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
         return biomeMapInter;
     }
-   
-    public int[,] thisAccurateHeightMap;
-    public static float[,] GenerateChunkHeightmap(Vector2Int pos)
+    public static int[,] GenerateChunkBiomeMapIterpolated(Vector2Int pos)
     {
-        float[,] heightMap = new float[chunkWidth / 8 + 2, chunkWidth / 8 + 2];//插值算法
-        int[,] chunkBiomeMap = GenerateChunkBiomeMap(pos);
-
-        for (int i = 0; i < chunkWidth / 8 + 2; i++)
+        
+        int[,] biomeMapInter = new int[chunkWidth*2, chunkWidth*2];
+        for (int i = 0; i < chunkWidth*2; i++)
         {
-            for (int j = 0; j < chunkWidth / 8 + 2; j++)
+            for (int j = 0; j < chunkWidth*2; j++)
             {
                 //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
                 //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
 
-                heightMap[i, j] = chunkSeaLevel + noiseGenerator.GetSimplexFractal(pos.x + (i - 1) * 8, pos.y + (j - 1) * 8) * 20f + chunkBiomeMap[i, j] * 25f;
+                biomeMapInter[i, j] = (int)(1f + biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth/2), pos.y + (j - chunkWidth / 2)) * 3f);
+            }
+        }//32,32
+
+
+
+        return biomeMapInter;
+    }
+
+    public static float[,] GenerateFloatChunkHeightDetailMapIterpolated(Vector2Int pos)
+    {
+
+        float[,] biomeMapInter = new float[chunkWidth * 2, chunkWidth * 2];
+        for (int i = 0; i < chunkWidth * 2; i++)
+        {
+            for (int j = 0; j < chunkWidth * 2; j++)
+            {
+                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
+                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
+
+                biomeMapInter[i, j] =  (2f + biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2), pos.y + (j - chunkWidth / 2)) * 1f);
+            }
+        }//32,32
+
+
+
+        return biomeMapInter;
+    }
+    public int[,] thisAccurateHeightMap;
+    public static float[,] GenerateChunkHeightmap(Vector2Int pos)
+    {
+        float[,] heightMap = new float[chunkWidth*2, chunkWidth*2];//插值算法
+        float[,] chunkHeightDetailMap = GenerateFloatChunkHeightDetailMapIterpolated(pos);
+
+        for (int i = 0; i < chunkWidth*2; i++)
+        {
+            for (int j = 0; j < chunkWidth*2; j++)
+            {
+                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
+                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
+                float baseNoise =
+                    noiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2), pos.y + (j - chunkWidth / 2));
+                float highlandFactor = MathF.Max(Mathf.Pow(MathF.Max(baseNoise - 0.35f,0.02f)*1.9f,1.3f), 0.03f) * 50f;
+                float adjustedHeight =
+                    chunkSeaLevel + (baseNoise) * 15f + highlandFactor * chunkHeightDetailMap[i, j];
+                if (adjustedHeight > chunkSeaLevel * 1.5f)
+                {
+                    adjustedHeight = UnityEngine.Mathf.Lerp(adjustedHeight, chunkSeaLevel * 1.5f, 0.1f);
+                }
+                heightMap[i, j] = adjustedHeight;
+
+            
             }
 
         }//32,32
-        int interMultiplier = 8;
+      /*  int interMultiplier = 8;
         float[,] heightMapInterpolated = new float[(chunkWidth / 8 + 2) * interMultiplier, (chunkWidth / 8 + 2) * interMultiplier];
         for (int i = 0; i < (chunkWidth / 8 + 2) * interMultiplier; ++i)
         {
@@ -2148,9 +2211,47 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 //  Debug.Log(x2);
 
             }
-        }
+        }*/
 
-        return heightMapInterpolated;
+        return heightMap;
+    }
+    public static int[,] GenerateChunkBiomeMapUsingHeight(Vector2Int pos, ref float[,] chunkHeightmap)
+    {
+
+        int[,] biomeMapInter = new int[chunkWidth * 2, chunkWidth * 2];
+        for (int i = 0; i < chunkWidth * 2; i++)
+        {
+            for (int j = 0; j < chunkWidth * 2; j++)
+            {
+                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
+                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
+                float noiseFactor =
+                    ( biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2),
+                        pos.y + (j - chunkWidth / 2)) * 8f);
+                float modifiedHeight = chunkHeightmap[i, j] + noiseFactor;
+                if (modifiedHeight < chunkSeaLevel * 1.05f)
+                {
+                    biomeMapInter[i, j] =0;
+                }else if (modifiedHeight >= chunkSeaLevel * 1.05f && modifiedHeight < chunkSeaLevel * 1.8f)
+                {
+                    biomeMapInter[i, j] = 1;
+                }
+                else if (modifiedHeight >= chunkSeaLevel * 1.8f && modifiedHeight < chunkSeaLevel * 2.3f)
+                {
+                    biomeMapInter[i, j] = 2;
+                }
+                else if (modifiedHeight >= chunkSeaLevel * 2.3f)
+                {
+                    biomeMapInter[i, j] = 3;
+                }
+
+
+            }
+        }//32,32
+
+
+
+        return biomeMapInter;
     }
 
     public static unsafe float[,,] GenerateChunk3DDensityMap(Vector2Int pos)
@@ -2165,7 +2266,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 for (int k = 0; k < chunkHeight / 8; k++)
                 {
                     densityMap[i, k, j] =
-                        frequentNoiseGenerator.GetSimplex(pos.x + (i - 1) * 8, k * 8, pos.y + (j - 1) * 8);
+                        frequentNoiseGenerator.GetNoise(pos.x + (i - 1) * 8, k * 8, pos.y + (j - 1) * 8);
                 }
             }
             //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
@@ -2337,11 +2438,11 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             //     rightHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x+chunkWidth,chunkPos.y));
             //    frontHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y+chunkWidth));
             //     backHeightMap=GenerateChunkHeightmap(new Vector2Int(chunkPos.x,chunkPos.y-chunkWidth));
+
             if (VoxelWorld.currentWorld.worldGenType == 0)
             {
                 thisHeightMap = GenerateChunkHeightmap(new Vector2Int(pos.x, pos.y));
             }
-
 
             lightPoints = new List<Vector3>();
             // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
@@ -2443,55 +2544,10 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
 
                 //      float[,] heightMapInterpolated=GenerateChunkHeightmap(chunkPos);//偏移4
+              
 
 
-                int[,] chunkBiomeMap = GenerateChunkBiomeMap(pos);
-
-                int interMultiplier = 8;
-                int[,] chunkBiomeMapInterpolated = new int[(chunkWidth / 8 + 2) * interMultiplier,
-                    (chunkWidth / 8 + 2) * interMultiplier];
-                for (int i = 0; i < (chunkWidth / 8 + 2) * interMultiplier; ++i)
-                {
-                    for (int j = 0; j < (chunkWidth / 8 + 2) * interMultiplier; ++j)
-                    {
-                        int x = i;
-                        int y = j;
-                        float x1 = (i / interMultiplier) * interMultiplier;
-                        float x2 = (i / interMultiplier) * interMultiplier + interMultiplier;
-                        float y1 = (j / interMultiplier) * interMultiplier;
-                        float y2 = (j / interMultiplier) * interMultiplier + interMultiplier;
-                        int x1Ori = (i / interMultiplier);
-                        // Debug.Log(x1Ori);
-                        int x2Ori = (i / interMultiplier) + 1;
-                        x2Ori = Mathf.Clamp(x2Ori, 0, (chunkWidth / 8 + 2) - 1);
-                        //   Debug.Log(x2Ori);
-                        int y1Ori = (j / interMultiplier);
-                        //   Debug.Log(y1Ori);
-                        int y2Ori = (j / interMultiplier) + 1;
-                        y2Ori = Mathf.Clamp(y2Ori, 0, (chunkWidth / 8 + 2) - 1);
-                        //     Debug.Log(y2Ori);
-
-                        float q11 = chunkBiomeMap[x1Ori, y1Ori];
-                        float q12 = chunkBiomeMap[x1Ori, y2Ori];
-                        float q21 = chunkBiomeMap[x2Ori, y1Ori];
-                        float q22 = chunkBiomeMap[x2Ori, y2Ori];
-                        float fxy1 = (float)(x2 - x) / (x2 - x1) * q11 + (float)(x - x1) / (x2 - x1) * q21;
-                        float fxy2 = (float)(x2 - x) / (x2 - x1) * q12 + (float)(x - x1) / (x2 - x1) * q22;
-                        float fxyf = ((y2 - y) / (y2 - y1) * fxy1 + (y - y1) / (y2 - y1) * fxy2);
-                        if (fxyf - (int)fxyf >= 0.5f)
-                        {
-                            chunkBiomeMapInterpolated[x, y] = (int)fxyf + 1;
-                        }
-                        else
-                        {
-                            chunkBiomeMapInterpolated[x, y] = (int)fxyf;
-                        }
-
-                        //       Debug.Log(fxy);
-                        //    Debug.Log(x1);
-                        //  Debug.Log(x2);
-                    }
-                }
+                int[,] chunkBiomeMapInterpolated = GenerateChunkBiomeMapUsingHeight(pos,ref thisHeightMap);
 
                 //    int[,] biomeMap=GenerateChunkBiomeMap(chunkPos);
                 for (int i = 0; i < chunkWidth; i++)
@@ -2504,7 +2560,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.y*0.01f+j*0.01f);
                         //     float noiseValueX=(heightMap[i/4+1,j/4+1]*iscale+heightMap[i/4+2,j/4+1]*(1-iscale));
                         //   float noiseValueY=(heightMap[i/4+1,j/4+1]*jscale+heightMap[i/4+1,j/4+2]*(1-jscale));
-                        float noiseValue = (thisHeightMap[i + 8, j + 8]);
+                        float noiseValue = (thisHeightMap[i + chunkWidth/2, j + chunkWidth / 2]);
                         for (int k = 0; k < chunkHeight; k++)
                         {
                             if (noiseValue > k + 3)
@@ -2513,11 +2569,11 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                             }
                             else if (noiseValue > k)
                             {
-                                if (chunkBiomeMapInterpolated[i, j] == 3)
+                                if (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 3)
                                 {
                                     map[i, k, j] = 1;
                                 }
-                                else if (chunkBiomeMapInterpolated[i, j] == 0)
+                                else if (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 0)
                                 {
                                     map[i, k, j] = 11;
                                 }
@@ -2538,7 +2594,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         for (int k = chunkHeight - 1; k >= 0; k--)
                         {
                             if (map[i, k, j] != 0 && map[i, k, j] != 9 && k >= chunkSeaLevel &&
-                                (chunkBiomeMapInterpolated[i, j] == 2 || chunkBiomeMapInterpolated[i, j] == 1))
+                                (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 2 || chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 1))
                             {
                                 map[i, k, j] = 4;
                                 break;
@@ -2551,7 +2607,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                                 map[i, k - 1, j] != 100 &&
                                 RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x, 0, pos.y) +
                                                                       new Vector3Int(i, k, j)) > 70 &&
-                                (chunkBiomeMapInterpolated[i, j] == 2 || chunkBiomeMapInterpolated[i, j] == 1))
+                                (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 2 || chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 1))
                             {
                                 map[i, k, j] = 101;
                             }
@@ -2592,8 +2648,8 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                             }
                         }
 
-                        if (RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(point.x, point.y, point.z) +
-                                                                  new Vector3Int(chunkPos.x, 0, chunkPos.y)) > 98.5f)
+                        if (RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(point.x,point.y ,point.z) +
+                                                                  new Vector3Int(pos.x,0, pos.y)) > 98.5f)
                         {
                             treePoints.Add(point);
                             treePoints.Add(point + new Vector3Int(0, 1, 0));
@@ -3053,7 +3109,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                             float xzLerpValue = Mathf.Lerp(-1, 1,
                                 (new Vector3(chunkPos.x + i, 0, chunkPos.y + j).magnitude / 384f));
                             float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-                            if (frequentNoiseGenerator.GetSimplex(i + chunkPos.x, k, j + chunkPos.y) > xyzLerpValue)
+                            if (frequentNoiseGenerator.GetNoise(i + chunkPos.x, k, j + chunkPos.y) > xyzLerpValue)
                             {
                                 map[i, k, j] = 12;
                             }
@@ -4083,6 +4139,11 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         {
             return false;
         }
+
+        if (!blockInfosNew.ContainsKey(curBlock.blockID)|| !blockInfosNew.ContainsKey(type))
+        {
+            return true;
+        }
         BlockShape shape = blockInfosNew[curBlock.blockID].shape;
         BlockShape shape1 = blockInfosNew[type].shape;
         if (shape == BlockShape.Solid)
@@ -4202,6 +4263,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         if (y < 0) return false;
         var type = GetChunkBlockTypeLOD(x, y, z, LODSkipBlockCount);
         bool isNonSolid = false;
+
         if (type == 0 && curBlock.blockID != 0)
         {
             return true;
@@ -4213,6 +4275,10 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         if (type == 0 && curBlock.blockID == 0)
         {
             return false;
+        }
+        if (!blockInfosNew.ContainsKey(curBlock.blockID) || !blockInfosNew.ContainsKey(type))
+        {
+            return true;
         }
         BlockShape shape = blockInfosNew[curBlock.blockID].shape;
         BlockShape shape1 = blockInfosNew[type].shape;
@@ -4377,7 +4443,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
         float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
         float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-        float noiseValue = frequentNoiseGenerator.GetSimplex(x, y, z);
+        float noiseValue = frequentNoiseGenerator.GetNoise(x, y, z);
         if (noiseValue > xyzLerpValue)
         {
             return 1;
@@ -4395,7 +4461,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
         float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
         float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-        float noiseValue = frequentNoiseGenerator.GetSimplex((int)(x / LODBlockSkipCount) * LODBlockSkipCount, y,
+        float noiseValue = frequentNoiseGenerator.GetNoise((int)(x / LODBlockSkipCount) * LODBlockSkipCount, y,
             (int)(z / LODBlockSkipCount) * LODBlockSkipCount);
         if (noiseValue > xyzLerpValue)
         {

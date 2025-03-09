@@ -1,23 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using System.Threading.Tasks;
 using System.IO;
-using System.Threading;
-using UnityEngine.EventSystems;
 using MessagePack;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Burst;
-using Cysharp.Threading.Tasks;
 using System;
 using Random = UnityEngine.Random;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
-using UnityEngine.Events;
-using UnityEngine.Rendering;
-using static UnityEngine.AdaptivePerformance.Provider.AdaptivePerformanceSubsystemDescriptor;
 
 
 [MessagePackObject]
@@ -63,19 +49,9 @@ public class PlayerData
 
 public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 {
-    public static AudioClip playerSinkClip
-    {
-        get { return Random.Range(0f, 2f) > 1f ? playerSinkClip1 : playerSinkClip2; }
-    }
+     
 
-    public static AudioClip playerSinkClip1;
-    public static AudioClip playerSinkClip2;
-    public static AudioClip playerEatClip;
-    public static AudioClip playerBowShootClip;
-    public static AudioClip playerDropItemClip;
-    public static AudioClip playerSweepAttackClip;
-    public static AudioClip playerEnterPortalClip;
-    public static AudioClip playerEquipArmorClip;
+    
     public AudioSource AS;
     public float playerCameraZShakeValue;
     public float playerCameraZShakeLerpValue;
@@ -314,20 +290,16 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         //    pi=new PlayerInput();
         //    pi.Enable();
         Input.multiTouchEnabled = true;
-        AS = GetComponent<AudioSource>();
+        AS = headPos. GetComponent<AudioSource>();
         // pauseMenu.SetActive(true);
         currentSelectedHotbar = 1;
-        playerEatClip = Resources.Load<AudioClip>("Audios/Drink");
-        playerSinkClip1 = Resources.Load<AudioClip>("Audios/Entering_water");
-        playerSinkClip2 = Resources.Load<AudioClip>("Audios/Exiting_water");
+      
         playerHandItem = transform.GetChild(0).GetChild(1).GetChild(1).GetChild(1).GetChild(0).gameObject
             .GetComponent<ItemOnHandBeh>();
-        playerSweepAttackClip = Resources.Load<AudioClip>("Audios/Sweep_attack1");
-        playerEnterPortalClip = Resources.Load<AudioClip>("Audios/Nether_Portal_trigger");
-        playerDropItemClip = Resources.Load<AudioClip>("Audios/Pop");
+        
+        
         prefabBlockOutline = Resources.Load<GameObject>("Prefabs/blockoutline");
-        playerEquipArmorClip = Resources.Load<AudioClip>("Audios/Equip_diamond2");
-        playerBowShootClip= Resources.Load<AudioClip>("Audios/Bow_shoot");
+      
         blockOutline = Instantiate(prefabBlockOutline, new Vector3(0, 0, 0),Quaternion.identity);
     //    collidingBlockOutline = Instantiate(prefabBlockOutline, new Vector3(0,0,0), transform.rotation);
 
@@ -415,7 +387,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
-        AS.Play();
+        AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerHurtClip"));
         //GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         playerCameraZShakeLerpValue = Random.Range(-15f, 15f);
         float reducedDamage = Mathf.Max((1f - (playerArmorPoints * 4f / 100f)) * damageAmount, 0f);
@@ -441,7 +413,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
     public void PlayerDie()
     {
-        AS.Play();
+        AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerHurtClip"));
         playerCameraZShakeLerpValue = 0f;
         playerCameraZShakeValue = 0f;
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
@@ -998,7 +970,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
             {
                 gravity = -1f;
                 playerMoveDrag = 0.3f;
-                AudioSource.PlayClipAtPoint(playerSinkClip, transform.position, 1f);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("entitySinkClip1"));
                 ParticleEffectManagerBeh.instance.EmitWaterSplashParticleAtPosition(transform.position);
             }
             else
@@ -1012,7 +984,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         {
             if (curUnderFootBlockID == 13)
             {
-                AudioSource.PlayClipAtPoint(playerEnterPortalClip, transform.position);
+                AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("enderPortalTriggerClip"));
                 ParticleEffectManagerBeh.instance.EmitEndermanParticleAtPosition(transform.position);
             }
         }
