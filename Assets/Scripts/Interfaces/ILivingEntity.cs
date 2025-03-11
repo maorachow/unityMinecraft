@@ -26,4 +26,15 @@ public interface IAttackableEntityTarget
     public IAttackableEntityTarget primaryTargetEntity { get; set; }
     public List<IAttackableEntityTarget> primaryAttackerEntities { get; set; }
     public void ClearPrimaryTarget();
+
+    public void TryAddPriamryAttackerEntity(IAttackableEntityTarget item)
+    {
+        if (primaryAttackerEntities != null)
+        {
+            if (!primaryAttackerEntities.Contains(item))
+            {
+                primaryAttackerEntities.Add(item);
+            }
+        }
+    }
 }

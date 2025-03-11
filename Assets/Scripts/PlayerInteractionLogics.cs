@@ -140,10 +140,10 @@ public partial class PlayerMove
                     .ApplyDamageAndKnockback(1f, (transform.position - go.transform.position).normalized * -10f);
             }
 
-            if (go.GetComponent<IAttackableEntityTarget>().primaryAttackerEntities != null)
+            if (go.GetComponent<IAttackableEntityTarget>()!= null)
             {
                 go.GetComponent<IAttackableEntityTarget>()
-                    .primaryAttackerEntities.Add(this);
+                    .TryAddPriamryAttackerEntity(this);
             }
           
         }

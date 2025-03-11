@@ -36,7 +36,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
         get;
         set;
     }
-    [SerializeField]
+     
     public List<IAttackableEntityTarget> primaryAttackerEntities
     {
         get;
@@ -487,6 +487,7 @@ public class SkeletonBeh : MonoBehaviour,ILivingEntity,IAttackableEntityTarget
                 {
                     if (item.entityTransformRef.gameObject.activeInHierarchy == true)
                     {
+                   //     Debug.Log("attacker enemy count:" + primaryAttackerEntities.Count);
                         primaryTargetEntity = item;
                         break;
                     }

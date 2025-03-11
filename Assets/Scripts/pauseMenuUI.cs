@@ -2,14 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class pauseMenuUI : MonoBehaviour
+public class PauseMenuUI : MonoBehaviour
 {
-    public static pauseMenuUI instance;
+    public static PauseMenuUI instance;
    
     public Button rebuildAllChunksButton;
     public Button SaveWorldButton;
     public Text viewRangeText;
     public Slider viewRangeSlider;
+
+
+    public Text lodBiasText;
+    public Slider lodBiasSlider;
     public Slider graphicsQualitySlider;
     public Text graphicsQualityText;
     public PlayerMove player;
@@ -33,9 +37,13 @@ public class pauseMenuUI : MonoBehaviour
         graphicsQualityText=GameObject.Find("graphicsqualitytext").GetComponent<Text>();
         viewRangeSlider=GameObject.Find("viewrangeslider").GetComponent<Slider>();
         viewRangeText=GameObject.Find("viewrangetext").GetComponent<Text>();
-        rebuildAllChunksButton=GameObject.Find("rebuildallchunksbutton").GetComponent<Button>();
+
+        lodBiasSlider = GameObject.Find("lodbiasslider").GetComponent<Slider>();
+        lodBiasText = GameObject.Find("lodbiastext").GetComponent<Text>();
+        rebuildAllChunksButton =GameObject.Find("rebuildallchunksbutton").GetComponent<Button>();
      
         viewRangeSlider.onValueChanged.AddListener(ViewRangeSliderOnValueChanged);
+        lodBiasSlider.onValueChanged.AddListener(LODBiasSliderOnValueChanged);
         viewRangeSlider.value = GlobalGameOptions.inGameRenderDistance;
         rebuildAllChunksButton.onClick.AddListener(RebuildAllChunksButtonOnClick);
         SaveWorldButton=GameObject.Find("saveworldbutton").GetComponent<Button>();
@@ -53,21 +61,21 @@ public class pauseMenuUI : MonoBehaviour
             QualitySettings.SetQualityLevel(0, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
-                
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
                 break;
             case 1:
              graphicsQualityText.text="Low";
             QualitySettings.SetQualityLevel(1, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
-               
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
                 break;
             case 2:
              graphicsQualityText.text="Medium";
             QualitySettings.SetQualityLevel(2, true);
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
-                 
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
                 break;
             case 3:
              graphicsQualityText.text="High";
@@ -75,7 +83,7 @@ public class pauseMenuUI : MonoBehaviour
                 
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap",null);
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", null);
-               
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
                 break;
             case 4:
              graphicsQualityText.text="Very High";
@@ -83,7 +91,7 @@ public class pauseMenuUI : MonoBehaviour
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
 
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
-              
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
                 break;
             case 5:
              graphicsQualityText.text="Ultra";
@@ -91,7 +99,7 @@ public class pauseMenuUI : MonoBehaviour
                 VoxelWorld.chunkPrefab.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.terrainNormalTex);
 
                 VoxelWorld.chunkPrefab.transform.GetChild(1).GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_BumpMap", TerrainTextureMipmapAdjusting.waterNormalTex);
-               
+                LODBiasSliderChangeValue(QualitySettings.lodBias);
 
                 break;
         }
@@ -99,6 +107,18 @@ public class pauseMenuUI : MonoBehaviour
     void ViewRangeSliderOnValueChanged(float f){
      GlobalGameOptions.inGameRenderDistance=(int)viewRangeSlider.value;
         viewRangeText.text=viewRangeSlider.value.ToString();
+
+    }
+
+    void LODBiasSliderChangeValue(float f)
+    {
+        lodBiasSlider.value= f;
+        lodBiasText.text = f.ToString();
+    }
+    void LODBiasSliderOnValueChanged(float f)
+    {
+        QualitySettings.lodBias = lodBiasSlider.value;
+        lodBiasText.text = QualitySettings.lodBias.ToString();
 
     }
     void ReturnToMainMenuButtonOnClick(){

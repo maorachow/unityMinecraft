@@ -216,10 +216,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
                 primaryTargetEntity
                      .ApplyDamageAndKnockback(1f, transform.forward * 10f + transform.up * 5f);
 
-                if (primaryTargetEntity.primaryAttackerEntities != null)
-                {
-                    primaryTargetEntity.primaryAttackerEntities.Add(this);
-                }
+               primaryTargetEntity.TryAddPriamryAttackerEntity(this);
                 
                    am.SetBool("attack", true);
                    attackCD = 1.2f;
@@ -268,6 +265,7 @@ public class ZombieBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
                 {
                     if (item.entityTransformRef.gameObject.activeInHierarchy == true)
                     {
+                        //Debug.Log("attacker enemy count:" + primaryAttackerEntities.Count);
                         primaryTargetEntity = item;
                         break;
                     }

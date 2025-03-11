@@ -140,7 +140,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
            transform.GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color=Color.white;
     }
     void CreeperExplode(){
-        Collider[] collider = Physics.OverlapSphere(transform.position, 6f);
+        Collider[] collider = Physics.OverlapSphere(headTransform.position, 5f);
 
         Vector3 exploCenter=transform.position;
 

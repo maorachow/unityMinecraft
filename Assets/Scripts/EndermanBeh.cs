@@ -59,15 +59,16 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
         {
             AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("endermanHurtClip"));
         }
-      
+
+
         transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
         transform.GetChild(0).GetChild(1).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(1).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
-         
+        transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
+        transform.GetChild(1).transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
+        transform.GetChild(1).transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
+        transform.GetChild(1).transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
+        transform.GetChild(1).transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
+
         entityHealth -= damageAmount;
         entityMotionVec = knockback;
         Invoke("InvokeRevertColor", 0.2f);
@@ -76,11 +77,11 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
     {
         transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
         transform.GetChild(0).GetChild(1).GetComponent<MeshRenderer>().material.color = Color.white;
-        transform.GetChild(1).GetComponent<MeshRenderer>().material.color = Color.white;
-        transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
-        transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
-        transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
-        transform.GetChild(5).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
+        transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
+        transform.GetChild(1).transform.GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
+        transform.GetChild(1).transform.GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
+        transform.GetChild(1).transform.GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
+        transform.GetChild(1).transform.GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.white;
     }
 
     public void Start()
@@ -180,21 +181,22 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
        
         diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(0).GetChild(0).GetChild(0).position;
         diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().position= transform.GetChild(0).GetChild(1).position;
-        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().position= transform.GetChild(1).position;
-        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(2).GetChild(0).position;
-        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(3).GetChild(0).position;
-        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(4).GetChild(0).position;
-        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().position= transform.GetChild(5).GetChild(0).position;
+        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().position= transform.GetChild(1).GetChild(0).position;
+        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().position = transform.GetChild(1).transform.GetChild(1).GetChild(0).position;
+        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().position = transform.GetChild(1).transform.GetChild(2).GetChild(0).position;
+        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().position = transform.GetChild(1).transform.GetChild(3).GetChild(0).position;
+        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().position = transform.GetChild(1).transform.GetChild(4).GetChild(0).position;
 
 
 
         diedEndermanTrans.GetChild(0).GetChild(0).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(0).GetChild(0).GetChild(0).rotation;
         diedEndermanTrans.GetChild(0).GetChild(1).GetComponent<Rigidbody>().rotation = transform.GetChild(0).GetChild(1).rotation;
-        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().rotation = transform.GetChild(1).rotation;
-        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(2).GetChild(0).rotation;
-        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(3).GetChild(0).rotation;
-        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(4).GetChild(0).rotation;
-        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(5).GetChild(0).rotation;
+        diedEndermanTrans.GetChild(1).GetComponent<Rigidbody>().rotation = transform.GetChild(1).GetChild(0).rotation;
+        diedEndermanTrans.GetChild(2).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(1).transform.GetChild(1).GetChild(0).rotation;
+        diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(1).transform.GetChild(2).GetChild(0).rotation;
+        diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(1).transform.GetChild(3).GetChild(0).rotation;
+        diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().rotation = transform.GetChild(1).transform.GetChild(4).GetChild(0).rotation;
+
 
 
 
@@ -205,6 +207,8 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
         diedEndermanTrans.GetChild(3).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
         diedEndermanTrans.GetChild(4).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
         diedEndermanTrans.GetChild(5).GetChild(0).GetComponent<Rigidbody>().velocity = knockback;
+
+     
      
         Destroy(diedEndermanTrans.gameObject, 30f);
         ItemEntityBeh.SpawnNewItem(transform.position.x, transform.position.y+1.5f, transform.position.z, 13, new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f), Random.Range(-3f, 3f)));
@@ -226,19 +230,64 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
 
             if (attackCD <= 0f)
             {
-                primaryTargetEntity.ApplyDamageAndKnockback(2f, transform.forward * 20f + transform.up * 15f);
-                if (primaryTargetEntity.primaryAttackerEntities != null)
-                {
-                    primaryTargetEntity.primaryAttackerEntities.Add(this);
-                }
+                
                 am.SetBool("attack", true);
-                attackCD = 1.2f;
-                Invoke("CancelAttack", 0.2f);
+                attackCD = 1.5f;
+                Invoke("InvokeDamage", 0.375f);
+                Invoke("CancelAttack", 0.83f);
             }
         }
       
 
     }
+
+    public void InvokeDamage()
+    {
+        if (primaryTargetEntity == null)
+        {
+            return;
+        }
+        if (gameObject.activeInHierarchy == false|| primaryTargetEntity.entityTransformRef==null)
+        {
+            return;
+        }
+        if (isIdling == false)
+        {
+                Collider[] collider = Physics.OverlapSphere(headTransform.position+headTransform.forward*1.3f, 1.7f,LayerMask.GetMask("Ignore Raycast", "Entity", "ItemEntity"));
+
+
+                foreach (Collider c in collider)
+                {
+                    if (c.gameObject.tag == "Player" || c.gameObject.tag == "Entity")
+                    {
+                        if (c.GetComponent(typeof(IAttackableEntityTarget)) != null)
+                        {
+                           
+                            IAttackableEntityTarget attackableEntityTarget = (IAttackableEntityTarget)c.GetComponent(typeof(IAttackableEntityTarget));
+                            if (attackableEntityTarget != this)
+                            {
+                                attackableEntityTarget.ApplyDamageAndKnockback(2 + Random.Range(-1f, 1f), transform.forward * 20f + transform.up * 15f);
+
+                                if (attackableEntityTarget.primaryAttackerEntities != null)
+                                {
+                                   attackableEntityTarget.TryAddPriamryAttackerEntity(this);
+                                
+                                }
+                            }
+                          
+                        }
+                       
+                        if (c.GetComponent<ItemEntityBeh>() != null)
+                        {
+                            c.GetComponent<Rigidbody>().velocity = transform.forward * 20f + transform.up * 15f;
+                        }
+                    }
+                }
+              
+            
+        }
+    }
+
     public void CancelAttack()
     {
         am.SetBool("attack", false);
@@ -278,10 +327,10 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
              
                 if (item.entityTransformRef != null)
                 {
-                    if (item.entityTransformRef.gameObject.activeInHierarchy == true)
+                    if (item.entityTransformRef.gameObject.activeInHierarchy == true&&item.isDied==false)
                     {
                         primaryTargetEntity = item;
-                      
+                      Debug.Log("attacker enemy count:"+primaryAttackerEntities.Count);
                     }
                     else
                     {
@@ -313,6 +362,7 @@ public class EndermanBeh : MonoBehaviour, ILivingEntity, IAttackableEntityTarget
                 {
                     if (primaryTargetEntity.isDied == true)
                     {
+                        ClearPrimaryTarget();
                         isIdling = true;
                     }
                     else

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using Unity.Jobs;
 using Unity.Collections;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Newtonsoft.Json;
+using Microsoft.SqlServer.Server;
 
 //using FastNoise;
 /*[MessagePackObject]
@@ -68,19 +70,6 @@ public struct RandomGenerator3D
 
 public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 {
-    public struct Vertex
-    {
-        public Vector3 pos;
-        public Vector3 normal;
-        public Vector2 uvPos;
-
-        public Vertex(Vector3 v3, Vector3 nor, Vector2 v2)
-        {
-            pos = v3;
-            normal = nor;
-            uvPos = v2;
-        }
-    }
 
     [BurstCompile]
     public struct BakeJob: IJob
@@ -94,7 +83,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     }
 
     //[BurstCompile]
-    public struct MeshBuildJob: IJob
+   /* public struct MeshBuildJob: IJob
     {
         // public NativeArray<VertexAttributeDescriptor> vertexAttributes;
         public NativeArray<Vector3> verts;
@@ -116,7 +105,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             // 4 faces with 3 unique vertices in each -- the faces
             // don't share the vertices since normals have to be
             // different for each face.
-            /*   */
+           
 
             // Four tetrahedron vertex positions:
             //     var sqrt075 = Mathf.Sqrt(0.75f);
@@ -148,7 +137,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                     return;
                 }
 
-                pos[i] = new Vertex(verts[i], new Vector3(1f, 1f, 1f), uvs[i]);
+                pos[i] = new Vertex(verts[i], new Vector3(1f, 1f, 1f), new Vector3(1f, 1f, 1f), uvs[i]);
             }
 
             // Note: normals will be calculated later in RecalculateNormals.
@@ -171,7 +160,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             pos.Dispose();
             ib.Dispose();
         }
-    }
+    }*/
 
     //public enum BlockType
     //  {
@@ -763,7 +752,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     //0Inf 1Superflat
     public static int chunkWidth = 16;
     public static int chunkHeight = 256;
-    public static int chunkSeaLevel = 63;
+   
 
     public static int chunkDensityMapHeight = chunkHeight / 4;
 
@@ -816,23 +805,14 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 //    public static Transform playerPos;
     public static Vector3 playerPosVec;
 
-    public float playerDistance;
+  
 
     // public TransformAccessArray thisTransArray= new TransformAccessArray(transform);
-    public Vector3[] opqVerts;
-    public Vector2[] opqUVs;
-    public int[] opqTris;
-    public Vector3[] NSVerts;
-    public Vector2[] NSUVs;
+  
     public int[] NSTris;
     public List<Vector3> lightPoints;
     public List<GameObject> pointLightGameObjects = new List<GameObject>();
-    public NativeArray<Vector3> opqVertsNA;
-    public NativeArray<Vector2> opqUVsNA;
-    public NativeArray<int> opqTrisNA;
-    public NativeArray<Vector3> NSVertsNA;
-    public NativeArray<Vector2> NSUVsNA;
-    public NativeArray<int> NSTrisNA;
+    
     //  public bool isChunkColliderUpdated=false;
 
     public static void AddBlockInfo()
@@ -2089,170 +2069,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         return heightMapInterpolated;
     }*/
 
-    public static int[,] GenerateChunkBiomeMap(Vector2Int pos)
-    {
-        //   float[,] biomeMap=new float[chunkWidth/8+2,chunkWidth/8+2];//插值算法
-        //      int[,] chunkBiomeMap=GenerateChunkBiomeMap(pos);
-        int[,] biomeMapInter = new int[chunkWidth / 8 + 2, chunkWidth / 8 + 2];
-        for (int i = 0; i < chunkWidth / 8 + 2; i++)
-        {
-            for (int j = 0; j < chunkWidth / 8 + 2; j++)
-            {
-                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
-                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
-
-                biomeMapInter[i, j] = (int)(1f + biomeNoiseGenerator.GetNoise(pos.x + (i - 1) * 8, pos.y + (j - 1) * 8) * 3f);
-            }
-        }//32,32
-
-
-
-        return biomeMapInter;
-    }
-    public static int[,] GenerateChunkBiomeMapIterpolated(Vector2Int pos)
-    {
-        
-        int[,] biomeMapInter = new int[chunkWidth*2, chunkWidth*2];
-        for (int i = 0; i < chunkWidth*2; i++)
-        {
-            for (int j = 0; j < chunkWidth*2; j++)
-            {
-                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
-                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
-
-                biomeMapInter[i, j] = (int)(1f + biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth/2), pos.y + (j - chunkWidth / 2)) * 3f);
-            }
-        }//32,32
-
-
-
-        return biomeMapInter;
-    }
-
-    public static float[,] GenerateFloatChunkHeightDetailMapIterpolated(Vector2Int pos)
-    {
-
-        float[,] biomeMapInter = new float[chunkWidth * 2, chunkWidth * 2];
-        for (int i = 0; i < chunkWidth * 2; i++)
-        {
-            for (int j = 0; j < chunkWidth * 2; j++)
-            {
-                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
-                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
-
-                biomeMapInter[i, j] =  (2f + biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2), pos.y + (j - chunkWidth / 2)) * 1f);
-            }
-        }//32,32
-
-
-
-        return biomeMapInter;
-    }
-    public int[,] thisAccurateHeightMap;
-    public static float[,] GenerateChunkHeightmap(Vector2Int pos)
-    {
-        float[,] heightMap = new float[chunkWidth*2, chunkWidth*2];//插值算法
-        float[,] chunkHeightDetailMap = GenerateFloatChunkHeightDetailMapIterpolated(pos);
-
-        for (int i = 0; i < chunkWidth*2; i++)
-        {
-            for (int j = 0; j < chunkWidth*2; j++)
-            {
-                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
-                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
-                float baseNoise =
-                    noiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2), pos.y + (j - chunkWidth / 2));
-                float highlandFactor = MathF.Max(Mathf.Pow(MathF.Max(baseNoise - 0.35f,0.02f)*1.9f,1.3f), 0.03f) * 50f;
-                float adjustedHeight =
-                    chunkSeaLevel + (baseNoise) * 15f + highlandFactor * chunkHeightDetailMap[i, j];
-                if (adjustedHeight > chunkSeaLevel * 1.5f)
-                {
-                    adjustedHeight = UnityEngine.Mathf.Lerp(adjustedHeight, chunkSeaLevel * 1.5f, 0.1f);
-                }
-                heightMap[i, j] = adjustedHeight;
-
-            
-            }
-
-        }//32,32
-      /*  int interMultiplier = 8;
-        float[,] heightMapInterpolated = new float[(chunkWidth / 8 + 2) * interMultiplier, (chunkWidth / 8 + 2) * interMultiplier];
-        for (int i = 0; i < (chunkWidth / 8 + 2) * interMultiplier; ++i)
-        {
-            for (int j = 0; j < (chunkWidth / 8 + 2) * interMultiplier; ++j)
-            {
-                int x = i;
-                int y = j;
-                float x1 = (i / interMultiplier) * interMultiplier;
-                float x2 = (i / interMultiplier) * interMultiplier + interMultiplier;
-                float y1 = (j / interMultiplier) * interMultiplier;
-                float y2 = (j / interMultiplier) * interMultiplier + interMultiplier;
-                int x1Ori = (i / interMultiplier);
-                // Debug.Log(x1Ori);
-                int x2Ori = (i / interMultiplier) + 1;
-                x2Ori = Math.Clamp(x2Ori, 0, (chunkWidth / 8 + 2) - 1);
-                //   Debug.Log(x2Ori);
-                int y1Ori = (j / interMultiplier);
-                //   Debug.Log(y1Ori);
-                int y2Ori = (j / interMultiplier) + 1;
-                y2Ori = Math.Clamp(y2Ori, 0, (chunkWidth / 8 + 2) - 1);
-                //     Debug.Log(y2Ori);
-
-                float q11 = heightMap[x1Ori, y1Ori];
-                float q12 = heightMap[x1Ori, y2Ori];
-                float q21 = heightMap[x2Ori, y1Ori];
-                float q22 = heightMap[x2Ori, y2Ori];
-                float fxy1 = (float)(x2 - x) / (x2 - x1) * q11 + (float)(x - x1) / (x2 - x1) * q21;
-                float fxy2 = (float)(x2 - x) / (x2 - x1) * q12 + (float)(x - x1) / (x2 - x1) * q22;
-                float fxy = (float)(y2 - y) / (y2 - y1) * fxy1 + (float)(y - y1) / (y2 - y1) * fxy2;
-                heightMapInterpolated[x, y] = fxy;
-                //       Debug.Log(fxy);
-                //    Debug.Log(x1);
-                //  Debug.Log(x2);
-
-            }
-        }*/
-
-        return heightMap;
-    }
-    public static int[,] GenerateChunkBiomeMapUsingHeight(Vector2Int pos, ref float[,] chunkHeightmap)
-    {
-
-        int[,] biomeMapInter = new int[chunkWidth * 2, chunkWidth * 2];
-        for (int i = 0; i < chunkWidth * 2; i++)
-        {
-            for (int j = 0; j < chunkWidth * 2; j++)
-            {
-                //           Debug.DrawLine(new Vector3(pos.x+(i-1)*8,60f,pos.y+(j-1)*8),new Vector3(pos.x+(i-1)*8,150f,pos.y+(j-1)*8),Color.green,1f);
-                //    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int()))
-                float noiseFactor =
-                    ( biomeNoiseGenerator.GetNoise(pos.x + (i - chunkWidth / 2),
-                        pos.y + (j - chunkWidth / 2)) * 8f);
-                float modifiedHeight = chunkHeightmap[i, j] + noiseFactor;
-                if (modifiedHeight < chunkSeaLevel * 1.05f)
-                {
-                    biomeMapInter[i, j] =0;
-                }else if (modifiedHeight >= chunkSeaLevel * 1.05f && modifiedHeight < chunkSeaLevel * 1.8f)
-                {
-                    biomeMapInter[i, j] = 1;
-                }
-                else if (modifiedHeight >= chunkSeaLevel * 1.8f && modifiedHeight < chunkSeaLevel * 2.3f)
-                {
-                    biomeMapInter[i, j] = 2;
-                }
-                else if (modifiedHeight >= chunkSeaLevel * 2.3f)
-                {
-                    biomeMapInter[i, j] = 3;
-                }
-
-
-            }
-        }//32,32
-
-
-
-        return biomeMapInter;
-    }
+  
 
     public static unsafe float[,,] GenerateChunk3DDensityMap(Vector2Int pos)
     {
@@ -2441,49 +2258,79 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
             if (VoxelWorld.currentWorld.worldGenType == 0)
             {
-                thisHeightMap = GenerateChunkHeightmap(new Vector2Int(pos.x, pos.y));
+                thisHeightMap = TerrainGeneratingHelper.GenerateChunkHeightmap(new Vector2Int(pos.x, pos.y));
             }
 
             lightPoints = new List<Vector3>();
             // await Task.Run(()=>{while(frontChunk==null||backChunk==null||leftChunk==null||rightChunk==null){}});
-            List<Vector3> opqVertsNL = new List<Vector3>();
-            List<Vector3> opqNormsNL = new List<Vector3>();
-            List<Vector2> opqUVsNL = new List<Vector2>();
-            List<int> opqTrisNL = new List<int>();
-            List<Vector3> NSVertsNL = new List<Vector3>();
-            List<Vector3> NSNormsNL = new List<Vector3>();
-            List<Vector2> NSUVsNL = new List<Vector2>();
-            List<int> NSTrisNL = new List<int>();
-            List<Vector3> WTVertsNL = new List<Vector3>();
-            List<Vector3> WTNormsNL = new List<Vector3>();
-            List<Vector2> WTUVsNL = new List<Vector2>();
-            List<int> WTTrisNL = new List<int>();
+            NativeList<Vector3> opqVertsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> opqNormsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> opqTangentsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector2> opqUVsNL = new NativeList<Vector2>(Allocator.TempJob);
+            NativeList<int> opqTrisNL = new NativeList<int>(Allocator.TempJob);
+            NativeList<Vector3> NSVertsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> NSNormsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> NSTangentsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector2> NSUVsNL = new NativeList<Vector2>(Allocator.TempJob);
+            NativeList<int> NSTrisNL = new NativeList<int>(Allocator.TempJob);
+            NativeList<Vector3> WTVertsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> WTNormsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> WTTangentsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector2> WTUVsNL = new NativeList<Vector2>(Allocator.TempJob);
+            NativeList<int> WTTrisNL = new NativeList<int>(Allocator.TempJob);
 
-            List<Vector3> TSVertsNL = new List<Vector3>();
-            List<Vector3> TSNormsNL = new List<Vector3>();
-            List<Vector2> TSUVsNL = new List<Vector2>();
-            List<int> TSTrisNL = new List<int>();
+            NativeList<Vector3> TSVertsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> TSNormsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> TSTangentsNL = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector2> TSUVsNL = new NativeList<Vector2>(Allocator.TempJob);
+            NativeList<int> TSTrisNL = new NativeList<int>(Allocator.TempJob);
 
-            List<Vector3> opqVertsLOD = new List<Vector3>();
-            List<Vector3> opqNormsLOD = new List<Vector3>();
-            List<Vector2> opqUVsLOD = new List<Vector2>();
-            List<int> opqTrisLOD = new List<int>();
+            NativeList<Vector3> opqVertsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> opqNormsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector3> opqTangentsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            NativeList<Vector2> opqUVsLOD = new NativeList<Vector2>(Allocator.TempJob);
+            NativeList<int> opqTrisLOD = new NativeList<int>(Allocator.TempJob);
             if (isMapGenCompleted == true)
             {
                 //  isModifiedInGame=true;
                 //
 
-                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD1, 2);
+                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD1, 2);
+                opqVertsLOD.Dispose();
+                opqUVsLOD.Dispose();
+                opqTrisLOD.Dispose();
+                opqNormsLOD.Dispose();
+                opqTangentsLOD.Dispose();
 
-                opqVertsLOD = new List<Vector3>();
-                opqNormsLOD = new List<Vector3>();
-                opqUVsLOD = new List<Vector2>();
-                opqTrisLOD = new List<int>();
-                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
+                opqVertsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqNormsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqTangentsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqUVsLOD = new NativeList<Vector2>(Allocator.TempJob);
+                opqTrisLOD = new NativeList<int>(Allocator.TempJob);
 
-                GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL,mdaTS,TSVertsNL,TSUVsNL,TSTrisNL,TSNormsNL);
+                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD2, 4);
 
+                opqVertsLOD.Dispose();
+                opqUVsLOD.Dispose();
+                opqTrisLOD.Dispose();
+                opqNormsLOD.Dispose();
+                opqTangentsLOD.Dispose();
+
+
+
+
+
+
+                GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, opqNormsNL,opqTangentsNL,
+                    NSVertsNL, NSUVsNL, NSTrisNL, NSNormsNL, NSTangentsNL,
+                    WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, WTTangentsNL,
+                    TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL, TSTangentsNL,
+                    mda, mdaNS, mdaWT, mdaTS
+                    );
+                opqVertsNL.Dispose(); opqUVsNL.Dispose(); opqTrisNL.Dispose(); opqNormsNL.Dispose(); opqTangentsNL.Dispose();
+                NSVertsNL.Dispose(); NSUVsNL.Dispose(); NSTrisNL.Dispose(); NSNormsNL.Dispose(); NSTangentsNL.Dispose();
+                WTVertsNL.Dispose(); WTUVsNL.Dispose(); WTTrisNL.Dispose(); WTNormsNL.Dispose(); WTTangentsNL.Dispose();
+                TSVertsNL.Dispose(); TSUVsNL.Dispose(); TSTrisNL.Dispose(); TSNormsNL.Dispose(); TSTangentsNL.Dispose();
                 return;
             }
 
@@ -2506,31 +2353,79 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
                 isMapGenCompleted = true;
 
-                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD1, 2);
-                opqVertsLOD = new List<Vector3>();
-                opqNormsLOD = new List<Vector3>();
-                opqUVsLOD = new List<Vector2>();
-                opqTrisLOD = new List<int>();
-                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
+                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD1, 2);
+                opqVertsLOD.Dispose();
+                opqUVsLOD.Dispose();
+                opqTrisLOD.Dispose();
+                opqNormsLOD.Dispose();
+                opqTangentsLOD.Dispose();
 
-                GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                    NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, mdaTS, TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL);
+                opqVertsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqNormsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqTangentsLOD = new NativeList<Vector3>(Allocator.TempJob);
+                opqUVsLOD = new NativeList<Vector2>(Allocator.TempJob);
+                opqTrisLOD = new NativeList<int>(Allocator.TempJob);
 
+                GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD2, 4);
+
+                opqVertsLOD.Dispose();
+                opqUVsLOD.Dispose();
+                opqTrisLOD.Dispose();
+                opqNormsLOD.Dispose();
+                opqTangentsLOD.Dispose();
+
+                GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, opqNormsNL, opqTangentsNL,
+                    NSVertsNL, NSUVsNL, NSTrisNL, NSNormsNL, NSTangentsNL,
+                    WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, WTTangentsNL,
+                    TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL, TSTangentsNL,
+                    mda, mdaNS, mdaWT, mdaTS
+                );
+
+                opqVertsNL.Dispose(); opqUVsNL.Dispose(); opqTrisNL.Dispose(); opqNormsNL.Dispose(); opqTangentsNL.Dispose();
+                NSVertsNL.Dispose(); NSUVsNL.Dispose(); NSTrisNL.Dispose(); NSNormsNL.Dispose(); NSTangentsNL.Dispose();
+                WTVertsNL.Dispose(); WTUVsNL.Dispose(); WTTrisNL.Dispose(); WTNormsNL.Dispose(); WTTangentsNL.Dispose();
+                TSVertsNL.Dispose(); TSUVsNL.Dispose(); TSTrisNL.Dispose(); TSNormsNL.Dispose(); TSTangentsNL.Dispose();
                 return;
             }
 
             FreshGenMap(pos);
             isMapGenCompleted = true;
 
-            GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD1, 2);
-            opqVertsLOD = new List<Vector3>();
-            opqNormsLOD = new List<Vector3>();
-            opqUVsLOD = new List<Vector2>();
-            opqTrisLOD = new List<int>();
-            GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, mdaLOD2, 4);
 
-            GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, NSVertsNL, NSUVsNL, NSTrisNL, mda, mdaNS, opqNormsNL,
-                NSNormsNL, mdaWT, WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, mdaTS, TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL);
+
+            GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD1, 2);
+            opqVertsLOD.Dispose();
+            opqUVsLOD.Dispose();
+            opqTrisLOD.Dispose();
+            opqNormsLOD.Dispose();
+            opqTangentsLOD.Dispose();
+
+            opqVertsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            opqNormsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            opqTangentsLOD = new NativeList<Vector3>(Allocator.TempJob);
+            opqUVsLOD = new NativeList<Vector2>(Allocator.TempJob);
+            opqTrisLOD = new NativeList<int>(Allocator.TempJob);
+
+            GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD2, 4);
+
+            opqVertsLOD.Dispose();
+            opqUVsLOD.Dispose();
+            opqTrisLOD.Dispose();
+            opqNormsLOD.Dispose();
+            opqTangentsLOD.Dispose();
+
+
+            GenerateMesh(opqVertsNL, opqUVsNL, opqTrisNL, opqNormsNL, opqTangentsNL,
+                NSVertsNL, NSUVsNL, NSTrisNL, NSNormsNL, NSTangentsNL,
+                WTVertsNL, WTUVsNL, WTTrisNL, WTNormsNL, WTTangentsNL,
+                TSVertsNL, TSUVsNL, TSTrisNL, TSNormsNL, TSTangentsNL,
+                mda, mdaNS, mdaWT, mdaTS
+            );
+
+            opqVertsNL.Dispose(); opqUVsNL.Dispose(); opqTrisNL.Dispose(); opqNormsNL.Dispose(); opqTangentsNL.Dispose();
+            NSVertsNL.Dispose(); NSUVsNL.Dispose(); NSTrisNL.Dispose(); NSNormsNL.Dispose(); NSTangentsNL.Dispose();
+            WTVertsNL.Dispose(); WTUVsNL.Dispose(); WTTrisNL.Dispose(); WTNormsNL.Dispose(); WTTangentsNL.Dispose();
+            TSVertsNL.Dispose(); TSUVsNL.Dispose(); TSTrisNL.Dispose(); TSNormsNL.Dispose(); TSTangentsNL.Dispose();
         }
 
 
@@ -2546,576 +2441,16 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 //      float[,] heightMapInterpolated=GenerateChunkHeightmap(chunkPos);//偏移4
               
 
-
-                int[,] chunkBiomeMapInterpolated = GenerateChunkBiomeMapUsingHeight(pos,ref thisHeightMap);
-
-                //    int[,] biomeMap=GenerateChunkBiomeMap(chunkPos);
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        //    float iscale=(i%4)/4f;
-                        //  float jscale=(j%4)/4f;
-                        //    Debug.Log(iscale);
-                        //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.y*0.01f+j*0.01f);
-                        //     float noiseValueX=(heightMap[i/4+1,j/4+1]*iscale+heightMap[i/4+2,j/4+1]*(1-iscale));
-                        //   float noiseValueY=(heightMap[i/4+1,j/4+1]*jscale+heightMap[i/4+1,j/4+2]*(1-jscale));
-                        float noiseValue = (thisHeightMap[i + chunkWidth/2, j + chunkWidth / 2]);
-                        for (int k = 0; k < chunkHeight; k++)
-                        {
-                            if (noiseValue > k + 3)
-                            {
-                                map[i, k, j] = 1;
-                            }
-                            else if (noiseValue > k)
-                            {
-                                if (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 3)
-                                {
-                                    map[i, k, j] = 1;
-                                }
-                                else if (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 0)
-                                {
-                                    map[i, k, j] = 11;
-                                }
-                                else
-                                {
-                                    map[i, k, j] = 3;
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        for (int k = chunkHeight - 1; k >= 0; k--)
-                        {
-                            if (map[i, k, j] != 0 && map[i, k, j] != 9 && k >= chunkSeaLevel &&
-                                (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 2 || chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 1))
-                            {
-                                map[i, k, j] = 4;
-                                break;
-                            }
-                        }
-
-                        for (int k = chunkHeight - 1; k >= 0; k--)
-                        {
-                            if (k > chunkSeaLevel && map[i, k, j] == 0 && map[i, k - 1, j] == 4 &&
-                                map[i, k - 1, j] != 100 &&
-                                RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x, 0, pos.y) +
-                                                                      new Vector3Int(i, k, j)) > 70 &&
-                                (chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 2 || chunkBiomeMapInterpolated[i + chunkWidth / 2, j + chunkWidth / 2] == 1))
-                            {
-                                map[i, k, j] = 101;
-                            }
-
-                            if (k < chunkSeaLevel && map[i, k, j] == 0)
-                            {
-                                map[i, k, j] = 100;
-                            }
-                        }
-                    }
-                }
-
-                List<Vector3Int> treePoints = new List<Vector3Int>();
-                List<Vector3Int> treeLeafPoints = new List<Vector3Int>();
-                for (int x = 0; x < 32; x++)
-                {
-                    for (int z = 0; z < 32; z++)
-                    {
-                        Vector3Int point = new Vector3Int(x, (int)thisHeightMap[x, z] + 1, z);
-                        if (point.y < chunkSeaLevel)
-                        {
-                            continue;
-                        }
-
-                        Vector3Int pointTransformed2 = point - new Vector3Int(8, 0, 8);
-                        if (chunkBiomeMapInterpolated[x, z] == 3 || chunkBiomeMapInterpolated[x, z] == 0)
-                        {
-                            continue;
-                        }
-
-                        if (pointTransformed2.x >= 0 && pointTransformed2.x < chunkWidth && pointTransformed2.y >= 0 &&
-                            pointTransformed2.y < chunkHeight && pointTransformed2.z >= 0 &&
-                            pointTransformed2.z < chunkWidth)
-                        {
-                            if (map[pointTransformed2.x, pointTransformed2.y - 1, pointTransformed2.z] == 1)
-                            {
-                                continue;
-                            }
-                        }
-
-                        if (RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(point.x,point.y ,point.z) +
-                                                                  new Vector3Int(pos.x,0, pos.y)) > 98.5f)
-                        {
-                            treePoints.Add(point);
-                            treePoints.Add(point + new Vector3Int(0, 1, 0));
-                            treePoints.Add(point + new Vector3Int(0, 2, 0));
-                            treePoints.Add(point + new Vector3Int(0, 3, 0));
-                            treePoints.Add(point + new Vector3Int(0, 4, 0));
-                            treePoints.Add(point + new Vector3Int(0, 5, 0));
-                            for (int i = -2; i < 3; i++)
-                            {
-                                for (int j = -2; j < 3; j++)
-                                {
-                                    for (int k = 3; k < 5; k++)
-                                    {
-                                        Vector3Int pointLeaf = point + new Vector3Int(i, k, j);
-                                        treeLeafPoints.Add(pointLeaf);
-                                    }
-                                }
-                            }
-
-                            treeLeafPoints.Add(point + new Vector3Int(0, 5, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(0, 6, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(1, 5, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(1, 6, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(0, 5, 1));
-                            treeLeafPoints.Add(point + new Vector3Int(0, 6, 1));
-                            treeLeafPoints.Add(point + new Vector3Int(-1, 5, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(-1, 6, 0));
-                            treeLeafPoints.Add(point + new Vector3Int(0, 5, -1));
-                            treeLeafPoints.Add(point + new Vector3Int(0, 6, -1));
-                        }
-                    }
-                }
-
-                //  Debug.WriteLine(treePoints[0].x +" "+ treePoints[0].y+" " + treePoints[0].z);
-                foreach (var point1 in treeLeafPoints)
-                {
-                    Vector3Int pointTransformed1 = point1 - new Vector3Int(8, 0, 8);
-                    //   Debug.WriteLine(pointTransformed.x + " "+pointTransformed.y + " "+pointTransformed.z);
-                    if (pointTransformed1.x >= 0 && pointTransformed1.x < chunkWidth && pointTransformed1.y >= 0 &&
-                        pointTransformed1.y < chunkHeight && pointTransformed1.z >= 0 &&
-                        pointTransformed1.z < chunkWidth)
-                    {
-                        if (map[pointTransformed1.x, pointTransformed1.y, pointTransformed1.z] == 0)
-                        {
-                            map[pointTransformed1.x, pointTransformed1.y, pointTransformed1.z] = 9;
-                        }
-                    }
-                }
-
-                foreach (var point in treePoints)
-                {
-                    Vector3Int pointTransformed = point - new Vector3Int(8, 0, 8);
-                    //   Debug.WriteLine(pointTransformed.x + " "+pointTransformed.y + " "+pointTransformed.z);
-                    if (pointTransformed.x >= 0 && pointTransformed.x < chunkWidth && pointTransformed.y >= 0 &&
-                        pointTransformed.y < chunkHeight && pointTransformed.z >= 0 && pointTransformed.z < chunkWidth)
-                    {
-                        map[pointTransformed.x, pointTransformed.y, pointTransformed.z] = 7;
-                    }
-                }
-                /*  bool leftChunkLoaded=(isLeftChunkUnloaded==false&&leftChunk!=null);
-                  bool rightChunkLoaded=(isRightChunkUnloaded==false&&leftChunk!=null);
-                  bool backChunkLoaded=(isFrontChunkUnloaded==false&&leftChunk!=null);
-                  bool frontChunkLoaded=(isBackChunkUnloaded==false&&leftChunk!=null);
-                  bool leftChunkUnLoaded=(isLeftChunkUnloaded==true&&leftChunk!=null);
-                  bool rightChunkUnLoaded=(isRightChunkUnloaded==true&&rightChunk!=null);
-                  bool backChunkUnLoaded=(isBackChunkUnloaded==true&&backChunk!=null);
-                  bool frontChunkUnLoaded=(isFrontChunkUnloaded==true&&frontChunk!=null);*/
-                /*        bool leftChunkNull=(leftChunk==null);
-                    bool rightChunkNull=(rightChunk==null);
-                    bool backChunkNull=(backChunk==null);
-                    bool frontChunkNull=(frontChunk==null);
-                        for(int i=0;i<chunkWidth;i++){
-                    for(int j=0;j<chunkWidth;j++){
-
-                        for(int k=chunkHeight-1;k>=0;k--){
-
-                            if(k>chunkSeaLevel&&map[i,k,j]==0&&map[i,k-1,j]==4&&map[i,k-1,j]!=100){
-                            if(treeCount>0){
-                                    if(RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(i,k,j))>98){
-
-
-                                       for(int x=-2;x<3;x++){
-                                            for(int y=3;y<5;y++){
-                                                for(int z=-2;z<3;z++){
-                                                    if(x+i<0||x+i>=chunkWidth||z+j<0||z+j>=chunkWidth){
-
-
-
-                                                    if(x+i<0){
-                                                        if(z+j>=0&&z+j<chunkWidth){
-                                                           if(leftChunkNull==false){
-                                                            if(isLeftChunkUnloaded==true){leftChunk.additiveMap[chunkWidth+(x+i),y+k,z+j]=9;}else{leftChunk.map[chunkWidth+(x+i),y+k,z+j]=9;}
-
-
-                                                                isLeftChunkUpdated=true;
-
-                                                        //    WorldManager.chunkLoadingQueue.UpdatePriority(leftChunk,0);
-                                                   //         leftChunk.isChunkMapUpdated=true;
-                                                        }
-                                                        }else if(z+j<0){
-                                                            if(backLeftChunk!=null){
-                                                                backLeftChunk.additiveMap[chunkWidth+(x+i),y+k,chunkWidth-1+(z+j)]=9;
-
-                                                                isBackLeftChunkUpdated=true;
-
-                                                          //    WorldManager.chunkLoadingQueue.UpdatePriority(backLeftChunk,0);
-                                                 //               backLeftChunk.isChunkMapUpdated=true;
-                                                            }
-
-                                                        }else if(z+j>=chunkWidth){
-                                                            if(frontLeftChunk!=null){
-                                                                frontLeftChunk.additiveMap[chunkWidth+(x+i),y+k,(z+j)-chunkWidth]=9;
-
-                                                                isFrontLeftChunkUpdated=true;
-
-                                                           //     WorldManager.chunkLoadingQueue.UpdatePriority(frontLeftChunk,0);
-                                               //                 frontLeftChunk.isChunkMapUpdated=true;
-                                                            }
-                                                        }
-
-                                                    }else
-                                                    if(x+i>=chunkWidth){
-                                                         if(z+j>=0&&z+j<chunkWidth){
-                                                           if(rightChunkNull==false){
-                                                            if(isRightChunkUnloaded==true){  rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;}else{  rightChunk.map[(x+i)-chunkWidth,y+k,z+j]=9;}
-                                                           // rightChunk.additiveMap[(x+i)-chunkWidth,y+k,z+j]=9;
-
-                                                                isRightChunkUpdated=true;
-
-                                                         //   WorldManager.chunkLoadingQueue.UpdatePriority(rightChunk,0);
-                                                      //      rightChunk.isChunkMapUpdated=true;
-                                                        }
-                                                        }else if(z+j<0){
-                                                            if(backRightChunk!=null){
-                                                                backRightChunk.additiveMap[(x+i)-chunkWidth,y+k,chunkWidth+(z+j)]=9;
-
-                                                                isBackRightChunkUpdated=true;
-
-                                                          //    WorldManager.chunkLoadingQueue.UpdatePriority(backRightChunk,0);
-                                                       //         backRightChunk.isChunkMapUpdated=true;
-                                                            }
-
-                                                        }else if(z+j>=chunkWidth){
-                                                            if(frontRightChunk!=null){
-                                                                frontRightChunk.additiveMap[(x+i)-chunkWidth,y+k,(z+j)-chunkWidth]=9;
-
-                                                                isFrontRightChunkUpdated=true;
-
-                                                         //     WorldManager.chunkLoadingQueue.UpdatePriority(frontRightChunk,0);
-                                                      //          frontRightChunk.isChunkMapUpdated=true;
-                                                            }
-                                                        }
-                                                    }else
-                                                    if(z+j<0){
-
-                                                         if(x+i>=0&&x+i<chunkWidth){
-                                                           if(backChunkNull==false){
-                                                            if(isBackChunkUnloaded==true){ backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;}else{
-                                                                 backChunk.map[x+i,y+k,chunkWidth+(z+j)]=9;
-                                                            }
-                                                          //  backChunk.additiveMap[x+i,y+k,chunkWidth+(z+j)]=9;
-
-                                                                isBackChunkUpdated=true;
-
-                                                    //    WorldManager.chunkLoadingQueue.UpdatePriority(backChunk,0);
-                                                   //         backChunk.isChunkMapUpdated=true;
-                                                        }
-                                                        }else if(x+i<0){
-                                                            if(backLeftChunk!=null){
-                                                                backLeftChunk.additiveMap[chunkWidth+(x+i),y+k,chunkWidth-1+(z+j)]=9;
-
-                                                                isBackLeftChunkUpdated=true;
-
-                                                         //    WorldManager.chunkLoadingQueue.UpdatePriority(backLeftChunk,0);
-                                                    //            backLeftChunk.isChunkMapUpdated=true;
-                                                            }
-
-                                                        }else if(x+i>=chunkWidth){
-                                                            if(backRightChunk!=null){
-                                                                backRightChunk.additiveMap[(x+i)-chunkWidth,y+k,chunkWidth-1+(z+j)]=9;
-
-                                                                isBackRightChunkUpdated=true;
-
-                                                       //       WorldManager.chunkLoadingQueue.UpdatePriority(backRightChunk,0);
-                                                          //      backRightChunk.isChunkMapUpdated=true;
-                                                            }
-                                                        }
-
-                                                    }else
-                                                    if(z+j>=chunkWidth){
-
-                                                        if(x+i>=0&&x+i<chunkWidth){
-                                                           if(frontChunkNull==false){
-                                                                  if(isFrontChunkUnloaded==true){ frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;}else{
-                                                                     frontChunk.map[x+i,y+k,(z+j)-chunkWidth]=9;
-                                                                }
-                                                      //      frontChunk.additiveMap[x+i,y+k,(z+j)-chunkWidth]=9;
-
-                                                                isFrontChunkUpdated=true;
-
-                                                      //    WorldManager.chunkLoadingQueue.UpdatePriority(frontChunk,0);
-                                                         //   frontChunk.isChunkMapUpdated=true;
-                                                        }
-                                                        }else if(x+i<0){
-                                                            if(frontLeftChunk!=null){
-
-                                                                frontLeftChunk.additiveMap[chunkWidth+(x+i),y+k,(z+j)-chunkWidth]=9;
-
-                                                            isBackLeftChunkUpdated=true;
-
-                                                      //        WorldManager.chunkLoadingQueue.UpdatePriority(frontLeftChunk,0);
-                                                            //    frontLeftChunk.isChunkMapUpdated=true;
-                                                            }
-
-                                                        }else if(x+i>=chunkWidth){
-                                                            if(frontRightChunk!=null){
-                                                                frontRightChunk.additiveMap[(x+i)-chunkWidth,y+k,(z+j)-chunkWidth]=9;
-
-                                                                isFrontRightChunkUpdated=true;
-
-                                                          //  WorldManager.chunkLoadingQueue.UpdatePriority(frontRightChunk,0);
-                                                          //      frontRightChunk.isChunkMapUpdated=true;
-                                                            }
-                                                        }
-                                                    }
-
-
-                                                    }else{
-                                                        map[x+i,y+k,z+j]=9;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                          map[i,k,j]=7;
-                                        map[i,k+1,j]=7;
-                                       map[i,k+2,j]=7;
-                                        map[i,k+3,j]=7;
-                                         map[i,k+4,j]=7;
-                                         map[i,k+5,j]=9;
-                                         map[i,k+6,j]=9;
-
-                                        if(i+1<chunkWidth){
-                                        map[i+1,k+5,j]=9;
-                                         map[i+1,k+6,j]=9;
-
-                                       }else{
-                                        if(rightChunkNull==false){
-                                            if(isRightChunkUnloaded==true){rightChunk.additiveMap[0,k+5,j]=9;
-                                         rightChunk.additiveMap[0,k+6,j]=9;}else{rightChunk.map[0,k+5,j]=9;rightChunk.map[0,k+6,j]=9;}
-
-
-                                    //      rightChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-
-                                       if(i-1>=0){
-                                        map[i-1,k+5,j]=9;
-                                        map[i-1,k+6,j]=9;
-
-                                       }else{
-                                        if(leftChunkNull==false){
-                                            if(isLeftChunkUnloaded==true){leftChunk.additiveMap[chunkWidth-1,k+5,j]=9;
-                                         leftChunk.additiveMap[chunkWidth-1,k+6,j]=9;}else{leftChunk.map[chunkWidth-1,k+5,j]=9;
-                                         leftChunk.map[chunkWidth-1,k+6,j]=9;}
-
-
-                                        // leftChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-                                       if(j+1<chunkWidth){
-                                        map[i,k+5,j+1]=9;
-                                        map[i,k+6,j+1]=9;
-
-                                       }else{
-                                        if(frontChunkNull==false){
-                                            if(isFrontChunkUnloaded==true){
-                                                frontChunk.additiveMap[i,k+5,0]=9;
-                                        frontChunk.additiveMap[i,k+6,0]=9;
-                                            }else{
-                                                frontChunk.map[i,k+5,0]=9;
-                                        frontChunk.map[i,k+6,0]=9;
-                                            }
-                                     //   frontChunk.additiveMap[i,k+5,0]=9;
-                                     //   frontChunk.additiveMap[i,k+6,0]=9;
-
-                                     //   frontChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-
-                                       if(j-1>=0){
-                                        map[i,k+5,j-1]=9;
-                                        map[i,k+6,j-1]=9;
-
-                                       }else{
-                                        if(backChunkNull==false){
-                                            if(isBackChunkUnloaded==true){
-                                                 backChunk.additiveMap[i,k+5,chunkWidth-1]=9;
-                                        backChunk.additiveMap[i,k+6,chunkWidth-1]=9;
-                                            }else{
-                                                 backChunk.map[i,k+5,chunkWidth-1]=9;
-                                        backChunk.map[i,k+6,chunkWidth-1]=9;
-                                            }
-
-
-                                      //  backChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-
-
-                                 /*
-                                        map[i,k,j]=7;
-                                        map[i,k+1,j]=7;
-                                       map[i,k+2,j]=7;
-                                        map[i,k+3,j]=7;
-                                         map[i,k+4,j]=7;
-                                       map[i,k+5,j]=9;
-
-                                       if(i+1<chunkWidth){
-                                        map[i+1,k+4,j]=9;
-                                         map[i+1,k+3,j]=9;
-                                          map[i+1,k+2,j]=9;
-                                       }else{
-                                        if(rightChunk!=null){
-                                            rightChunk.additiveMap[0,k+4,j]=9;
-                                         rightChunk.additiveMap[0,k+3,j]=9;
-                                          rightChunk.additiveMap[0,k+2,j]=9;
-                                           isRightChunkUpdated=true;
-                                    //      rightChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-                                       if(i-1>=0){
-                                        map[i-1,k+4,j]=9;
-                                        map[i-1,k+3,j]=9;
-                                        map[i-1,k+2,j]=9;
-                                       }else{
-                                        if(leftChunk!=null){
-                                              leftChunk.additiveMap[chunkWidth-1,k+4,j]=9;
-                                         leftChunk.additiveMap[chunkWidth-1,k+3,j]=9;
-                                          leftChunk.additiveMap[chunkWidth-1,k+2,j]=9;
-                                          isLeftChunkUpdated=true;
-                                   //       leftChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-                                       if(j+1<chunkWidth){
-                                        map[i,k+4,j+1]=9;
-                                        map[i,k+3,j+1]=9;
-                                        map[i,k+2,j+1]=9;
-                                       }else{
-                                        if(frontChunk!=null){
-                                        frontChunk.additiveMap[i,k+4,0]=9;
-                                        frontChunk.additiveMap[i,k+3,0]=9;
-                                        frontChunk.additiveMap[i,k+2,0]=9;
-                                        isFrontChunkUpdated=true;
-                                   //     frontChunk.isChunkMapUpdated=true;
-                                        }
-                                       }
-
-
-
-                                       if(j-1>=0){
-                                        map[i,k+4,j-1]=9;
-                                        map[i,k+3,j-1]=9;
-                                        map[i,k+2,j-1]=9;
-                                       }else{
-                                        if(backChunk!=null){
-                                        backChunk.additiveMap[i,k+4,chunkWidth-1]=9;
-                                        backChunk.additiveMap[i,k+3,chunkWidth-1]=9;
-                                        backChunk.additiveMap[i,k+2,chunkWidth-1]=9;
-                                        isBackChunkUpdated=true;
-                                 //       backChunk.isChunkMapUpdated=true;
-                                        }
-                                       }*/
-
-
-                //         treeCount--;
-                /*             }
-                         }
-                     }
-
-                 }
-             }
-         }*/
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        for (int k = 0; k < chunkHeight / 4; k++)
-                        {
-                            if (0 < k && k < 12)
-                            {
-                                if (RandomGenerator3D.GenerateIntFromVec3(new Vector3Int(pos.x, 0, pos.y) +
-                                                                          new Vector3Int(i, k, j)) > 93)
-                                {
-                                    map[i, k, j] = 10;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        map[i, 0, j] = 5;
-                    }
-                }
-                /*          if(isLeftChunkUpdated==true){
-                             WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(leftChunk,false),0);
-                         }
-                         if(isRightChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(rightChunk,false),0);
-                         }
-                         if(isBackChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backChunk,false),0);
-                         }
-                         if(isFrontChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontChunk,false),0);
-                         }
-                         if(isFrontLeftChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontLeftChunk,false),0);
-                         }
-                         if(isFrontRightChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(frontRightChunk,false),0);
-                         }
-                         if(isBackLeftChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backLeftChunk,false),0);
-                         }
-                         if(isBackRightChunkUpdated==true){
-                           WorldManager.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(backRightChunk,false),0);
-                         }*/
+                TerrainGeneratingHelper.GenerateOverworldChunkMap(ref thisHeightMap, ref map,pos);
+              
             }
             else if (VoxelWorld.currentWorld.worldGenType == 1)
             {
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.z*0.01f+j*0.01f);
-                        for (int k = 0; k < chunkHeight / 4; k++)
-                        {
-                            map[i, k, j] = 1;
-                        }
-                    }
-                }
+                TerrainGeneratingHelper.GenerateSuperflatChunkMap(ref map,pos);
             }
             else if (VoxelWorld.currentWorld.worldGenType == 2)
             {
-                for (int i = 0; i < chunkWidth; i++)
-                {
-                    for (int j = 0; j < chunkWidth; j++)
-                    {
-                        //  float noiseValue=200f*Mathf.PerlinNoise(pos.x*0.01f+i*0.01f,pos.z*0.01f+j*0.01f);
-                        for (int k = 0; k < chunkHeight / 2; k++)
-                        {
-                            float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(k - chunkSeaLevel)) / 40f);
-                            float xzLerpValue = Mathf.Lerp(-1, 1,
-                                (new Vector3(chunkPos.x + i, 0, chunkPos.y + j).magnitude / 384f));
-                            float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-                            if (frequentNoiseGenerator.GetNoise(i + chunkPos.x, k, j + chunkPos.y) > xyzLerpValue)
-                            {
-                                map[i, k, j] = 12;
-                            }
-                        }
-                    }
-                }
+                TerrainGeneratingHelper.GenerateEnderworldChunkMap(ref map,pos);
 
                 //   Debug.Log("original noise gen time:"+stopwatch.Elapsed.TotalMilliseconds);
             }
@@ -3153,7 +2488,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         { 11, 2 }
     };
 
-    public void GenerateMeshOpqLOD(List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> norms,
+    public void GenerateMeshOpqLOD(NativeList<Vector3> verts, NativeList<Vector2> uvs, NativeList<int> tris, NativeList<Vector3> norms, NativeList<Vector3> tangents,
         Mesh.MeshDataArray mda, int lodBlockSkipCount = 2)
     {
         //   System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -3181,7 +2516,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                     //    Array.Clear(typeIDs, 0, lodBlockSkipCount * 1 * lodBlockSkipCount);
                     //    Array.Clear(typeIDWeights, 0, lodBlockSkipCount * 1 * lodBlockSkipCount);
                     Vector3Int blockCheckPos = new Vector3Int(x, y, z);
-                    BlockMeshBuildingHelper.BuildSingleBlockLOD(lodBlockSkipCount, this, x, y, z, typeid, ref verts, ref uvs,ref tris,ref norms);
+                    BlockMeshBuildingHelper.BuildSingleBlockLOD(lodBlockSkipCount, this, x, y, z, typeid, ref verts, ref uvs,ref tris,ref norms,ref tangents);
                     /*     if (lodBlockSkipCount > 1)
                          {
                              int indx = 0;
@@ -3252,12 +2587,13 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             }
         }
 
-
-        NativeArray<VertexAttributeDescriptor> vertexAttributesDes = new NativeArray<VertexAttributeDescriptor>(
+        BlockMeshBuildingHelper.FillMeshData(ref mda,ref verts,ref uvs,ref norms,ref tangents,ref tris);
+    /*    NativeArray<VertexAttributeDescriptor> vertexAttributesDes = new NativeArray<VertexAttributeDescriptor>(
             new VertexAttributeDescriptor[]
             {
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4),
+                new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.SNorm8, 4),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
             }, Allocator.Persistent);
         //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
@@ -3272,8 +2608,8 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             /*    if(pos==null){
                     Debug.Log("null");
                     return;
-                }*/
-            pos[i] = new Vertex(verts[i], norms[i], uvs[i]);
+                }
+            pos[i] = new Vertex(verts[i], norms[i],tangents[i], uvs[i]);
         }
 
         data.SetIndexBufferParams((int)(pos.Length / 2 * 3), IndexFormat.UInt32);
@@ -3286,17 +2622,68 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
         pos.Dispose();
         ib.Dispose();
-        vertexAttributesDes.Dispose();
+        vertexAttributesDes.Dispose();*/
         //   sw.Stop();
         //    Debug.Log(sw.ElapsedMilliseconds);
     }
+    public void GenerateMesh(NativeList<Vector3> verts, NativeList<Vector2> uvs, NativeList<int> tris, NativeList<Vector3> norms, NativeList<Vector3> tangents,
+        NativeList<Vector3> vertsNS, NativeList<Vector2> uvsNS, NativeList<int> trisNS, NativeList<Vector3> normsNS, NativeList<Vector3> tangentsNS,
+        NativeList<Vector3> vertsWT, NativeList<Vector2> uvsWT, NativeList<int> trisWT, NativeList<Vector3> normsWT, NativeList<Vector3> tangentsWT,
+        NativeList<Vector3> vertsTS, NativeList<Vector2> uvsTS, NativeList<int> trisTS, NativeList<Vector3> normsTS, NativeList<Vector3> tangentsTS,
 
-    public void GenerateMesh(List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> vertsNS,
-        List<Vector2> uvsNS, List<int> trisNS, Mesh.MeshDataArray mda, Mesh.MeshDataArray mdaNS, List<Vector3> norms,
-        List<Vector3> normsNS, Mesh.MeshDataArray mdaWT, List<Vector3> vertsWT, List<Vector2> uvsWT, List<int> trisWT,
-        List<Vector3> normsWT,
-        Mesh.MeshDataArray mdaTS, List<Vector3> vertsTS, List<Vector2> uvsTS, List<int> trisTS,
-        List<Vector3> normsTS
+
+        Mesh.MeshDataArray mda, Mesh.MeshDataArray mdaNS,
+        Mesh.MeshDataArray mdaWT,
+        Mesh.MeshDataArray mdaTS
+        )
+    {
+
+
+        for (int x = 0; x < chunkWidth; x += 1)
+        {
+            for (int y = 0; y < chunkHeight; y += 1)
+            {
+                for (int z = 0; z < chunkWidth; z += 1)
+                {
+                    //new int[chunkwidth,chunkheiight,chunkwidth]
+                    //     BuildBlock(x, y, z, verts, uvs, tris, vertsNS, uvsNS, trisNS);
+
+
+                    int typeid = this.map[x, y, z];
+                    if (map == null)
+                    {
+                        return;
+                    }
+                    BlockMeshBuildingHelper.BuildSingleBlock(this, x, y, z, this.map[x, y, z], ref verts, ref uvs, ref tris, ref norms, ref tangents, ref vertsNS, ref uvsNS, ref trisNS, ref normsNS, ref tangentsNS, ref vertsWT, ref uvsWT, ref trisWT, ref normsWT, ref tangentsWT, ref vertsTS, ref uvsTS, ref trisTS, ref normsTS, ref tangentsTS);
+                    continue;
+
+                }
+            }
+        }
+
+
+
+        BlockMeshBuildingHelper.FillMeshData(ref mda, ref verts, ref uvs, ref norms, ref tangents, ref tris);
+
+        BlockMeshBuildingHelper.FillMeshData(ref mdaNS, ref vertsNS, ref uvsNS, ref normsNS, ref tangentsNS, ref trisNS);
+
+        BlockMeshBuildingHelper.FillMeshData(ref mdaWT, ref vertsWT, ref uvsWT, ref normsWT, ref tangentsWT, ref trisWT);
+        BlockMeshBuildingHelper.FillMeshData(ref mdaTS, ref vertsTS, ref uvsTS, ref normsTS, ref tangentsTS, ref trisTS);
+  
+
+
+        isMeshBuildCompleted = true;
+    }
+
+    public void GenerateMesh(List<Vector3> verts, List<Vector2> uvs, List<int> tris , List<Vector3> norms, List<Vector3> tangents,
+        List<Vector3> vertsNS, List<Vector2> uvsNS, List<int> trisNS, List<Vector3> normsNS, List<Vector3> tangentsNS,
+        List<Vector3> vertsWT, List<Vector2> uvsWT, List<int> trisWT, List<Vector3> normsWT, List<Vector3> tangentsWT,
+        List<Vector3> vertsTS, List<Vector2> uvsTS, List<int> trisTS, List<Vector3> normsTS, List<Vector3> tangentsTS,
+        
+
+        Mesh.MeshDataArray mda, Mesh.MeshDataArray mdaNS,
+        Mesh.MeshDataArray mdaWT, 
+        Mesh.MeshDataArray mdaTS
         )
     {
         //   Thread.Sleep(10);
@@ -3334,7 +2721,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                     {
                         return;
                     }
-                    BlockMeshBuildingHelper.BuildSingleBlock(this, x, y, z, this.map[x, y, z], ref verts, ref uvs, ref tris, ref norms, ref vertsNS, ref uvsNS, ref trisNS, ref normsNS, ref vertsWT, ref uvsWT, ref trisWT, ref normsWT,ref vertsTS, ref uvsTS, ref trisTS,ref normsTS);
+             //       BlockMeshBuildingHelper.BuildSingleBlock(this, x, y, z, this.map[x, y, z], ref verts, ref uvs, ref tris, ref norms, ref tangents, ref vertsNS, ref uvsNS, ref trisNS, ref normsNS, ref tangentsNS, ref vertsWT, ref uvsWT, ref trisWT, ref normsWT, ref tangentsWT, ref vertsTS, ref uvsTS, ref trisTS,ref normsTS, ref tangentsTS);
                     continue;
 
 /*
@@ -3583,155 +2970,120 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         //  NSUVsNA=uvsNS.AsArray();
         //   NSTrisNA=trisNS.AsArray();
 
+        BlockMeshBuildingHelper.FillMeshData(ref mda, ref verts, ref uvs, ref norms, ref tangents, ref tris);
 
-        NativeArray<VertexAttributeDescriptor> vertexAttributesDes = new NativeArray<VertexAttributeDescriptor>(
-            new VertexAttributeDescriptor[]
-            {
-                new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
-                new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
-            }, Allocator.Persistent);
-        //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
-        //    mdaNS[0].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);
-        //   mda[1].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);   
-        var data = mda[0];
-        data.SetVertexBufferParams(verts.Count, vertexAttributesDes);
-        NativeArray<Vertex> pos = data.GetVertexData<Vertex>();
+        BlockMeshBuildingHelper.FillMeshData(ref mdaNS, ref vertsNS, ref uvsNS, ref normsNS, ref tangentsNS, ref trisNS);
 
-        for (int i = 0; i < verts.Count; i++)
-        {
-            /*    if(pos==null){
-                    Debug.Log("null");
-                    return;
-                }*/
-            pos[i] = new Vertex(verts[i], norms[i], uvs[i]);
-        }
+        BlockMeshBuildingHelper.FillMeshData(ref mdaWT, ref vertsWT, ref uvsWT, ref normsWT, ref tangentsWT, ref trisWT);
+        BlockMeshBuildingHelper.FillMeshData(ref mdaTS, ref vertsTS, ref uvsTS, ref normsTS, ref tangentsTS, ref trisTS);
+        /*
 
-        data.SetIndexBufferParams((int)(pos.Length / 2 * 3), IndexFormat.UInt32);
-        var ib = data.GetIndexData<int>();
-        for (int i = 0; i < ib.Length; ++i)
-            ib[i] = tris[i];
+                NativeArray<VertexAttributeDescriptor> vertexAttributesDes = new NativeArray<VertexAttributeDescriptor>(
+                    new VertexAttributeDescriptor[]
+                    {
+                        new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                        new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.SNorm8, 4),
+                        new VertexAttributeDescriptor(VertexAttribute.Tangent, VertexAttributeFormat.SNorm8, 4),
+                        new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2)
+                    }, Allocator.Persistent);
+                //    mda[0].SetVertexBufferParams(opqVertsNA.Length+1,vertexAttributesDes);
+                //    mdaNS[0].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);
+                //   mda[1].SetVertexBufferParams(NSVertsNA.Length+1,vertexAttributesDes);   
+                var data = mda[0];
+                data.SetVertexBufferParams(verts.Count, vertexAttributesDes);
+                NativeArray<Vertex> pos = data.GetVertexData<Vertex>();
 
-        data.subMeshCount = 1;
-        data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length, MeshTopology.Triangles));
+                for (int i = 0; i < verts.Count; i++)
+                {
 
-        pos.Dispose();
-        ib.Dispose();
+                    pos[i] = new Vertex(verts[i], norms[i],tangents[i], uvs[i]);
+                }
 
+                data.SetIndexBufferParams((int)(pos.Length / 2 * 3), IndexFormat.UInt32);
+                var ib = data.GetIndexData<int>();
+                for (int i = 0; i < ib.Length; ++i)
+                    ib[i] = tris[i];
 
-        var dataNS = mdaNS[0];
-        dataNS.SetVertexBufferParams(vertsNS.Count, vertexAttributesDes);
-        NativeArray<Vertex> posNS = dataNS.GetVertexData<Vertex>();
+                data.subMeshCount = 1;
+                data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length, MeshTopology.Triangles));
 
-        for (int i = 0; i < vertsNS.Count; i++)
-        {
-            /*         if(posNS==null){
-                         Debug.Log("null");
-                         return;
-                     }*/
-            posNS[i] = new Vertex(vertsNS[i], normsNS[i], uvsNS[i]);
-        }
-
-        dataNS.SetIndexBufferParams((int)(posNS.Length / 2 * 3), IndexFormat.UInt32);
-        var ibNS = dataNS.GetIndexData<int>();
-        for (int i = 0; i < ibNS.Length; ++i)
-        {
-            ibNS[i] = trisNS[i];
-        }
+                pos.Dispose();
+                ib.Dispose();
 
 
-        dataNS.subMeshCount = 1;
-        dataNS.SetSubMesh(0, new SubMeshDescriptor(0, ibNS.Length, MeshTopology.Triangles));
-        posNS.Dispose();
-        ibNS.Dispose();
+                var dataNS = mdaNS[0];
+                dataNS.SetVertexBufferParams(vertsNS.Count, vertexAttributesDes);
+                NativeArray<Vertex> posNS = dataNS.GetVertexData<Vertex>();
+
+                for (int i = 0; i < vertsNS.Count; i++)
+                {
+
+                    posNS[i] = new Vertex(vertsNS[i], normsNS[i], tangentsNS[i], uvsNS[i]);
+                }
+
+                dataNS.SetIndexBufferParams((int)(posNS.Length / 2 * 3), IndexFormat.UInt32);
+                var ibNS = dataNS.GetIndexData<int>();
+                for (int i = 0; i < ibNS.Length; ++i)
+                {
+                    ibNS[i] = trisNS[i];
+                }
 
 
-        var dataWT = mdaWT[0];
-        dataWT.SetVertexBufferParams(vertsWT.Count, vertexAttributesDes);
-        NativeArray<Vertex> posWT = dataWT.GetVertexData<Vertex>();
-
-        for (int i = 0; i < vertsWT.Count; i++)
-        {
-            /*    if(posWT==null){
-                    Debug.Log("null");
-                    return;
-                }*/
-            posWT[i] = new Vertex(vertsWT[i], normsWT[i], uvsWT[i]);
-        }
-
-        dataWT.SetIndexBufferParams((int)(posWT.Length / 2 * 3), IndexFormat.UInt32);
-        var ibWT = dataWT.GetIndexData<int>();
-        for (int i = 0; i < ibWT.Length; ++i)
-        {
-            ibWT[i] = trisWT[i];
-        }
+                dataNS.subMeshCount = 1;
+                dataNS.SetSubMesh(0, new SubMeshDescriptor(0, ibNS.Length, MeshTopology.Triangles));
+                posNS.Dispose();
+                ibNS.Dispose();
 
 
-        dataWT.subMeshCount = 1;
-        dataWT.SetSubMesh(0, new SubMeshDescriptor(0, ibWT.Length, MeshTopology.Triangles));
-        posWT.Dispose();
-        ibWT.Dispose();
+                var dataWT = mdaWT[0];
+                dataWT.SetVertexBufferParams(vertsWT.Count, vertexAttributesDes);
+                NativeArray<Vertex> posWT = dataWT.GetVertexData<Vertex>();
+
+                for (int i = 0; i < vertsWT.Count; i++)
+                {
+
+                    posWT[i] = new Vertex(vertsWT[i], normsWT[i], tangentsWT[i], uvsWT[i]);
+                }
+
+                dataWT.SetIndexBufferParams((int)(posWT.Length / 2 * 3), IndexFormat.UInt32);
+                var ibWT = dataWT.GetIndexData<int>();
+                for (int i = 0; i < ibWT.Length; ++i)
+                {
+                    ibWT[i] = trisWT[i];
+                }
+
+
+                dataWT.subMeshCount = 1;
+                dataWT.SetSubMesh(0, new SubMeshDescriptor(0, ibWT.Length, MeshTopology.Triangles));
+                posWT.Dispose();
+                ibWT.Dispose();
 
 
 
-        var dataTS = mdaTS[0];
-        dataTS.SetVertexBufferParams(vertsTS.Count, vertexAttributesDes);
-        NativeArray<Vertex> posTS = dataTS.GetVertexData<Vertex>();
+                var dataTS = mdaTS[0];
+                dataTS.SetVertexBufferParams(vertsTS.Count, vertexAttributesDes);
+                NativeArray<Vertex> posTS = dataTS.GetVertexData<Vertex>();
 
-        for (int i = 0; i < vertsTS.Count; i++)
-        {
-            /*    if(posWT==null){
-                    Debug.Log("null");
-                    return;
-                }*/
-            posTS[i] = new Vertex(vertsTS[i], normsTS[i], uvsTS[i]);
-        }
+                for (int i = 0; i < vertsTS.Count; i++)
+                {
 
-        dataTS.SetIndexBufferParams((int)(posTS.Length / 2 * 3), IndexFormat.UInt32);
-        var ibTS = dataTS.GetIndexData<int>();
-        for (int i = 0; i < ibTS.Length; ++i)
-        {
-            ibTS[i] = trisTS[i];
-        }
+                    posTS[i] = new Vertex(vertsTS[i], normsTS[i], tangentsTS[i], uvsTS[i]);
+                }
+
+                dataTS.SetIndexBufferParams((int)(posTS.Length / 2 * 3), IndexFormat.UInt32);
+                var ibTS = dataTS.GetIndexData<int>();
+                for (int i = 0; i < ibTS.Length; ++i)
+                {
+                    ibTS[i] = trisTS[i];
+                }
 
 
-        dataTS.subMeshCount = 1;
-        dataTS.SetSubMesh(0, new SubMeshDescriptor(0, ibTS.Length, MeshTopology.Triangles));
-        posTS.Dispose();
-        ibTS.Dispose();
-        vertexAttributesDes.Dispose();
-        /*  var data=mda[0];
-             // Tetrahedron vertices with positions and normals.
-          // 4 faces with 3 unique vertices in each -- the faces
-          // don't share the vertices since normals have to be
-          // different for each face.
-          data.SetVertexBufferParams(12,
-              new VertexAttributeDescriptor(VertexAttribute.Position),
-              new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1));
-          // Four tetrahedron vertex positions:
-          var sqrt075 = Mathf.Sqrt(0.75f);
-          var p0 = new Vector3(0, 0, 0);
-          var p1 = new Vector3(1, 0, 0);
-          var p2 = new Vector3(0.5f, 0, sqrt075);
-          var p3 = new Vector3(0.5f, sqrt075, sqrt075 / 3);
-          // The first vertex buffer data stream is just positions;
-          // fill them in.
-          var pos = data.GetVertexData<Vector3>();
-          pos[0] = p0; pos[1] = p1; pos[2] = p2;
-          pos[3] = p0; pos[4] = p2; pos[5] = p3;
-          pos[6] = p2; pos[7] = p1; pos[8] = p3;
-          pos[9] = p0; pos[10] = p3; pos[11] = p1;
-          // Note: normals will be calculated later in RecalculateNormals.
-          // Tetrahedron index buffer: 4 triangles, 3 indices per triangle.
-          // All vertices are unique so the index buffer is just a
-          // 0,1,2,...,11 sequence.
-          data.SetIndexBufferParams(12, IndexFormat.UInt16);
-          var ib = data.GetIndexData<ushort>();
-          for (ushort i = 0; i < ib.Length; ++i)
-              ib[i] = i;
-          // One sub-mesh with all the indices.
-          data.subMeshCount = 1;
-          data.SetSubMesh(0, new SubMeshDescriptor(0, ib.Length));*/
+                dataTS.subMeshCount = 1;
+                dataTS.SetSubMesh(0, new SubMeshDescriptor(0, ibTS.Length, MeshTopology.Triangles));
+                posTS.Dispose();
+                ibTS.Dispose();
+                vertexAttributesDes.Dispose();*/
+
 
 
         isMeshBuildCompleted = true;
@@ -3837,29 +3189,42 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
 
                JobHandle.CompleteAll(ref jh,ref jhNS);*/
-
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData, chunkMesh);
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataTS, chunkSolidTransparentMesh);
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD1, chunkMeshLOD1);
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD2, chunkMeshLOD2);
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS, chunkNonSolidMesh);
-            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataWT, chunkWaterMesh);
-
-            chunkMesh.RecalculateBounds();
-            chunkMesh.RecalculateTangents();
+            
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshData, chunkMesh,MeshUpdateFlags.DontValidateIndices);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataTS, chunkSolidTransparentMesh, MeshUpdateFlags.DontValidateIndices);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD1, chunkMeshLOD1, MeshUpdateFlags.DontValidateIndices);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataLOD2, chunkMeshLOD2, MeshUpdateFlags.DontValidateIndices);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataNS, chunkNonSolidMesh, MeshUpdateFlags.DontValidateIndices);
+            Mesh.ApplyAndDisposeWritableMeshData(mbjMeshDataWT, chunkWaterMesh, MeshUpdateFlags.DontValidateIndices);
             chunkSolidTransparentMesh.RecalculateBounds();
-            chunkSolidTransparentMesh.RecalculateTangents();
+            chunkNonSolidMesh.RecalculateBounds();
+            chunkWaterMesh.RecalculateBounds();
+            chunkMeshLOD1.RecalculateBounds();
+            chunkMeshLOD2.RecalculateBounds();
+            chunkMesh.RecalculateBounds();
+          
+            
+            
+        //    chunkMesh.RecalculateTangents();
+           
+           
+            //  chunkSolidTransparentMesh.RecalculateTangents();
             JobHandle jh = new BakeJob { meshID = chunkMesh.GetInstanceID() }.Schedule();
 
             JobHandle jh1 = new BakeJob { meshID = chunkSolidTransparentMesh.GetInstanceID() }.Schedule();
-            chunkNonSolidMesh.RecalculateBounds();
-            chunkWaterMesh.RecalculateBounds(); 
-          
+           
 
-            chunkMeshLOD1.RecalculateBounds();
-            chunkMeshLOD1.RecalculateTangents();
-            chunkMeshLOD2.RecalculateBounds();
-            chunkMeshLOD2.RecalculateTangents();
+            
+           
+            
+
+
+            
+            
+            //  chunkMeshLOD1.RecalculateTangents();
+            
+           
+            //   chunkMeshLOD2.RecalculateTangents();
             // chunkWaterMesh=WeldVertices(chunkWaterMesh);
             //     chunkWaterMesh.RecalculateNormals();
             //    chunkNonSolidMesh.RecalculateNormals();
@@ -3968,6 +3333,54 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             {
                 meshColliderTS.sharedMesh = null;
             }
+
+            lodGroup.fadeMode = LODFadeMode.CrossFade;
+            float chunkMaxExtent = Mathf.Max(chunkMesh.bounds.size.x, chunkMesh.bounds.size.y,
+                chunkMesh.bounds.size.z) * 4f;
+            float lodFactor = chunkMaxExtent / chunkWidth;
+            List<LOD> lodList= new List<LOD>();
+
+            if (chunkMesh.vertexCount > 0)
+            {
+                lodList.Add(new LOD
+                {
+                    fadeTransitionWidth = 0.02f,
+                    screenRelativeTransitionHeight = chunkMaxExtent * 1f / 1080f,// 0.05f * Mathf.Max(chunkMesh.bounds.size.x, chunkMesh.bounds.size.y,
+                    //  chunkMesh.bounds.size.z, 1f) / 16f,
+                    renderers = new Renderer[] { meshRenderer }
+                });
+            }
+            if (chunkMeshLOD1.vertexCount > 0)
+            {
+                lodList.Add(new LOD
+                {
+                    fadeTransitionWidth = 0.08f,
+                    screenRelativeTransitionHeight = chunkMaxExtent * 1f / 1080f / 2f,/* 0.05f * Mathf.Max(chunkMesh.bounds.size.x, chunkMesh.bounds.size.y,
+                        chunkMesh.bounds.size.z, 1f) / 32f,*/
+                    renderers = new Renderer[] { meshRendererLOD1 }
+                });
+            }
+            if (chunkMeshLOD2.vertexCount > 0)
+            {
+                lodList.Add(new LOD
+                {
+                    fadeTransitionWidth = 0.02f,
+                    screenRelativeTransitionHeight = 0.001f,/* 0.001f * Mathf.Max(chunkMesh.bounds.size.x,
+                        chunkMesh.bounds.size.y, chunkMesh.bounds.size.z, 1f) / 32f,*/
+                    renderers = new Renderer[] { meshRendererLOD2 }
+                });
+            }
+            
+            lodGroup.SetLODs(lodList.ToArray());
+
+
+            chunkMesh.UploadMeshData(true);
+            chunkSolidTransparentMesh.UploadMeshData(true);
+            chunkNonSolidMesh.UploadMeshData(true);
+            chunkWaterMesh.UploadMeshData(true);
+            chunkMeshLOD1.UploadMeshData(true);
+            chunkMeshLOD2.UploadMeshData(true);
+            
             isStrongLoaded = true;
 
 
@@ -3979,33 +3392,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
 
             //  isStrongLoaded=false;
-            lodGroup.fadeMode = LODFadeMode.CrossFade;
-
-            LOD[] lod = new LOD[]
-            {
-                new LOD
-                {
-                    fadeTransitionWidth = 0.05f,
-                    screenRelativeTransitionHeight = 0.05f * Mathf.Max(chunkMesh.bounds.size.x, chunkMesh.bounds.size.y,
-                        chunkMesh.bounds.size.z, 1f) / 16f,
-                    renderers = new Renderer[] { meshRenderer }
-                },
-                new LOD
-                {
-                    fadeTransitionWidth = 0.05f,
-                    screenRelativeTransitionHeight = 0.05f * Mathf.Max(chunkMesh.bounds.size.x, chunkMesh.bounds.size.y,
-                        chunkMesh.bounds.size.z, 1f) / 32f,
-                    renderers = new Renderer[] { meshRendererLOD1 }
-                },
-                new LOD
-                {
-                    fadeTransitionWidth = 0.05f,
-                    screenRelativeTransitionHeight = 0.001f * Mathf.Max(chunkMesh.bounds.size.x,
-                        chunkMesh.bounds.size.y, chunkMesh.bounds.size.z, 1f) / 32f,
-                    renderers = new Renderer[] { meshRendererLOD2 }
-                }
-            };
-            lodGroup.SetLODs(lod);
+       
+            lodGroup.animateCrossFading = true;
+           
         }
         catch (Exception e)
         {
@@ -4420,59 +3809,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         }
     }
 
-    public static int PredictBlockType(float noiseValue, int y)
-    {
-        if (noiseValue > y)
-        {
-            return 1;
-        }
-        else
-        {
-            if (y < chunkSeaLevel && y > noiseValue)
-            {
-                return 100;
-            }
+ 
 
-            return 0;
-        }
-        // return 0;
-    }
-
-    public static int PredictBlockType3D(int x, int y, int z)
-    {
-        float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
-        float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
-        float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-        float noiseValue = frequentNoiseGenerator.GetNoise(x, y, z);
-        if (noiseValue > xyzLerpValue)
-        {
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-        // return 0;
-    }
-
-
-    public static int PredictBlockType3DLOD(int x, int y, int z, int LODBlockSkipCount = 4)
-    {
-        float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
-        float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
-        float xyzLerpValue = Mathf.Max(xzLerpValue, yLerpValue);
-        float noiseValue = frequentNoiseGenerator.GetNoise((int)(x / LODBlockSkipCount) * LODBlockSkipCount, y,
-            (int)(z / LODBlockSkipCount) * LODBlockSkipCount);
-        if (noiseValue > xyzLerpValue)
-        {
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-        // return 0;
-    }
+  
 
     public int GetChunkBlockType(int x, int y, int z)
     {
@@ -4493,9 +3832,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return rightChunk.map[0, y, z];
                         }
-                        else return PredictBlockType(thisHeightMap[x - chunkWidth + 25, z + 8], y);
+                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
                     }
-                    else return PredictBlockType(thisHeightMap[x - chunkWidth + 25, z + 8], y);
+                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
                 }
                 else if (z >= chunkWidth)
                 {
@@ -4505,9 +3844,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return frontChunk.map[x, y, 0];
                         }
-                        else return PredictBlockType(thisHeightMap[x + 8, z - chunkWidth + 25], y);
+                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
                     }
-                    else return PredictBlockType(thisHeightMap[x + 8, z - chunkWidth + 25], y);
+                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
                 }
                 else if (x < 0)
                 {
@@ -4517,9 +3856,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return leftChunk.map[chunkWidth - 1, y, z];
                         }
-                        else return PredictBlockType(thisHeightMap[8 + x, z + 8], y);
+                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
                     }
-                    else return PredictBlockType(thisHeightMap[8 + x, z + 8], y);
+                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
                 }
                 else if (z < 0)
                 {
@@ -4529,9 +3868,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return backChunk.map[x, y, chunkWidth - 1];
                         }
-                        else return PredictBlockType(thisHeightMap[x + 8, 8 + z], y);
+                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
                     }
-                    else return PredictBlockType(thisHeightMap[x + 8, 8 + z], y);
+                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
                 }
             }
             else if (VoxelWorld.currentWorld.worldGenType == 2)
@@ -4544,9 +3883,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return rightChunk.map[0, y, z];
                         }
-                        else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                     }
-                    else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (z >= chunkWidth)
                 {
@@ -4556,9 +3895,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return frontChunk.map[x, y, 0];
                         }
-                        else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                     }
-                    else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (x < 0)
                 {
@@ -4568,9 +3907,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return leftChunk.map[chunkWidth - 1, y, z];
                         }
-                        else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                     }
-                    else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (z < 0)
                 {
@@ -4580,9 +3919,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                         {
                             return backChunk.map[x, y, chunkWidth - 1];
                         }
-                        else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                     }
-                    else return PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
             }
             else
@@ -4608,19 +3947,19 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             {
                 if (x >= chunkWidth)
                 {
-                    return PredictBlockType(thisHeightMap[x - chunkWidth + 25, z + 8], y);
+                    return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
                 }
                 else if (z >= chunkWidth)
                 {
-                    return PredictBlockType(thisHeightMap[x + 8, z - chunkWidth + 25], y);
+                    return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
                 }
                 else if (x < 0)
                 {
-                    return PredictBlockType(thisHeightMap[8 + x, z + 8], y);
+                    return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
                 }
                 else if (z < 0)
                 {
-                    return PredictBlockType(thisHeightMap[x + 8, 8 + z], y);
+                    return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
                 }
             }
             else if (VoxelWorld.currentWorld.worldGenType == 2)
@@ -4629,33 +3968,33 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 {
                     if (rightChunk != null && isRightChunkUnloaded == false)
                     {
-                        return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                        return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                     }
-                    else return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                    else return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                 }
                 else if (z >= chunkWidth)
                 {
                     if (frontChunk != null && isFrontChunkUnloaded == false)
                     {
-                        return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                        return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                     }
-                    else return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                    else return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                 }
                 else if (x < 0)
                 {
                     if (leftChunk != null && isLeftChunkUnloaded == false)
                     {
-                        return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                        return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                     }
-                    else return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                    else return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                 }
                 else if (z < 0)
                 {
                     if (backChunk != null && isBackChunkUnloaded == false)
                     {
-                        return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                        return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                     }
-                    else return PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
+                    else return TerrainGeneratingHelper.PredictBlockType3DLOD(chunkPos.x + x, y, chunkPos.y + z, LODSkipBlockCount);
                 }
             }
             else
@@ -4667,6 +4006,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         return map[x, y, z];
     }
 
+    [Obsolete]
     static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed, List<Vector3> verts,
         List<Vector2> uvs, List<int> tris, int side, List<Vector3> norms)
     {
@@ -4729,7 +4069,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         }
     }
 
-
+    [Obsolete]
     static void BuildFaceComplex(Vector3 corner, Vector3 up, Vector3 right, Vector2 uvWidth, Vector2 uvCorner,
         bool reversed, List<Vector3> verts, List<Vector2> uvs, List<int> tris, List<Vector3> norms)
     {

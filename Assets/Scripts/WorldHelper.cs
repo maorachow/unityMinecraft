@@ -525,23 +525,9 @@ public class WorldHelper:IWorldHelper{
 
     public static int PreCalculateChunkMaxHeight(Vector2Int chunkPos)
     {
-        switch (VoxelWorld.currentWorld.worldGenType)
-        {
-            case 0:
-        float[,] chunkRawHeight =Chunk. GenerateChunkHeightmap(chunkPos);
-        float maxValue = 0f;
-        foreach(float x in chunkRawHeight)
-        {
-            if (x > maxValue) { maxValue = x; }
-        }
-        return (int)maxValue;
-                break;
-                case 1:
-
-                return 150;
-                break;
-                default: return 150;
-        }
+       
+        return 150;
+    
        
     }
 

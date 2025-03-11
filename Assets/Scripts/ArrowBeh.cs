@@ -137,13 +137,7 @@ public class ArrowBeh : MonoBehaviour
                     {
                         if (attackSource.entityTransformRef.gameObject.activeInHierarchy == true)
                         {
-                            if (attackableTarget.primaryAttackerEntities != null)
-                            {
-                                if (!attackableTarget.primaryAttackerEntities.Contains(attackSource))
-                                {
-                                    attackableTarget.primaryAttackerEntities.Add(attackSource);
-                                }
-                            }
+                            attackableTarget.TryAddPriamryAttackerEntity(attackSource);
                         }
                       
                         

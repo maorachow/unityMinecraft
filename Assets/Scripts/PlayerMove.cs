@@ -132,7 +132,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
     public int prevFootBlockID;
     public float playerMoveDrag = 0f;
     public bool isPlayerInGround = false;
-    public bool isPlayerGrounded = false;
+     
     public bool isUsingCC = true;
     public ChunkLoaderBase curChunkLoader;
 
@@ -363,7 +363,17 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         curAnimSpeed = Vector3.Magnitude(new Vector3(cc.velocity.x, 0f, cc.velocity.z));
         return curAnimSpeed;
     }
+    float Speed(Vector3 optionalMotionVec)
+    {
 
+        if (GlobalGameOptions.isGamePaused == true)
+        {
+            return curAnimSpeed;
+        }
+
+        curAnimSpeed = Vector3.Magnitude(new Vector3(cc.velocity.x, 0f, cc.velocity.z)+ optionalMotionVec);
+        return curAnimSpeed;
+    }
     void SetAnimationStatePlayerViewAngle(float viewAngle)
     {
         float viewAngleFactor = -viewAngle / 180f;
@@ -384,7 +394,19 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         transform.GetChild(0).GetChild(1).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color =
             Color.white;
     }
-
+    void ChangePlayerColor(Color color)
+    {
+        transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<MeshRenderer>().material.color = color;
+        transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = color;
+        transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color =
+            color;
+        transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color =
+            color;
+        transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color =
+            color;
+        transform.GetChild(0).GetChild(1).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color =
+            color;
+    }
     public void ApplyDamageAndKnockback(float damageAmount, Vector3 knockback)
     {
         AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerHurtClip"));
@@ -398,19 +420,13 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         GameUIBeh.instance.PlayerArmorPointsSliderOnValueChanged(playerArmorPoints);
         playerMotionVec = knockback;
-        transform.GetChild(0).GetChild(0).GetChild(2).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color = Color.red;
-        transform.GetChild(0).GetChild(1).GetChild(1).GetChild(0).GetComponent<MeshRenderer>().material.color =
-            Color.red;
-        transform.GetChild(0).GetChild(1).GetChild(2).GetChild(0).GetComponent<MeshRenderer>().material.color =
-            Color.red;
-        transform.GetChild(0).GetChild(1).GetChild(3).GetChild(0).GetComponent<MeshRenderer>().material.color =
-            Color.red;
-        transform.GetChild(0).GetChild(1).GetChild(4).GetChild(0).GetComponent<MeshRenderer>().material.color =
-            Color.red;
+        ChangePlayerColor(Color.red);
         Invoke("InvokeRevertColor", 0.2f);
     }
 
+    private Vector3 lastKilledHeadPos=new Vector3();
+    private Vector3 lastKilledHeadForward = new Vector3();
+    private Quaternion lastKilledHeadRotation=Quaternion.identity;
     public void PlayerDie()
     {
         AS.PlayOneShot(GlobalAudioResourcesManager.TryGetEntityAudioClip("playerHurtClip"));
@@ -448,8 +464,18 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
             transform.GetChild(0).localRotation = Quaternion.Euler(0f, 0f, -90f);
             transform.GetChild(0).localPosition = new Vector3(0.65f, -0.68f, 0f);
             cc.enabled = true;*/
+        if (playerHeadCenterRef != null)
+        {
+            lastKilledHeadPos = playerHeadCenterRef.position;
 
+            lastKilledHeadForward =Vector3.Normalize(playerHeadCenterRef.forward + new Vector3(0f, -0.7f, 0f));
+            lastKilledHeadRotation=Quaternion.LookRotation(lastKilledHeadForward,Vector3.up);
+        }
+       
         isDied = true;
+
+     
+
         am.SetBool("iskilled", true);
         am.SetFloat("speed", 0f);
         RespawnUI.instance.gameObject.SetActive(true);
@@ -476,6 +502,8 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
         playerHealth = 20f;
         isDied = false;
+        ChangePlayerColor(Color.white);
+        Invoke("InvokeRevertColor",0.03f);
         GameUIBeh.instance.PlayerHealthSliderOnValueChanged(playerHealth);
         RespawnUI.instance.gameObject.SetActive(false);
         transform.position = new Vector3(0f, 150f, 0f);
@@ -528,7 +556,10 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
             cameraPosMode = 0;
         }
     }
+    [SerializeField]
+    private bool isGroundedLastMove=false;
 
+    private float playerLastJumpYVelocity = 0;
     void Update()
     {
         /*    if(Input.GetKeyDown(KeyCode.Escape)){
@@ -539,7 +570,12 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         {
             return;
         }
-        
+
+        if (curChunk == null)
+        {
+            am.SetFloat("speed", 0f);
+            return;
+        }
 
         /*     if(Input.GetKeyDown(KeyCode.E)){
 
@@ -566,16 +602,102 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
         if (isDied == true)
         {
-            return;
+            playerMotionVec = Vector3.Lerp(playerMotionVec, Vector3.zero, 5f * Time.deltaTime);
         }
-
-        playerMotionVec = Vector3.Lerp(playerMotionVec, Vector3.zero, 3f * Time.deltaTime);
-
-
-        if (curChunk == null)
+        else
         {
+            playerMotionVec = Vector3.Lerp(playerMotionVec, Vector3.zero, 2f * Time.deltaTime);
+        }
+       
+
+        Vector3 speedMotionVec=new Vector3();
+
+        if ((isGroundedLastMove != true))
+        {
+            if (curFootBlockID == 100)
+            {
+                playerY += gravity * Time.deltaTime;
+               
+
+                if (playerLastJumpYVelocity > 0f)
+                {
+                    playerY = playerLastJumpYVelocity*0.5f;
+                    playerLastJumpYVelocity = 0f;
+
+                }
+                playerY = Mathf.Clamp(playerY, -5f,6f);
+            }
+            else
+            {
+                playerY += gravity * Time.deltaTime;
+            }
+        }
+        else
+        {
+            playerY = -1e-5f;
+            if (playerLastJumpYVelocity > 0f)
+            {
+                playerY = playerLastJumpYVelocity;
+               playerLastJumpYVelocity = 0f;
+
+            }
+
+            // playerMotionVec.y=0f;
+        }
+        if (curFootBlockID == 100)
+        {
+            playerY = Mathf.Clamp(playerY, -1f, 5f);
+        }
+        playerVec.y = playerY;
+
+        if (cc.enabled == true)
+        {
+
+            if (isPlayerInGround == true)
+            {
+                cc.enabled = false;
+                transform.position += Time.deltaTime * new Vector3(0f, 5f, 0f);
+                cc.enabled = true;
+            }
+            else
+            {
+                cc.Move(
+                    playerMotionVec * Time.deltaTime + new Vector3(0f, playerVec.y, 0f) * 5f * Time.deltaTime);
+                isGroundedLastMove = cc.isGrounded;
+                speedMotionVec = new Vector3(cc.velocity.x, 0f, cc.velocity.z);
+
+            }
+
+           
+        }
+        
+        if (isDied == true)
+        {
+
+            RaycastHit infoBack1 ;
+
+            bool isBackPointHit1 = Physics.Linecast(lastKilledHeadPos, lastKilledHeadPos +lastKilledHeadForward * (-8f), out infoBack1, LayerMask.GetMask("Default"));
+
+            Vector3 diedPlayerCameraPos = lastKilledHeadPos+ lastKilledHeadForward * (-8f);
+
+            if (isBackPointHit1 == true)
+            {
+                cameraPos.position = Vector3.Lerp(lastKilledHeadPos, infoBack1.point, 0.92f);
+                cameraPos.rotation = lastKilledHeadRotation;
+            }
+            else
+            {
+                cameraPos.position = diedPlayerCameraPos;
+                cameraPos.rotation = lastKilledHeadRotation;
+            }
+
+            ChangePlayerColor(Color.red);
             return;
         }
+
+     
+
+
 
       
         /*   if(Input.GetKeyDown(KeyCode.K)){
@@ -628,13 +750,13 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         RaycastHit infoBack = new RaycastHit();
         bool isForwardPointHit = false;
         bool isBackPointHit = false;
-        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * 5f, out infoForward, ~LayerMask.GetMask("Ignore Raycast")))
+        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * 5f, out infoForward, LayerMask.GetMask("Default")))
         {
             isForwardPointHit = true;
             //     Debug.DrawLine(infoForward.point,infoForward.point+new Vector3(0f,1f,0f),Color.green);
         }
 
-        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * (-5f), out infoBack, ~LayerMask.GetMask("Ignore Raycast")))
+        if (Physics.Linecast(playerHeadCenterRef.position, playerHeadCenterRef.position + playerHeadCenterRef.forward * (-5f), out infoBack, LayerMask.GetMask("Default")))
         {
             isBackPointHit = true;
             //   Debug.DrawLine(infoBack.point,infoBack.point+new Vector3(0f,1f,0f),Color.green);
@@ -672,7 +794,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
                 break;
         }
 
-        WorldHelper.instance.cameraPos = cameraPos.position;
+         
 
 
 
@@ -684,44 +806,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
 
 
-        if ((cc.isGrounded != true))
-        {
-            if (curFootBlockID == 100)
-            {
-                playerY += gravity * Time.deltaTime;
-                playerY = Mathf.Clamp(playerY, -3f, 1f);
-            }
-            else
-            {
-                playerY += gravity * Time.deltaTime;
-            }
-        }
-        else
-        {
-            playerY = 0f;
 
-
-            // playerMotionVec.y=0f;
-        }
-
-
-        if ((cc.isGrounded == true || curFootBlockID == 100 || isPlayerGrounded == true) &&
-            PlayerInputBeh.instance.isJumping == true)
-        {
-            if (curFootBlockID == 100)
-            {
-                playerY = jumpHeight / 2f;
-            }
-            else
-            {
-                playerY = jumpHeight;
-            }
-        }
-
-        if (curFootBlockID == 100)
-        {
-            playerY = Mathf.Clamp(playerY, -1f, 5f);
-        }
 
         float mouseX = PlayerInputBeh.instance.mouseDelta.x;
         float mouseY = PlayerInputBeh.instance.mouseDelta.y;
@@ -746,11 +831,12 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
         }
 
 
-        playerVec.y = playerY;
+       
         headPos.localEulerAngles += new Vector3(0f, mouseX, 0f);
         headPos.localEulerAngles = new Vector3(cameraX, headPos.localEulerAngles.y, playerCameraZShakeValue);
       
         playerMoveRef.eulerAngles = new Vector3(0f, headPos.eulerAngles.y, headPos.eulerAngles.z);
+        playerBodyPos.eulerAngles=new Vector3(0f,playerBodyPos.eulerAngles.y, 0f);
         Vector3 headHorizontalForward = playerMoveRef.forward;
         Vector3 bodyHorizontalForward = new Vector3(playerBodyPos.forward.x, 0, playerBodyPos.forward.z).normalized;
         if (Vector3.Dot(headHorizontalForward, bodyHorizontalForward) < 0.2f)
@@ -779,22 +865,34 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
         //
 
-        if (isPlayerInGround == true)
-        {
-            cc.enabled = false;
-            transform.position = transform.position + Time.deltaTime * new Vector3(0f, 5f, 0f);
-            cc.enabled = true;
-        }
-        else
-        {
-            cc.Move((playerMoveRef.forward * lerpPlayerVec.x + playerMoveRef.right * lerpPlayerVec.z) * moveSpeed *
-                    (1f - playerMoveDrag) * Time.deltaTime + new Vector3(0f, playerVec.y, 0f) * 5f * Time.deltaTime +
-                    playerMotionVec * Time.deltaTime);
 
-            currentSpeed = Speed();
-            am.SetFloat("speed", currentSpeed);
+       
+
+        if ((isGroundedLastMove == true || curFootBlockID == 100 ) &&
+            PlayerInputBeh.instance.isJumping == true)
+        {
+            if (curFootBlockID == 100)
+            {
+                playerLastJumpYVelocity = jumpHeight / 2f;
+            }
+            else
+            {
+                playerLastJumpYVelocity = jumpHeight;
+            }
         }
-     
+
+      
+
+        
+            
+            cc.Move((playerMoveRef.forward * lerpPlayerVec.x + playerMoveRef.right * lerpPlayerVec.z) * moveSpeed *
+                    (1f - playerMoveDrag) * Time.deltaTime );
+            currentSpeed = Speed(speedMotionVec) ;
+           
+            am.SetFloat("speed", currentSpeed);
+        
+
+        
 
         if (breakBlockCD > 0f)
         {
@@ -902,7 +1000,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget
 
             if (info.collider.GetComponent<EndermanBeh>() != null)
             {
-                info.collider.GetComponent<EndermanBeh>().primaryAttackerEntities.Add(this);
+                (info.collider.GetComponent<EndermanBeh>() as IAttackableEntityTarget)?.TryAddPriamryAttackerEntity(this);
             }
         }
         else
