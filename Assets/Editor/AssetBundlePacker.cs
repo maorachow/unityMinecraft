@@ -12,19 +12,19 @@ public class AssetBundlePacker : Editor
     static void CreatAssetBundle()
     {
 
-        string path = Application.dataPath+"/AssetBundles";
+        string path = "Asset/AssetBundles/Android";
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
         }
-        BuildPipeline.BuildAssetBundles(path, BuildAssetBundleOptions.UncompressedAssetBundle, BuildTarget.Android);
+        BuildPipeline.BuildAssetBundles(path, BuildAssetBundleOptions.None, BuildTarget.Android);
         UnityEngine.Debug.Log("Android Finish!");
     }
 
     [MenuItem("Tools/CreatAssetBundle for IOS")]
     static void BuildAllAssetBundlesForIOS()
     {
-        string dirName =  Application.dataPath+"AssetBundles/IOS";
+        string dirName =  "Asset/AssetBundles/IOS";
         if (!Directory.Exists(dirName))
         {
             Directory.CreateDirectory(dirName);
@@ -38,7 +38,7 @@ public class AssetBundlePacker : Editor
     [MenuItem("Tools/CreatAssetBundle for Win")]
     static void CreatPCAssetBundleForwINDOWS()
     {
-        string path =  Application.dataPath+"/AssetBundles/Win";
+        string path = "Asset/AssetBundles/Win";
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
