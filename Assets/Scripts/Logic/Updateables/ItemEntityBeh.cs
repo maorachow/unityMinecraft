@@ -4,6 +4,7 @@ using MessagePack;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Unity.Collections;
 using UnityEngine;
 
 public class ItemEntityBeh : MonoBehaviour
@@ -15,10 +16,7 @@ public class ItemEntityBeh : MonoBehaviour
     public int itemCount;
     public Mesh itemMesh;
     public bool isPosInited=false;
-    public List<Vector3> verts=new List<Vector3>();
-    public List<Vector2> uvs=new List<Vector2>();
-    public List<int> tris=new List<int>();
-    public List<Vector3> norms = new List<Vector3>();
+   
     public MeshCollider mc;
     public MeshFilter mf;
     public Rigidbody rb;
@@ -39,10 +37,7 @@ public class ItemEntityBeh : MonoBehaviour
 
     void OnEnable()
     {
-        verts = new List<Vector3>();
-        uvs = new List<Vector2>();
-        tris = new List<int>();
-        norms = new List<Vector3>();
+        
         itemMesh = new Mesh();
         VoxelWorld.currentWorld.itemEntityManager.worldItemEntities.Add(this);
         lastItemPos = transform.position;
@@ -57,19 +52,32 @@ public class ItemEntityBeh : MonoBehaviour
         float x = -0.5f;
         float y = -0.5f;
         float z = -0.5f;
-        verts = new List<Vector3>();
-        uvs = new List<Vector2>();
-        tris = new List<int>();
-        norms = new List<Vector3>();
+        /*    NativeList<Vector3> verts = new NativeList<Vector3>(Allocator.Temp);
+            NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Temp);
+            NativeList<int> tris = new NativeList<int>(Allocator.Temp);
+            NativeList<Vector3> norms = new NativeList<Vector3>(Allocator.Temp);
 
-        ItemEntityMeshBuildingHelper.BuildItemMesh(itemID, ref verts, ref uvs, ref tris, ref norms);
-        itemMesh.vertices = verts.ToArray();
-        itemMesh.normals = norms.ToArray();
-        itemMesh.uv = uvs.ToArray();
-        itemMesh.triangles = tris.ToArray();
-        itemMesh.RecalculateBounds();
+             ItemEntityMeshBuildingHelper.BuildItemMesh(itemID, ref verts, ref uvs, ref tris, ref norms);
+             NativeArray<Vector3> vertsArray = verts.ToArray(Allocator.Temp);
+             NativeArray<Vector2> uvsArray = uvs.ToArray(Allocator.Temp);
+             NativeArray<int> trisArray = tris.ToArray(Allocator.Temp);
+             NativeArray<Vector3> normsArray = norms.ToArray(Allocator.Temp);
+             itemMesh.SetVertices(vertsArray);
+             itemMesh.SetNormals(normsArray);
+             itemMesh.SetUVs(0, uvsArray);
+             itemMesh.SetIndices(trisArray, MeshTopology.Triangles, 0);
+             itemMesh.RecalculateBounds();
 
-        itemMesh.RecalculateTangents();
+             itemMesh.RecalculateTangents();
+             vertsArray.Dispose();
+             uvsArray.Dispose();
+             trisArray.Dispose();
+             normsArray.Dispose();
+             verts.Dispose();
+             norms.Dispose();
+             tris.Dispose();
+             uvs.Dispose();*/
+        ItemEntityMeshBuildingHelper.BuildItemMesh(ref itemMesh, itemID);
         mc.sharedMesh = itemMesh;
         mf.mesh = itemMesh;
     }
@@ -449,12 +457,12 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
   {
       if (currentChunk == null)
       {
-          currentChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+          currentChunk = WorldUpdateablesMediator.instance.GetChunk(transform.position);
       }
 
-      if (!WorldHelper.instance.CheckIsPosInChunk(transform.position, currentChunk))
+      if (!WorldUpdateablesMediator.instance.CheckIsPosInChunk(transform.position, currentChunk))
       {
-          currentChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+          currentChunk = WorldUpdateablesMediator.instance.GetChunk(transform.position);
       }
 
 
@@ -464,7 +472,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
           return;
       }
 
-      curBlockOnItemID = WorldHelper.instance.GetBlock(transform.position, currentChunk);
+      curBlockOnItemID = WorldUpdateablesMediator.instance.GetBlockData(transform.position, currentChunk).blockID;
       if (curBlockOnItemID == 100)
       {
           rb.AddForce(new Vector3(0f, 20f, 0f));
@@ -494,7 +502,7 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
       prevBlockOnItemID = curBlockOnItemID;
 
 
-      if (currentChunk == null)
+      if (currentChunk == null||currentChunk?.isColliderBuildingCompleted==false)
       {
           rb.constraints = RigidbodyConstraints.FreezeAll;
           isInUnloadedChunks = true;
@@ -507,8 +515,8 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
   }
 
 
-
-     public static Dictionary<int,Vector2> itemMaterialInfo=new Dictionary<int,Vector2>();
+  
+     public static Dictionary<int, ItemMeshBuildingInfo> itemMaterialInfo=new Dictionary<int, ItemMeshBuildingInfo>();
     public static Dictionary<int,Vector2Int> itemTexturePosInfo=new Dictionary<int,Vector2Int>();
     //151diamond pickaxe 152diamond sword 153diamond 154rotten flesh 155gun powder 156tnt 157bow 158armor upgrade
     public static Texture2D itemTexture;
@@ -519,18 +527,59 @@ static void BuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, boo
    // public Texture2D texture;
     public static int textureXSize=64;
     public static int textureYSize=64;
- //   public Mesh itemMesh;
-    public static void AddFlatItemInfo(){
-        itemMaterialInfo.TryAdd(154,new Vector2(0.1875f, 0.25f));
-        itemMaterialInfo.TryAdd(153,new Vector2(0.125f, 0.25f));
-        itemMaterialInfo.TryAdd(151,new Vector2(0.0625f, 0.25f));
-        itemMaterialInfo.TryAdd(152,new Vector2(0.0f, 0.25f));
-        itemMaterialInfo.TryAdd(155, new Vector2(0.25f, 0.25f));
-        itemMaterialInfo.TryAdd(156, new Vector2(0.3125f, 0.25f));
-        itemMaterialInfo.TryAdd(157, new Vector2(0.5f, 0.25f));
-        itemMaterialInfo.TryAdd(158, new Vector2(0.5625f, 0.25f));
-        itemMaterialInfo.TryAdd(104, new Vector2(0.625f, 0.25f));
+    public static int fullTextureXSize = 1024;
+    public static int fullTextureYSize = 1024;
+    //   public Mesh itemMesh;
 
+    [Obsolete]
+    public static void AddFlatItemInfo(){
+
+
+        itemMaterialInfo.TryAdd(154, new ItemMeshBuildingInfo(false, new Vector2(0.1875f, 0.25f),new Vector2(0.0625f,0.0625f)));
+        itemMaterialInfo.TryAdd(153, new ItemMeshBuildingInfo(false, new Vector2(0.125f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(151, new ItemMeshBuildingInfo(false, new Vector2(0.0625f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(152, new ItemMeshBuildingInfo(false, new Vector2(0.0f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(155, new ItemMeshBuildingInfo(false, new Vector2(0.25f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+      
+        itemMaterialInfo.TryAdd(157, new ItemMeshBuildingInfo(false, new Vector2(0.5f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(158, new ItemMeshBuildingInfo(false, new Vector2(0.5625f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(104, new ItemMeshBuildingInfo(false, new Vector2(0.625f, 0.25f), new Vector2(0.0625f, 0.0625f)));
+        itemMaterialInfo.TryAdd(1, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(2, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(3, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(4, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(5, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(6, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(7, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(8, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(9, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(10, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(11, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(12, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(13, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(14, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(15, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(16, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(17, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(18, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(19, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(20, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(21, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(22, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(23, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(100, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(101, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(102, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(103, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(104, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(105, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(106, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(107, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(108, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(109, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(110, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(111, new ItemMeshBuildingInfo(true));
+        itemMaterialInfo.TryAdd(156, new ItemMeshBuildingInfo(true));
         itemTexturePosInfo.TryAdd(154,new Vector2Int(192, 256));
         itemTexturePosInfo.TryAdd(155, new Vector2Int(256, 256));
         itemTexturePosInfo.TryAdd(156, new Vector2Int(320, 256));

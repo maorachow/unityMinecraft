@@ -26,7 +26,7 @@ public class EntityBeh : MonoBehaviour
     public int entityInWorldID;
     public string guid;
     public static bool isWorldEntityDataSaved = false;
-
+    public bool isIncludedInSaves = true;
     
     public bool isInUnloadedChunks=false;
     public void OnDisable(){
@@ -70,6 +70,7 @@ public class EntityBeh : MonoBehaviour
                 break;
         }
     }
+    [Obsolete]
     public static void ReadEntityJson(){
    gameWorldEntityDataPath=WorldManager.gameWorldDataPath;
          
@@ -129,6 +130,10 @@ public class EntityBeh : MonoBehaviour
 
     public void SaveSingleEntity(ref List<EntityData> savingEntityDatasTarget)
     {
+        if (!isIncludedInSaves)
+        {
+            return;
+        }
        
         EntityData tmpData = new EntityData(transform.position.x, transform.position.y, transform.position.z, transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z, entityTypeID, guid, entityInWorldID);
      
@@ -147,6 +152,10 @@ public class EntityBeh : MonoBehaviour
 
     public void RemoveEntityFromSave(ref List<EntityData> savingEntityDatasTarget)
     {
+        if (!isIncludedInSaves)
+        {
+            return;
+        }
         EntityData tmpData = new EntityData(transform.position.x, transform.position.y, transform.position.z, transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z, entityTypeID, guid, entityInWorldID);
         foreach (EntityData ed in savingEntityDatasTarget)
         {
@@ -408,12 +417,12 @@ public class EntityBeh : MonoBehaviour
    // }
     void FixedUpdate(){
          if(currentChunk==null){
-         currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));   
+         currentChunk=WorldUpdateablesMediator.instance.GetChunk((transform.position));   
          }
-        if(WorldHelper.instance.CheckIsPosInChunk(transform.position,currentChunk)==false){
-             currentChunk=Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));   
+        if(WorldUpdateablesMediator.instance.CheckIsPosInChunk(transform.position,currentChunk)==false){
+             currentChunk= WorldUpdateablesMediator.instance.GetChunk(transform.position);   
         }
-        if(currentChunk==null||(currentChunk!=null&&currentChunk.isStrongLoaded==false)){
+        if(currentChunk==null||(currentChunk!=null&&currentChunk.isColliderBuildingCompleted == false)){
           
             
             isInUnloadedChunks=true;

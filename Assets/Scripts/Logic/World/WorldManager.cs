@@ -7,10 +7,10 @@ using UnityEngine.SceneManagement;
 using Random=UnityEngine.Random;
 public class ChunkLoadingQueueItem{
   public Chunk c;
-  public bool isStrongLoading;
-  public ChunkLoadingQueueItem(Chunk c,bool isStrongLoading){
+  
+  public ChunkLoadingQueueItem(Chunk c){
     this.c=c;
-    this.isStrongLoading=isStrongLoading;
+    
   }
 }
 public class WorldManager : MonoBehaviour
@@ -51,10 +51,20 @@ public class WorldManager : MonoBehaviour
         {
             EntityBeh.LoadEntities();
         }
+
+        switch (SceneManager.GetActiveScene().buildIndex)
+        {
+            case 1:
+                VoxelWorld.currentWorld = VoxelWorld.worlds[0];
+                break;
+            case 2:
+                VoxelWorld.currentWorld = VoxelWorld.worlds[1];
+                break;
+        }
     } 
     void Start(){
       //    ChunkLoaderBase.InitChunkLoader();
-          ItemIDToBlockID.InitDic();
+         
           Chunk.AddBlockInfo();  
           ItemEntityBeh.AddFlatItemInfo();
       //   Chunk.ReadJson();
@@ -84,15 +94,7 @@ public class WorldManager : MonoBehaviour
         //  //SceneManager.activeSceneChanged+=  sceneChangedEvent;
         //     Chunk.Chunks.Clear();
 
-        switch (SceneManager.GetActiveScene().buildIndex)
-        {
-            case 1:
-                VoxelWorld.currentWorld = VoxelWorld.worlds[0];
-                break;
-            case 2:
-                VoxelWorld.currentWorld = VoxelWorld.worlds[1];
-                break;
-        }
+       
 
         VoxelWorld.currentWorld.InitObjectPools();
         VoxelWorld.currentWorld.InitWorld(); 
@@ -111,37 +113,60 @@ public class WorldManager : MonoBehaviour
         //   }
         if (VoxelWorld.currentWorld.worldID == 0)
         {
-        if(Random.Range(0f,100f)>99.8f&&EntityBeh.worldEntities.Count<70&&doMonstersSpawn){
-            Vector2 randomSpawnPos=new Vector2(Random.Range(playerPos.position.x-40f,playerPos.position.x+40f),Random.Range(playerPos.position.z-40f,playerPos.position.z+40f));
-
-            VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x,WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x,randomSpawnPos.y)+0.8f,randomSpawnPos.y,0);  
-        }
-        if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
-        {
-            Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
-
-            VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 0.8f, randomSpawnPos.y,1);
-        }
-        if (Random.Range(0f, 100f) > 99.8f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
-        {
-            Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
-
-            VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + 0.8f, randomSpawnPos.y, 3);
-        }
-            if (Random.Range(0f, 100f) > 99.85f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+            if(Random.Range(0f,100f)>99.8f&& VoxelWorld.currentWorld.entityManager.worldEntities.Count<70&&doMonstersSpawn)
             {
-                Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
+                Vector3 randomSpawnPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(playerPos.position, 40f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, randomSpawnPos.y, randomSpawnPos.z, 0);
+                }
 
-                VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y) + +2f, randomSpawnPos.y, 5);
+                
+            }
+            if (Random.Range(0f, 100f) > 99.8f && VoxelWorld.currentWorld.entityManager.worldEntities.Count < 70 && doMonstersSpawn)
+            {
+                Vector3 randomSpawnPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(playerPos.position, 40f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, randomSpawnPos.y, randomSpawnPos.z, 1);
+                }
+            }
+            if (Random.Range(0f, 100f) > 99.8f && VoxelWorld.currentWorld.entityManager.worldEntities.Count < 70 && doMonstersSpawn)
+            {
+                Vector3 randomSpawnPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(playerPos.position, 40f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, randomSpawnPos.y, randomSpawnPos.z, 3);
+                }
+            }
+            if (Random.Range(0f, 100f) > 99.85f && VoxelWorld.currentWorld.entityManager.worldEntities.Count < 70 && doMonstersSpawn)
+            {
+                Vector3 randomSpawnPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(playerPos.position, 40f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, randomSpawnPos.y, randomSpawnPos.z, 5);
+                }
             }
         }
         else if (VoxelWorld.currentWorld.worldID == 1)
         {
-            if (Random.Range(0f, 100f) > 99.7f && EntityBeh.worldEntities.Count < 70 && doMonstersSpawn)
+            if (Random.Range(0f, 100f) > 99.7f && VoxelWorld.currentWorld.entityManager.worldEntities.Count < 70 && doMonstersSpawn)
             {
-                Vector2 randomSpawnPos = new Vector2(Random.Range(playerPos.position.x - 40f, playerPos.position.x + 40f), Random.Range(playerPos.position.z - 40f, playerPos.position.z + 40f));
-
-                VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, WorldHelper.instance.GetChunkLandingPoint(randomSpawnPos.x, randomSpawnPos.y)+2f, randomSpawnPos.y, 5);
+                Vector3 randomSpawnPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(playerPos.position, 40f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    VoxelWorld.currentWorld.entityManager.SpawnNewEntity(randomSpawnPos.x, randomSpawnPos.y, randomSpawnPos.z, 5);
+                }
             }
         }
         

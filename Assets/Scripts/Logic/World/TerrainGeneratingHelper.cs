@@ -190,7 +190,7 @@ public class TerrainGeneratingHelper
     }
 
 
-    public static int PredictBlockType3D(int x, int y, int z)
+    public static BlockShape PredictBlockType3D(int x, int y, int z)
     {
         float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
         float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
@@ -198,17 +198,17 @@ public class TerrainGeneratingHelper
         float noiseValue = frequentNoiseGenerator.GetNoise(x, y, z);
         if (noiseValue > xyzLerpValue)
         {
-            return 1;
+            return BlockShape.Solid;
         }
         else
         {
-            return 0;
+            return BlockShape.Empty;
         }
         // return 0;
     }
 
 
-    public static int PredictBlockType3DLOD(int x, int y, int z, int LODBlockSkipCount = 4)
+    public static BlockShape PredictBlockType3DLOD(int x, int y, int z, int LODBlockSkipCount = 4)
     {
         float yLerpValue = Mathf.Lerp(-1, 1, (Mathf.Abs(y - chunkSeaLevel)) / 40f);
         float xzLerpValue = Mathf.Lerp(-1, 1, (new Vector3(x, 0, z).magnitude / 384f));
@@ -217,34 +217,34 @@ public class TerrainGeneratingHelper
             (int)(z / LODBlockSkipCount) * LODBlockSkipCount);
         if (noiseValue > xyzLerpValue)
         {
-            return 1;
+            return BlockShape.Solid;
         }
         else
         {
-            return 0;
+            return BlockShape.Empty;
         }
         // return 0;
     }
 
 
-    public static int PredictBlockTypeOverworld(float noiseValue, int y)
+    public static BlockShape PredictBlockTypeOverworld(float noiseValue, int y)
     {
         if (noiseValue > y)
         {
-            return 1;
+            return BlockShape.Solid;
         }
         else
         {
             if (y < chunkSeaLevel && y > noiseValue)
             {
-                return 100;
+                return BlockShape.Water;
             }
 
-            return 0;
+            return BlockShape.Empty;
         }
         // return 0;
     }
-    public static void GenerateOverworldChunkMap(ref float[,] chunkHeightMap, ref BlockData[,,] chunkMap, Vector2Int chunkPos)
+    public static void GenerateOverworldChunkMap(ref float[,] chunkHeightMap, ref UnsafeChunkMapData<BlockData> chunkMap, Vector2Int chunkPos)
     {
         if (chunkHeightMap == null)
         {
@@ -786,7 +786,7 @@ public class TerrainGeneratingHelper
                  }*/
     }
 
-    public static void GenerateSuperflatChunkMap(ref BlockData[,,] chunkMap, Vector2Int chunkPos)
+    public static void GenerateSuperflatChunkMap(ref UnsafeChunkMapData<BlockData> chunkMap, Vector2Int chunkPos)
     {
         for (int i = 0; i <Chunk. chunkWidth; i++)
         {
@@ -802,7 +802,7 @@ public class TerrainGeneratingHelper
     }
 
 
-    public static void GenerateEnderworldChunkMap(ref BlockData[,,] chunkMap, Vector2Int chunkPos)
+    public static void GenerateEnderworldChunkMap(ref UnsafeChunkMapData<BlockData> chunkMap, Vector2Int chunkPos)
     {
         for (int i = 0; i < Chunk.chunkWidth; i++)
         {

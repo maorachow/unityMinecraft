@@ -16,7 +16,7 @@ public class BlockOutlineBeh : MonoBehaviour
     }
     void FixedUpdate()
     {
-        curBlockData = WorldHelper.instance.GetBlockData(transform.position);
+        curBlockData = WorldUpdateablesMediator.instance.GetBlockData(transform.position);
         Vector3Int curPosInt = ChunkCoordsHelper.Vec3ToBlockPos(transform.position);
       
         if (curBlockData != prevBlockData||prevPosInt!=curPosInt)
@@ -34,9 +34,9 @@ public class BlockOutlineBeh : MonoBehaviour
     public void OnCurrentBlockChanged(BlockData curBlockData1, BlockData prevBlockData1)
     {
         BlockShape? curBlockShape;
-        if (Chunk.blockInfosNew.ContainsKey(curBlockData1.blockID))
+        if (GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.IsBlockDataValid(curBlockData1.blockID))
         {
-            curBlockShape= Chunk.blockInfosNew[curBlockData1.blockID].shape;
+            curBlockShape= GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.GetBlockInfo(curBlockData1).shape;
         }
         else
         {

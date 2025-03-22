@@ -380,9 +380,9 @@ public class GameDataPersistenceManager
         SaveItemEntityDataList(worldID, "world" + worldID.ToString() + "itementities.dat");
         if (releaseResourcesAfterSaving == true)
         {
-            allWorldsDataReadFormFile[worldID] = new ConcurrentDictionary<Vector2Int, ChunkData>();
-            entityDataReadFromFile[worldID] = new List<EntityData>();
-            itemEntityDataReadFromFile[worldID] = new List<ItemEntityData>();
+            allWorldsDataReadFormFile.Remove(worldID);
+            entityDataReadFromFile.Remove(worldID);
+            itemEntityDataReadFromFile.Remove(worldID);
         }
 
     }

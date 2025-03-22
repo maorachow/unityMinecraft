@@ -47,19 +47,19 @@ public class ChunkLoaderBase:MonoBehaviour
         chunkLoadingRange = GlobalGameOptions.inGameRenderDistance;
         if (curChunk == null)
         {
-            curChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+            curChunk = WorldUpdateablesMediator.instance.GetChunk(transform.position);
             isChunksNeedLoading = true;
         }
 
-        if (WorldHelper.instance.CheckIsPosInChunk(transform.position, curChunk) == false)
+        if (WorldUpdateablesMediator.instance.CheckIsPosInChunk(transform.position, curChunk) == false)
         {
-            curChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+            curChunk = WorldUpdateablesMediator.instance.GetChunk(transform.position);
             isChunksNeedLoading = true;
             //   curChunkStrongLoader.isChunksNeededStrongLoading=true;
         }
     }
-  public void TryUpdateWorldThread(){
-            if(VoxelWorld.currentWorld.isGoingToQuitWorld==true){
+  public void TryUpdateWorldThread(VoxelWorld world){
+            if(world.isGoingToQuitWorld==true){
                 return;
             }
             for (float x = chunkLoadingCenter.x - chunkLoadingRange; x < chunkLoadingCenter.x + chunkLoadingRange; x += Chunk.chunkWidth)
@@ -73,9 +73,9 @@ public class ChunkLoaderBase:MonoBehaviour
                     Vector2Int chunkPos =ChunkCoordsHelper.Vec3ToChunkPos(pos);
                     Vector2 chunkCenterPos = chunkPos + new Vector2(Chunk.chunkWidth / 2, Chunk.chunkWidth / 2);
 
-                    Chunk chunk = Chunk.GetChunk(chunkPos);
+                    Chunk chunk = world.GetChunk(chunkPos);
                     //   Debug.Log(chunk);
-                    if (chunk != null || VoxelWorld.currentWorld.CheckIsChunkPosSpawning(chunkPos))
+                    if (chunk != null || world.CheckIsChunkPosSpawning(chunkPos))
                     {
                         continue;
                     }
@@ -103,7 +103,7 @@ public class ChunkLoaderBase:MonoBehaviour
 
                         if (isLoadingChunk == true)
                         {
-                            VoxelWorld.currentWorld.AddSpawningChunkPosition(chunkPos,
+                            world.AddSpawningChunkPosition(chunkPos,
                                 (int)Mathf.Abs(chunkPos.x - chunkLoadingCenter.x) +
                                 (int)Mathf.Abs(chunkPos.y - chunkLoadingCenter.y));
                         }

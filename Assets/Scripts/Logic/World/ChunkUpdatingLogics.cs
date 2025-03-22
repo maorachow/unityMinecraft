@@ -10,7 +10,7 @@ public enum ChunkUpdateTypes
 }
 public partial class Chunk 
 {
-
+/*
     [Obsolete]
     public void BFSInit(int x, int y, int z,ChunkUpdateTypes updatingType= ChunkUpdateTypes.BlockRefreshedUpdate, BlockData? optionalPrevBlockData = null)
     {
@@ -31,13 +31,13 @@ public partial class Chunk
                         .shape == BlockShape.Door)
                 {
                     BlockShape? shapeUp =
-                        WorldHelper.instance.GetBlockShape(new Vector3(chunkPos.x + x, y+1, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(chunkPos.x + x, y+1, chunkPos.y + z));
 
 
 
                     if (shapeUp is not BlockShape.Door)
                     {
-                        BlockData data = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        BlockData data = WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                         bool[] dataBinary = MathUtility.GetBooleanArray(data.optionalDataValue);
                         dataBinary[5] = true;
                         WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y+1, chunkPos.y + z), data.blockID);
@@ -58,7 +58,7 @@ public partial class Chunk
             if (optionalPrevBlockData != null)
             {
                 BlockShape? shapeThis =
-                    WorldHelper.instance.GetBlockShape(optionalPrevBlockData.Value);
+                    WorldUpdateablesMediator.instance.GetBlockShape(optionalPrevBlockData.Value);
 
                 if (shapeThis is BlockShape.Door)
                 {
@@ -67,9 +67,9 @@ public partial class Chunk
 
                     bool[] dataBinary = MathUtility.GetBooleanArray(dataThis.optionalDataValue);
                     BlockShape? shapeUp =
-                        WorldHelper.instance.GetBlockShape(new Vector3(chunkPos.x + x, y + 1, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(chunkPos.x + x, y + 1, chunkPos.y + z));
                     BlockShape? shapeDown =
-                        WorldHelper.instance.GetBlockShape(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z));
 
                     Debug.Log("break door update:"+ dataBinary[5]);
                     //break door bottom
@@ -110,12 +110,12 @@ public partial class Chunk
                         .shape == BlockShape.Door)
                 {
                    BlockData dataThis=
-                        WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                     bool[] dataBinary = MathUtility.GetBooleanArray(dataThis.optionalDataValue);
                     BlockShape? shapeUp =
-                        WorldHelper.instance.GetBlockShape(new Vector3(chunkPos.x + x, y + 1, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(chunkPos.x + x, y + 1, chunkPos.y + z));
                     BlockShape? shapeDown =
-                        WorldHelper.instance.GetBlockShape(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z));
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(chunkPos.x + x, y - 1, chunkPos.y + z));
 
                     dataBinary[4] = !dataBinary[4];
                     byte thisDataByte = MathUtility.GetByte(dataBinary);
@@ -129,7 +129,7 @@ public partial class Chunk
                         {
 
                             BlockData dataUp =
-                                WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y+1, chunkPos.y + z));
+                                WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y+1, chunkPos.y + z));
                             bool[] dataBinaryUp = MathUtility.GetBooleanArray(dataUp.optionalDataValue);
 
                             dataBinaryUp[4] = !dataBinaryUp[4];
@@ -145,7 +145,7 @@ public partial class Chunk
                         if (shapeDown is BlockShape.Door)
                         {
                             BlockData dataDown =
-                                WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y -1, chunkPos.y + z));
+                                WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y -1, chunkPos.y + z));
                             bool[] dataBinaryDown = MathUtility.GetBooleanArray(dataDown.optionalDataValue);
 
                             dataBinaryDown[4] = !dataBinaryDown[4];
@@ -171,7 +171,7 @@ public partial class Chunk
         {
             if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape == BlockShape.Torch)
             {
-                BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                BlockData curBlockData = WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                 switch (curBlockData.optionalDataValue)
                 {
                     case 0://positiveY
@@ -213,19 +213,19 @@ public partial class Chunk
             {
 
                 BlockShape? shapeThis =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
+                    WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
                 if (shapeThis is not BlockShape.Fence)
                 {
                     return;
                 }
                 BlockShape? shapeRight =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
+                    WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
                 BlockShape? shapeLeft =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
+                    WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
                 BlockShape? shapeFront =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
+                    WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
                 BlockShape? shapeBack =
-                    WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
+                    WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
                 bool[] shapes = new[] { false, false, false, false, false, false, false, false };
                 if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
                 {
@@ -316,7 +316,7 @@ public partial class Chunk
            {
                if (blockInfosNew[WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z))].shape == BlockShape.Torch)
                {
-                   BlockData curBlockData = WorldHelper.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
+                   BlockData curBlockData = WorldUpdateablesMediator.instance.GetBlockData(new Vector3(chunkPos.x + x, y, chunkPos.y + z));
                    switch (curBlockData.optionalDataValue)
                    {
                        case 0:
@@ -360,19 +360,19 @@ public partial class Chunk
                {
 
                    BlockShape? shapeThis =
-                       WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
+                       WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0));
                    if (shapeThis is not BlockShape.Fence)
                    {
                        return;
                    }
                    BlockShape? shapeRight =
-                       WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
+                       WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(1, 0, 0));
                    BlockShape? shapeLeft =
-                       WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
+                       WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(-1, 0, 0));
                    BlockShape? shapeFront =
-                       WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
+                       WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, 1));
                    BlockShape? shapeBack =
-                       WorldHelper.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
+                       WorldUpdateablesMediator.instance.GetBlockShape(new Vector3Int(chunkPos.x + x, y, chunkPos.y + z) + new Vector3Int(0, 0, 0) + new Vector3Int(0, 0, -1));
                    bool[] shapes = new[] { false, false, false, false, false, false, false, false };
                    if (shapeLeft != null && (shapeLeft.Value == BlockShape.Fence || shapeLeft.Value == BlockShape.Solid))
                    {
@@ -449,7 +449,7 @@ public partial class Chunk
                WorldHelper.instance.GetBlock(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1)) == 0)
            {
                WorldHelper.instance.SetBlockWithoutUpdate(new Vector3(chunkPos.x + x, y, chunkPos.y + z + 1), 100);
-           }*/
+           }
         UpdateBlock(x, y, z, updatingType,optionalPrevBlockData);
         UpdateBlock(x - 1, y, z);
         UpdateBlock(x + 1, y, z);
@@ -458,6 +458,6 @@ public partial class Chunk
         UpdateBlock(x, y, z - 1);
         UpdateBlock(x, y, z + 1);
     }
-
+*/
 
 }

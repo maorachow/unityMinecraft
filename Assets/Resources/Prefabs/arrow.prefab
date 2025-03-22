@@ -387,6 +387,7 @@ MonoBehaviour:
   entityTypeID: 0
   entityInWorldID: 0
   guid: 
+  isIncludedInSaves: 0
   isInUnloadedChunks: 0
 --- !u!65 &2690957772611897418
 BoxCollider:

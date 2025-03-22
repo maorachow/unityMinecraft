@@ -26,15 +26,12 @@ public static class BlockBoundingBoxUtility
     }
     public static bool IsBlockWithBoundingBox(BlockData data)
     {
-        if (data.blockID == 0)
+      
+        if (!GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.IsBlockDataValid(data))
         {
             return false;
         }
-        if (!Chunk.blockInfosNew.ContainsKey(data.blockID))
-        {
-            return false;
-        }
-        BlockShape shape = Chunk.blockInfosNew[data.blockID].shape;
+        BlockShape shape = GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.GetBlockInfo(data).shape;
         switch (shape)
         {
             case BlockShape.Fence:
@@ -49,17 +46,24 @@ public static class BlockBoundingBoxUtility
                 return true;
             case BlockShape.WallAttachment:
                 return false;
+            case BlockShape.Empty:
+                return false;
             default:
                 return false;
         }
     }
     public static SimpleAxisAlignedBB GetBoundingBox(int x, int y, int z, BlockData blockData)
     {
-        if (blockData.blockID == 0)
+        if (!GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.IsBlockDataValid(blockData))
         {
             return new SimpleAxisAlignedBB();
         }
-        BlockShape shape = Chunk.blockInfosNew[blockData].shape;
+        BlockShape shape = GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.GetBlockInfo(blockData).shape;
+        if (shape == BlockShape.Empty)
+        {
+            return new SimpleAxisAlignedBB();
+        }
+
         if (shape == BlockShape.Solid)
         {
             return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
@@ -222,16 +226,13 @@ public static class BlockBoundingBoxUtility
 
     public static SimpleAxisAlignedBB GetBoundingBoxSelectable(int x, int y, int z, BlockData blockData)
     {
-        if (blockData.blockID == 0)
+
+        if (!GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.IsBlockDataValid(blockData))
         {
             return new SimpleAxisAlignedBB();
         }
-
-        if (!Chunk.IsBlockIDValid(blockData))
-        {
-            return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
-        }
-          BlockShape shape = Chunk.blockInfosNew[blockData].shape;
+      
+        BlockShape shape = GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.GetBlockInfo(blockData).shape;
         if (shape == BlockShape.Solid)
         {
             return new SimpleAxisAlignedBB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));

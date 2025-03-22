@@ -34,41 +34,6 @@ public struct WorldData
     }
 }*/
 
-public struct RandomGenerator3D
-{
-    //  public System.Random rand=new System.Random(0);
-    public static FastNoiseLite randomNoiseGenerator = new FastNoiseLite();
-    public static bool initNoiseGenerator = InitNoiseGenerator();
-    public static bool InitNoiseGenerator()
-    {
-        //  randomNoiseGenerator.SetSeed(0);
-        randomNoiseGenerator.SetNoiseType(FastNoiseLite.NoiseType.Value);
-        randomNoiseGenerator.SetFrequency(1);
-        return true;
-        // randomNoiseGenerator.SetFractalType(FastNoise.FractalType.None);
-    }
-
-    public static int GenerateIntFromVec3(Vector3Int pos)
-    {
-        float value = randomNoiseGenerator.GetNoise(pos.x, pos.y, pos.z);
-        value += 1f;
-        int finalValue = (int)(value * 50f);
-        finalValue = Mathf.Clamp(finalValue, 0, 100);
-        //   Debug.Log(finalValue);
-        //   System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
-        return finalValue;
-    }
-    public static int GenerateIntFromVec2(Vector2Int pos)
-    {
-        float value = randomNoiseGenerator.GetNoise(pos.x, pos.y);
-        value += 1f;
-        int finalValue = (int)(value * 50f);
-        finalValue = Mathf.Clamp(finalValue, 0, 100);
-        //   Debug.Log(finalValue);
-        //   System.Random rand=new System.Random(pos.x*pos.y*pos.z*100);
-        return finalValue;
-    }
-}
 
 public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 {
@@ -195,31 +160,23 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     {
         get { return VoxelWorld.currentWorld.biomeNoiseGenerator; }
     }
-
-    public static MessagePackSerializerOptions lz4Options =
-        MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray);
-
-    public static string gameWorldDataPath;
-
-    public delegate bool TmpCheckFace(int x, int y, int z);
-
-    public delegate void TmpBuildFace(int typeid, Vector3 corner, Vector3 up, Vector3 right, bool reversed,
-        List<Vector3> verts, List<Vector2> uvs, List<int> tris, int side);
-
+ 
     public static bool isBlockInfoAdded = false;
-    public static bool isJsonReadFromDisk = false;
-    public static bool isWorldDataSaved = false;
+ 
     public bool isMapGenCompleted = false;
     public bool isMeshBuildCompleted = false;
     public bool isChunkMapUpdated = false;
     public bool isSavedInDisk = false;
     public bool isModifiedInGame = false;
     public bool isChunkPosInited = false;
+    public bool isColliderBuildingCompleted=false;
 
-    public static Dictionary<int, List<Vector2>> itemBlockInfo = new Dictionary<int, List<Vector2>>();
+  
+    [Obsolete]
     public static Dictionary<int, List<Vector2>> blockInfo = new Dictionary<int, List<Vector2>>();
-
-
+    [Obsolete]
+    public static Dictionary<int, List<Vector2>> itemBlockInfo = new Dictionary<int, List<Vector2>>();
+    [Obsolete]
     public static Dictionary<int, BlockInfo> blockInfosNew = new Dictionary<int, BlockInfo>
     {
         {
@@ -749,11 +706,11 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public Mesh chunkWaterMesh;
     public Mesh chunkNonSolidMesh;
     public Mesh chunkSolidTransparentMesh;
-    public static int worldGenType = 0;
+  
 
     //0Inf 1Superflat
-    public static int chunkWidth = 16;
-    public static int chunkHeight = 256;
+    public static readonly int chunkWidth = 16;
+    public static readonly int chunkHeight = 256;
    
 
     public static int chunkDensityMapHeight = chunkHeight / 4;
@@ -783,7 +740,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public MeshFilter meshFilterLOD2;
     public MeshRenderer meshRendererLOD2;
     public LODGroup lodGroup;
-    public BlockData[,,] map = new BlockData[chunkWidth, chunkHeight, chunkWidth];
+    public UnsafeChunkMapData<BlockData> map;
 
     public Chunk frontChunk;
     public Chunk backChunk;
@@ -800,7 +757,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
       public float[,] backHeightMap; */
     public float[,] thisHeightMap;
 
-    public float[,,] this3DDensityMap;
+ 
 
     public Vector2Int chunkPos { get; set; }
 
@@ -811,7 +768,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
     // public TransformAccessArray thisTransArray= new TransformAccessArray(transform);
   
-    public int[] NSTris;
+   
     public List<Vector3> lightPoints;
     public List<GameObject> pointLightGameObjects = new List<GameObject>();
     
@@ -822,7 +779,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
        
         //left right bottom top back front
        
-        blockInfo.Clear();
+      /*  blockInfo.Clear();
         blockInfo.TryAdd(1,
             new List<Vector2>
             {
@@ -995,9 +952,21 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
                 new Vector2(448f / 1024f, 128f / 1024f), new Vector2(384f / 1024f, 128f / 1024f),
                 new Vector2(320f / 1024f, 128f / 1024f), new Vector2(320f / 1024f, 128f / 1024f)
             });
-
+      */
         blockInfosNew = new Dictionary<int, BlockInfo>
     {
+        {
+            0,
+            new BlockInfo(
+                new List<Vector2>
+                {
+                  
+                },
+                new List<Vector2>
+                {
+                   
+                }, BlockShape.Empty)
+        },
         {
             1,
             new BlockInfo(
@@ -1521,12 +1490,12 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
        
         isBlockInfoAdded = true;
     }
-
+    [Obsolete]
     public static bool IsBlockIDValid(BlockData data)
     {
         return blockInfosNew.ContainsKey(data.blockID);
     }
-
+    [Obsolete]
     public static bool IsBlockIDValid(short data)
     {
         return blockInfosNew.ContainsKey(data);
@@ -1598,7 +1567,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         //  yield return new WaitUntil(()=>isJsonReadFromDisk==true); 
 
         chunkPos = new Vector2Int((int)transform.position.x, (int)transform.position.z);
-
+        map = new UnsafeChunkMapData<BlockData>(chunkWidth, chunkHeight, chunkWidth);
         isChunkPosInited = true;
         //   lock(chunkLock){
         VoxelWorld.currentWorld.chunks.AddOrUpdate(chunkPos, (key) => this, (key, value) => this);
@@ -1623,9 +1592,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
         //  StartLoadChunk();
         //   WorldManager.chunkLoadingQueue.Enqueue(this,(ushort)UnityEngine.Random.Range(0f,100f));
-        VoxelWorld.currentWorld.chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(this, true),
-            (int)Mathf.Abs(transform.position.x - playerPosVec.x) +
-            (int)Mathf.Abs(transform.position.z - playerPosVec.z));
+        VoxelWorld.currentWorld.EnqueueBuildingChunk(this,0);
     }
 
     /*   public void ReInitData(bool isStrongLoading){
@@ -1705,20 +1672,18 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
         //  meshCollider.sharedMesh=null;
         isChunkMapUpdated = false;
-        if (VoxelWorld.currentWorld.chunkLoadingQueue.Contains(new ChunkLoadingQueueItem(this, true)))
+        if (VoxelWorld.currentWorld.chunkLoadingQueue.Contains(this))
         {
-            VoxelWorld.currentWorld.chunkLoadingQueue.Remove(new ChunkLoadingQueueItem(this, true));
+            VoxelWorld.currentWorld.chunkLoadingQueue.Remove(this);
             Debug.Log("remove");
         }
 
-        if (VoxelWorld.currentWorld.chunkLoadingQueue.Contains(new ChunkLoadingQueueItem(this, false)))
-        {
-            VoxelWorld.currentWorld.chunkLoadingQueue.Remove(new ChunkLoadingQueueItem(this, false));
-        }
+       
 
         SaveSingleChunk(VoxelWorld.currentWorld);
         isChunkPosInited = false;
         isStrongLoaded = false;
+        isColliderBuildingCompleted = false;
         isSavedInDisk = false;
         Chunk c;
         VoxelWorld.currentWorld.chunks.TryRemove(chunkPos, out c);
@@ -1729,7 +1694,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
         isModifiedInGame = false;
 
-        map = new BlockData[chunkWidth, chunkHeight, chunkWidth];
+        map.Dispose();
 
         //   map=new int[chunkWidth+2,chunkHeight+2,chunkWidth+2];
 
@@ -1882,7 +1847,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         if (world.chunkDataReadFromDisk.ContainsKey(chunkPos))
         {
             //    int[,,] worldDataMap=map;
-            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map);
+            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map.ToArray());
             //  wd.map=worldDataMap;
             //  wd.posX=chunkPos.x;
             //  wd.posZ=chunkPos.y;
@@ -1894,7 +1859,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         else
         {
             //       int[,,] worldDataMap=map;
-            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map);
+            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map.ToArray());
             world.chunkDataReadFromDisk.TryAdd(chunkPos, wd);
         }
 
@@ -1919,7 +1884,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         if (dictionary.ContainsKey(chunkPos))
         {
             //    int[,,] worldDataMap=map;
-            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map);
+            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map.ToArray());
             //  wd.map=worldDataMap;
             //  wd.posX=chunkPos.x;
             //  wd.posZ=chunkPos.y;
@@ -1931,7 +1896,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         else
         {
             //       int[,,] worldDataMap=map;
-            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map);
+            ChunkData wd = new ChunkData(chunkPos.x, chunkPos.y, map.ToArray());
             dictionary.TryAdd(chunkPos, wd);
         }
 
@@ -2334,7 +2299,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             {
                 //  isModifiedInGame=true;
                 //
-
+             //   Debug.Log("rebuild chunk");
                 GenerateMeshOpqLOD(opqVertsLOD, opqUVsLOD, opqTrisLOD, opqNormsLOD, opqTangentsLOD, mdaLOD1, 2);
                 opqVertsLOD.Dispose();
                 opqUVsLOD.Dispose();
@@ -2388,7 +2353,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
             if (isSavedInDisk == true)
             {
-                map = (BlockData[,,])VoxelWorld.currentWorld.chunkDataReadFromDisk[chunkPos].map.Clone();
+                map = new UnsafeChunkMapData<BlockData>(VoxelWorld.currentWorld.chunkDataReadFromDisk[chunkPos].map) ;
 
 
                 isMapGenCompleted = true;
@@ -3420,8 +3385,8 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             chunkWaterMesh.UploadMeshData(true);
             chunkMeshLOD1.UploadMeshData(true);
             chunkMeshLOD2.UploadMeshData(true);
-            
-            isStrongLoaded = true;
+
+            isColliderBuildingCompleted = true;
 
 
             //[]  meshColliderNS.sharedMesh = chunkNonSolidMesh;
@@ -3432,7 +3397,7 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
 
             //  isStrongLoaded=false;
-       
+
             lodGroup.animateCrossFading = true;
            
         }
@@ -3556,25 +3521,27 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         if (y < 0) return false;
         var type = GetChunkBlockType(x, y, z);
         bool isNonSolid = false;
-        if (type == 0 && curBlock.blockID != 0)
+        var typeThis = WorldUpdateablesMediator.instance.GetBlockShape(curBlock);
+        if (type == BlockShape.Empty && typeThis != BlockShape.Empty)
         {
             return true;
         }
-        if (type != 0 && curBlock.blockID == 0)
+        if (type != BlockShape.Empty && typeThis == BlockShape.Empty)
         {
             return true;
         }
-        if (type == 0 && curBlock.blockID == 0)
+        if (type == BlockShape.Empty && typeThis == BlockShape.Empty)
         {
             return false;
         }
-
-        if (!blockInfosNew.ContainsKey(curBlock.blockID)|| !blockInfosNew.ContainsKey(type))
+        if (!Chunk.IsBlockIDValid(curBlock.blockID))
         {
             return true;
         }
-        BlockShape shape = blockInfosNew[curBlock.blockID].shape;
-        BlockShape shape1 = blockInfosNew[type].shape;
+
+    
+        BlockShape shape = typeThis;
+        BlockShape shape1 = type;
         if (shape == BlockShape.Solid)
         {
             if (shape1 == BlockShape.Solid)
@@ -3691,26 +3658,28 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         // return true;
         if (y < 0) return false;
         var type = GetChunkBlockTypeLOD(x, y, z, LODSkipBlockCount);
+
+        var typeThis = WorldUpdateablesMediator.instance.GetBlockShape(curBlock);
         bool isNonSolid = false;
 
-        if (type == 0 && curBlock.blockID != 0)
+        if (type == BlockShape.Empty && typeThis !=BlockShape.Empty)
         {
             return true;
         }
-        if (type != 0 && curBlock.blockID == 0)
+        if (type != BlockShape.Empty && typeThis == BlockShape.Empty)
         {
             return true;
         }
-        if (type == 0 && curBlock.blockID == 0)
+        if (type == BlockShape.Empty && typeThis == BlockShape.Empty)
         {
             return false;
         }
-        if (!blockInfosNew.ContainsKey(curBlock.blockID) || !blockInfosNew.ContainsKey(type))
+        if (!Chunk.IsBlockIDValid (curBlock.blockID))
         {
             return true;
         }
-        BlockShape shape = blockInfosNew[curBlock.blockID].shape;
-        BlockShape shape1 = blockInfosNew[type].shape;
+        BlockShape shape = typeThis;
+        BlockShape shape1 = type;
         if (shape == BlockShape.Solid)
         {
             if (shape1 == BlockShape.Solid)
@@ -3807,24 +3776,24 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
     public bool CheckNeedBuildFace(int x, int y, int z, bool isThisNS)
     {
         // return true;
-        if (y < 0) return false;
+        if (y < 0 || y >= chunkHeight) return false;
         var type = GetChunkBlockType(x, y, z);
         bool isNonSolid = false;
         if (isThisNS == true)
         {
             switch (type)
             {
-                case 100:
+                case BlockShape.Water:
                     //       Debug.WriteLine("true");
                     return false;
-                case 0:
+                case BlockShape.Empty:
                     return true;
                 default: return false;
             }
         }
         else
         {
-            if (type != 0 && blockInfosNew[type].shape != BlockShape.Solid)
+            if (type != BlockShape.Empty && type != BlockShape.Solid)
             {
                 isNonSolid = true;
             }
@@ -3840,10 +3809,9 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
         {
 
 
-            case 0:
+            case BlockShape.Empty:
                 return true;
-            case 9:
-                return true;
+           
             default:
                 return false;
         }
@@ -3853,128 +3821,113 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
 
   
 
-    public int GetChunkBlockType(int x, int y, int z)
+    public BlockShape GetChunkBlockType(int x, int y, int z)
     {
         if (y < 0 || y > chunkHeight - 1)
         {
-            return 0;
+            return BlockShape.Solid;
         }
 
         if ((x < 0) || (z < 0) || (x >= chunkWidth) || (z >= chunkWidth))
         {
+            if (x >= chunkWidth)
+            {
+                if (rightChunk != null && isRightChunkUnloaded == false)
+                {
+                    if (rightChunk.isMapGenCompleted == true)
+                    {
+                        return WorldUpdateablesMediator.instance.GetBlockShape(rightChunk.map[0, y, z]);
+                    }
+                    
+                }
+
+            }
+            else if (z >= chunkWidth)
+            {
+                if (frontChunk != null && isFrontChunkUnloaded == false)
+                {
+                    if (frontChunk.isMapGenCompleted == true)
+                    {
+                        return WorldUpdateablesMediator.instance.GetBlockShape(frontChunk.map[x, y, 0]);
+                    }
+                     
+                }
+
+            }
+            else if (x < 0)
+            {
+                if (leftChunk != null && isLeftChunkUnloaded == false)
+                {
+                    if (leftChunk.isMapGenCompleted == true)
+                    {
+                        return WorldUpdateablesMediator.instance.GetBlockShape(leftChunk.map[chunkWidth - 1, y, z]);
+                    }
+                     
+                }
+                
+            }
+            else if (z < 0)
+            {
+                if (backChunk != null && isBackChunkUnloaded == false)
+                {
+                    if (backChunk.isMapGenCompleted == true)
+                    {
+                        return WorldUpdateablesMediator.instance.GetBlockShape(backChunk.map[x, y, chunkWidth - 1]);
+                    }
+                   
+                }
+                
+            }
+
             if (VoxelWorld.currentWorld.worldGenType == 0)
             {
                 if (x >= chunkWidth)
                 {
-                    if (rightChunk != null && isRightChunkUnloaded == false)
-                    {
-                        if (rightChunk.isMapGenCompleted == true)
-                        {
-                            return rightChunk.map[0, y, z];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
+                     return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x - chunkWidth + 24, z + 8], y);
                 }
                 else if (z >= chunkWidth)
                 {
-                    if (frontChunk != null && isFrontChunkUnloaded == false)
-                    {
-                        if (frontChunk.isMapGenCompleted == true)
-                        {
-                            return frontChunk.map[x, y, 0];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
+                      return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, z - chunkWidth + 24], y);
                 }
                 else if (x < 0)
                 {
-                    if (leftChunk != null && isLeftChunkUnloaded == false)
-                    {
-                        if (leftChunk.isMapGenCompleted == true)
-                        {
-                            return leftChunk.map[chunkWidth - 1, y, z];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
+                     return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[8 + x, z + 8], y);
                 }
                 else if (z < 0)
                 {
-                    if (backChunk != null && isBackChunkUnloaded == false)
-                    {
-                        if (backChunk.isMapGenCompleted == true)
-                        {
-                            return backChunk.map[x, y, chunkWidth - 1];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
+                     return TerrainGeneratingHelper.PredictBlockTypeOverworld(thisHeightMap[x + 8, 8 + z], y);
                 }
             }
             else if (VoxelWorld.currentWorld.worldGenType == 2)
             {
                 if (x >= chunkWidth)
                 {
-                    if (rightChunk != null && isRightChunkUnloaded == false)
-                    {
-                        if (rightChunk.isMapGenCompleted == true)
-                        {
-                            return rightChunk.map[0, y, z];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                      return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (z >= chunkWidth)
                 {
-                    if (frontChunk != null && isFrontChunkUnloaded == false)
-                    {
-                        if (frontChunk.isMapGenCompleted == true)
-                        {
-                            return frontChunk.map[x, y, 0];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                      return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (x < 0)
                 {
-                    if (leftChunk != null && isLeftChunkUnloaded == false)
-                    {
-                        if (leftChunk.isMapGenCompleted == true)
-                        {
-                            return leftChunk.map[chunkWidth - 1, y, z];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                     return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
                 else if (z < 0)
                 {
-                    if (backChunk != null && isBackChunkUnloaded == false)
-                    {
-                        if (backChunk.isMapGenCompleted == true)
-                        {
-                            return backChunk.map[x, y, chunkWidth - 1];
-                        }
-                        else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
-                    }
-                    else return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
+                      return TerrainGeneratingHelper.PredictBlockType3D(chunkPos.x + x, y, chunkPos.y + z);
                 }
             }
             else
             {
-                return 1;
+                return BlockShape.Solid;
             }
         }
 
-        return map[x, y, z];
+        return WorldUpdateablesMediator.instance.GetBlockShape(map[x, y, z]);
     }
 
 
-    public int GetChunkBlockTypeLOD(int x, int y, int z, int LODSkipBlockCount = 4)
+    public BlockShape GetChunkBlockTypeLOD(int x, int y, int z, int LODSkipBlockCount = 4)
     {
         if (y < 0 || y > chunkHeight - 1)
         {
@@ -4039,11 +3992,11 @@ public partial class Chunk: MonoBehaviour, IChunkFaceBuildingChecks
             }
             else
             {
-                return 1;
+                return BlockShape.Solid;
             }
         }
 
-        return map[x, y, z];
+        return WorldUpdateablesMediator.instance.GetBlockShape(map[x, y, z]) ;
     }
 
     [Obsolete]

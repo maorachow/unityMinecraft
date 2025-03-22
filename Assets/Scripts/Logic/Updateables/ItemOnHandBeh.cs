@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 
 public class ItemOnHandBeh : MonoBehaviour
@@ -6,16 +8,9 @@ public class ItemOnHandBeh : MonoBehaviour
     public Mesh itemMesh;
     public Transform t;
     public bool isHandItemBuildCompleted=false;
-    public static int textureXSize{get{return ItemEntityBeh.textureXSize;}}
-    public static int textureYSize{get{return ItemEntityBeh.textureYSize;}}
-    public static Dictionary<int,Vector2> itemMaterialInfo{get{return ItemEntityBeh.itemMaterialInfo;}}
-    public static Dictionary<int,Vector2Int> itemTexturePosInfo{get{return ItemEntityBeh.itemTexturePosInfo;}}
-    public static Texture2D itemTextureInfo{get{return ItemEntityBeh.itemTexture;}}
+ 
     public MeshFilter mf;
-      List<Vector3> verts=new List<Vector3>();
-    List<Vector2> uvs=new List<Vector2>();
-    List<int> tris=new List<int>();
-    List<Vector3> norms = new List<Vector3>();
+   
     public int blockID;
     public int prevBlockID;
     void Start()
@@ -47,19 +42,35 @@ public class ItemOnHandBeh : MonoBehaviour
         t.localPosition=new Vector3(0f,0f,0.1f);
         t.localEulerAngles=new Vector3(45f,45f,45f);
     itemMesh=new Mesh();
-    float x=-0.5f;
-    float y=-0.5f;
-    float z=-0.5f;
-    verts=new List<Vector3>();
-    uvs=new List<Vector2>();
-    tris=new List<int>();
-    norms = new List<Vector3>();
-    
-   
-    
-        ItemEntityMeshBuildingHelper.BuildItemMesh(itemID, ref verts, ref uvs, ref tris, ref norms,1,4f);
+ 
 
-      
+ /*   NativeList<Vector3> verts = new NativeList<Vector3>(Allocator.Temp);
+    NativeList<Vector2> uvs = new NativeList<Vector2>(Allocator.Temp);
+    NativeList<int> tris = new NativeList<int>(Allocator.Temp);
+    NativeList<Vector3> norms = new NativeList<Vector3>(Allocator.Temp);
+
+
+        ItemEntityMeshBuildingHelper.BuildItemMesh(itemID, ref verts, ref uvs, ref tris, ref norms,1,4f);
+        NativeArray<Vector3> vertsArray = verts.ToArray(Allocator.Temp);
+        NativeArray<Vector2> uvsArray = uvs.ToArray(Allocator.Temp);
+        NativeArray<int> trisArray = tris.ToArray(Allocator.Temp);
+        NativeArray<Vector3> normsArray = norms.ToArray(Allocator.Temp);
+        itemMesh.SetVertices(vertsArray);
+        itemMesh.SetNormals(normsArray);
+        itemMesh.SetUVs(0, uvsArray);
+        itemMesh.SetIndices(trisArray, MeshTopology.Triangles, 0);
+        itemMesh.RecalculateBounds();
+
+        itemMesh.RecalculateTangents();
+        vertsArray.Dispose();
+        uvsArray.Dispose();
+        trisArray.Dispose();
+        normsArray.Dispose();
+        verts.Dispose();
+        norms.Dispose();
+        tris.Dispose();
+        uvs.Dispose();*/
+    ItemEntityMeshBuildingHelper.BuildItemMesh(ref itemMesh,itemID,4f);
         /*
         if (itemID>150&&itemID<=200&&itemID!=156){
         BuildFlatItemModel(itemID);
@@ -167,16 +178,12 @@ public class ItemOnHandBeh : MonoBehaviour
         }
         */
 
-        itemMesh.vertices = verts.ToArray();
-        itemMesh.uv = uvs.ToArray();
-        itemMesh.triangles = tris.ToArray();
-        itemMesh.RecalculateBounds();
-        itemMesh.RecalculateNormals();
+        
         mf.mesh=itemMesh;
 
         if (ItemEntityMeshBuildingHelper.IsItemBlockShaped(itemID) == false)
         {
-            t.localPosition = new Vector3(0.1f, -0.2f, -0.25f);
+            t.localPosition = new Vector3(-0.02f, -0.2f, -0.25f);
             t.localEulerAngles = new Vector3(-70f, 0f, -90f);
 
             if (itemID == 157)

@@ -537,7 +537,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget,IInventor
             return;
         }
 
-        if (curChunk == null)
+        if (curChunk == null||curChunk?.isColliderBuildingCompleted == false)
         {
             am.SetFloat("speed", 0f);
             return;
@@ -918,7 +918,7 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget,IInventor
 
     public void PlayerGroundSinkPrevent(CharacterController cc, int blockID, float dt)
     {
-        if (WorldHelper.instance.GetBlockShape(blockID) is BlockShape.Solid|| WorldHelper.instance.GetBlockShape(blockID) is BlockShape.SolidTransparent) 
+        if (WorldUpdateablesMediator.instance.GetBlockShape(blockID) is BlockShape.Solid|| WorldUpdateablesMediator.instance.GetBlockShape(blockID) is BlockShape.SolidTransparent) 
         {
             //      cc.Move(new Vector3(0f,dt*5f,0f));
             gravity = 0f;
@@ -1001,21 +1001,21 @@ public partial class PlayerMove: MonoBehaviour,IAttackableEntityTarget,IInventor
        
         if (curChunk == null)
         {
-            curChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+            curChunk = WorldUpdateablesMediator.instance.GetChunk((transform.position));
           
         }
 
-        if (WorldHelper.instance.CheckIsPosInChunk(transform.position, curChunk) == false)
+        if (WorldUpdateablesMediator.instance.CheckIsPosInChunk(transform.position, curChunk) == false)
         {
-            curChunk = Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos(transform.position));
+            curChunk = WorldUpdateablesMediator.instance.GetChunk(transform.position);
           
             //   curChunkStrongLoader.isChunksNeededStrongLoading=true;
         }
 
         // Debug.Log(finalMoveVec);
-        curFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f,0.2f, 0f), curChunk);
-        curUnderFootBlockID = WorldHelper.instance.GetBlock(transform.position + new Vector3(0f, -0.2f, 0f), curChunk);
-        curHeadBlockID = WorldHelper.instance.GetBlock(cameraPos.position, curChunk);
+        curFootBlockID = WorldUpdateablesMediator.instance.GetBlockData(transform.position + new Vector3(0f,0.2f, 0f), curChunk);
+        curUnderFootBlockID = WorldUpdateablesMediator.instance.GetBlockData(transform.position + new Vector3(0f, -0.2f, 0f), curChunk);
+        curHeadBlockID = WorldUpdateablesMediator.instance.GetBlockData(cameraPos.position, curChunk);
         //     Debug.Log("block ID:"+ curUnderFootBlockID);
         //   Debug.Log(curChunk.ToString());
         if (curHeadBlockID != prevHeadBlockID)

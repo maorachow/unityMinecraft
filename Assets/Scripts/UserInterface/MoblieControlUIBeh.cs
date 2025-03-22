@@ -43,7 +43,7 @@ public class MoblieControlUIBeh : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("listener count:" + dropItemButton.onClick.GetPersistentEventCount());
+     
     }
 
     

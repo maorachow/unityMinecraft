@@ -71,9 +71,9 @@ public class TNTBeh : MonoBehaviour
 
                     if ((blockPoint - transform.position).magnitude < 2.5f)
                     {
-                        if (WorldHelper.instance.GetBlock(blockPoint) != 0)
+                        if (WorldUpdateablesMediator.instance.GetBlockShape(blockPoint) != BlockShape.Empty)
                         {
-                            WorldHelper.instance.SendBreakBlockOperation(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint) );
+                            WorldUpdateablesMediator.instance.SendBreakBlockOperation(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint) );
                         }
                        
                     }

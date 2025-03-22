@@ -154,10 +154,10 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
 
                     if ((blockPoint - transform.position).magnitude < 2.5f)
                     {
-                        if (WorldHelper.instance.GetBlock(blockPoint) != 0)
+                        if (WorldUpdateablesMediator.instance.GetBlockShape(blockPoint) != BlockShape.Empty)
                         {
 
-                            WorldHelper.instance.SendBreakBlockOperation(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint) );
+                            WorldUpdateablesMediator.instance.SendBreakBlockOperation(ChunkCoordsHelper.Vec3ToBlockPos(blockPoint) );
                         }
 
                     }
@@ -310,7 +310,7 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             }
         }
 
-        curFootBlockID = WorldHelper.instance.GetBlock(transform.position, entity.currentChunk);
+        curFootBlockID = WorldUpdateablesMediator.instance.GetBlockData(transform.position, entity.currentChunk).blockID;
         //  curHeadBlockID=WorldHelper.instance.GetBlock(cameraPos.position);
         if (curFootBlockID == 0 || (101 <= curFootBlockID && curFootBlockID <= 200))
         {
@@ -357,13 +357,17 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
             if (hasReachedTarget == true)
             {
                 timeUsedToReachTarget = 0f;
-                Vector2 randomTargetPos =
-                    new Vector2(Random.Range(transform.position.x - 8f, transform.position.x + 8f),
-                        Random.Range(transform.position.z - 8f, transform.position.z + 8f));
-                Vector3 finalTargetPos = new Vector3(randomTargetPos.x,
-                    WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x, randomTargetPos.y) + 1f,
-                    randomTargetPos.y);
-                targetPos = finalTargetPos;
+                Vector3 finalTargetPos =
+                    WorldUpdateablesMediator.instance.TryFindRandomLandingPos(transform.position, 8f,
+                        out bool succeeded);
+                if (succeeded == true)
+                {
+                    targetPos = finalTargetPos;
+                }
+                else
+                {
+                    targetPos = transform.position;
+                }
             }
             else
             {
@@ -372,13 +376,17 @@ public class CreeperBeh : MonoBehaviour,ILivingEntity, IAttackableEntityTarget
                 {
                     hasReachedTarget = true;
                     timeUsedToReachTarget = 0f;
-                    Vector2 randomTargetPos =
-                        new Vector2(Random.Range(transform.position.x - 8f, transform.position.x + 8f),
-                            Random.Range(transform.position.z - 8f, transform.position.z + 8f));
-                    Vector3 finalTargetPos = new Vector3(randomTargetPos.x,
-                        WorldHelper.instance.GetChunkLandingPoint(randomTargetPos.x, randomTargetPos.y) + 1f,
-                        randomTargetPos.y);
-                    targetPos = finalTargetPos;
+                    Vector3 finalTargetPos =
+                        WorldUpdateablesMediator.instance.TryFindRandomLandingPos(transform.position, 8f,
+                            out bool succeeded);
+                    if (succeeded == true)
+                    {
+                        targetPos = finalTargetPos;
+                    }
+                    else
+                    {
+                        targetPos = transform.position;
+                    }
                 }
             }
         }

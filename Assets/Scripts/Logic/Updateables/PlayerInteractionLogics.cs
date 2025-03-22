@@ -396,19 +396,27 @@ public partial class PlayerMove
               
                 return;
             }
-            bool isBlockPlaced = TryPlaceBlock((short)itemID, blockRay, out Vector3 blockPoint);
 
-            if (isBlockPlaced)
+            bool canItemConvertToBlock= GlobalGameResourcesManager.instance.itemIDToBlockIDMapper.CanMapToBlockID(itemID);
+            BlockData blockID = GlobalGameResourcesManager.instance.itemIDToBlockIDMapper.ToBlockID(itemID);
+
+            if (canItemConvertToBlock)
             {
-                GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalGameResourcesManager.instance.audioResourcesManager.TryGetBlockAudioClip(itemID),transform.position,1f,40f);
+                bool isBlockPlaced = TryPlaceBlock(blockID, blockRay, out Vector3 blockPoint);
+
+                if (isBlockPlaced)
+                {
+                    GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalGameResourcesManager.instance.audioResourcesManager.TryGetBlockAudioClip(itemID), transform.position, 1f, 40f);
 
 
-                inventory.TryRemoveItemFromSlot(currentSelectedHotbar - 1, 1);
+                    inventory.TryRemoveItemFromSlot(currentSelectedHotbar - 1, 1);
 
-                //  WorldHelper.instance.StartUpdateAtPoint(blockPoint);
-                AttackAnimate();
-                Invoke("cancelAttackInvoke", 0.16f);
+                    //  WorldHelper.instance.StartUpdateAtPoint(blockPoint);
+                    AttackAnimate();
+                    Invoke("cancelAttackInvoke", 0.16f);
+                }
             }
+         
 
         }
     }
@@ -424,17 +432,17 @@ public partial class PlayerMove
             return false;
         }
 
-        BlockShape? resultShape = WorldHelper.instance.GetBlockShape(result1 + new Vector3(0.5f, 0.5f, 0.5f));
+        BlockShape resultShape = WorldUpdateablesMediator.instance.GetBlockShape(result1 + new Vector3(0.5f, 0.5f, 0.5f));
         if (resultShape is BlockShape.Door)
         {
-            BlockData blockData = WorldHelper.instance.GetBlockData(result1 + new Vector3(0.5f, 0.5f, 0.5f));
+            BlockData blockData = WorldUpdateablesMediator.instance.GetBlockData(result1 + new Vector3(0.5f, 0.5f, 0.5f));
 
 
             GlobalAudioResourcesManager.PlayClipAtPointCustomRollOff(GlobalGameResourcesManager.instance.audioResourcesManager.TryGetBlockAudioClip(blockData.blockID), result1 + new Vector3(0.5f, 0.5f, 0.5f),
                     1f,40f);
-            
+            WorldUpdateablesMediator.instance.SendDoorInteractingOperation(result1);
 
-            VoxelWorld.currentWorld.worldUpdater.queuedChunkUpdatePoints.Enqueue(new DoorInteractingOperation(result1));
+             
 
             data = blockData;
             return true;
@@ -460,15 +468,15 @@ public partial class PlayerMove
         {
             //   return;
 
-            WorldHelper.instance.BreakBlockInArea(blockPoint, new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
+            WorldUpdateablesMediator.instance.BreakBlockInArea(blockPoint, new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
 
 
 
         }
         else
         {
-            BlockData data = WorldHelper.instance.GetBlockData(blockPoint);
-            WorldHelper.instance.SendBreakBlockOperation(result1);
+            BlockData data = WorldUpdateablesMediator.instance.GetBlockData(blockPoint);
+            WorldUpdateablesMediator.instance.SendBreakBlockOperation(result1);
 
 
         //    WorldHelper.instance.StartUpdateAtPoint(blockPoint,ChunkUpdateTypes.BlockBreakUpdate, data);
@@ -483,13 +491,7 @@ public partial class PlayerMove
         BlockFaces resultFaces;
         VoxelCast.Cast(ray, 5, out result1, out resultFaces);
 
-        inventory.GetItemInfoFromSlot(currentSelectedHotbar - 1, out int itemID, out int itemCount);
-        if (!ItemIDToBlockID.ItemIDToBlockIDDic.ContainsKey(itemID) ||
-            ItemIDToBlockID.ItemIDToBlockIDDic[itemID] == -1)
-        {
-            blockPoint = new Vector3(-1, -1, -1);
-            return false;
-        }
+         
 
         Vector3 resultCenterPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 0.5f);
         switch (resultFaces)
@@ -535,8 +537,7 @@ public partial class PlayerMove
             return false;
         }
 
-        BlockShape placingShape = Chunk
-            .blockInfosNew[ItemIDToBlockID.ItemIDToBlockIDDic[itemID]].shape;
+        BlockShape placingShape = GlobalGameResourcesManager.instance.meshBuildingInfoDataProvider.GetBlockInfo(blockID).shape;
         if (result1.y != -1)
         {
             switch (placingShape)
@@ -549,44 +550,44 @@ public partial class PlayerMove
                         case BlockFaces.PositiveX:
 
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
                             return true;
                             break;
                         case BlockFaces.PositiveY:
 
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                             return true;
                             break;
                         case BlockFaces.PositiveZ:
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
                             return true;
                             break;
                         case BlockFaces.NegativeX:
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
                             return true;
                             break;
                         case BlockFaces.NegativeY:
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
                             return true;
                             break;
                         case BlockFaces.NegativeZ:
 
-                            WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                            WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
+                                (short)blockID);
                             blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
                             return true;
                             break;
@@ -601,18 +602,18 @@ public partial class PlayerMove
                         case BlockFaces.PositiveY:
 
                             BlockShape? placingPosShape1 =
-                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
                                     result1.z + 0.5f));
                             BlockShape? placingDownPosShape =
-                                WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
                                     result1.z + 0.5f));
                             if (placingDownPosShape is BlockShape.SolidTransparent ||
                                 placingDownPosShape is BlockShape.Solid)
                             {
                                 if (placingPosShape1 == null)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                        (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
+                                        (short)blockID);
                                     blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                                     return true;
                                 }
@@ -691,9 +692,9 @@ public partial class PlayerMove
 
                     byte optionalDataVal1 = MathUtility.GetByte(dataBools1);
                    
-                    if (WorldHelper.instance.GetBlock(result1 + new Vector3(0.5f, 2.5f, 0.5f)) == 0)
+                    if (WorldUpdateablesMediator.instance.GetBlockShape(result1 + new Vector3(0.5f, 2.5f, 0.5f)) == BlockShape.Empty)
                     {
-                        WorldHelper.instance.SendPlaceBlockOperation(result1 + new Vector3(0.5f,1.5f, 0.5f), new BlockData(ItemIDToBlockID.ItemIDToBlockIDDic[itemID], optionalDataVal1));
+                        WorldUpdateablesMediator.instance.SendPlaceBlockOperation(result1 + new Vector3(0.5f,1.5f, 0.5f), new BlockData(blockID, optionalDataVal1));
                      //   WorldHelper.instance.StartUpdateAtPoint(result1 + new Vector3(0.5f, 1.5f, 0.5f),ChunkUpdateTypes.BlockPlacedUpdate,null);
                         blockPoint = new Vector3(result1.x +0.5f, result1.y + 1.5f, result1.z + 0.5f);
 
@@ -707,13 +708,13 @@ public partial class PlayerMove
                     {
                         case BlockFaces.PositiveX:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -726,13 +727,13 @@ public partial class PlayerMove
                             break;
                         case BlockFaces.PositiveY:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -745,13 +746,13 @@ public partial class PlayerMove
                             break;
                         case BlockFaces.PositiveZ:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                    result1.z + 1.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                    result1.z + 1.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
                                 return true;
                             }
@@ -763,13 +764,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeX:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -781,13 +782,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeY:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y - 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y - 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -799,13 +800,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeZ:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                    result1.z - 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                    result1.z - 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
                                 return true;
                             }
@@ -823,13 +824,13 @@ public partial class PlayerMove
                     {
                         case BlockFaces.PositiveX:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -842,13 +843,13 @@ public partial class PlayerMove
                             break;
                         case BlockFaces.PositiveY:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -861,13 +862,13 @@ public partial class PlayerMove
                             break;
                         case BlockFaces.PositiveZ:
 
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                    result1.z + 1.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                    result1.z + 1.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
                                 return true;
                             }
@@ -879,13 +880,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeX:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -897,13 +898,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeY:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y - 0.5f,
-                                    result1.z + 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y - 0.5f,
+                                    result1.z + 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y - 0.5f, result1.z + 0.5f);
                                 return true;
                             }
@@ -915,13 +916,13 @@ public partial class PlayerMove
 
                             break;
                         case BlockFaces.NegativeZ:
-                            if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                    result1.z - 0.5f)) is null
+                            if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                    result1.z - 0.5f)) is BlockShape.Empty
                                )
                             {
-                                WorldHelper.instance.SendPlaceBlockOperation(
+                                WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                     new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
-                                    (short)ItemIDToBlockID.ItemIDToBlockIDDic[itemID]);
+                                    (short)blockID);
                                 blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
                                 return true;
                             }
@@ -936,21 +937,20 @@ public partial class PlayerMove
                     break;
                 case BlockShape.Torch:
                     BlockShape? placingPosShape =
-                        WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                        WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
                             result1.z + 0.5f));
                     if (placingPosShape is BlockShape.SolidTransparent || placingPosShape is BlockShape.Solid)
                     {
                         switch (resultFaces)
                         {
                             case BlockFaces.PositiveX:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
-                                        result1.z + 0.5f)) == null)
+                                if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 1.5f, result1.y + 0.5f,
+                                        result1.z + 0.5f)) == BlockShape.Empty)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                         new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f),
                                         new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                itemID], 2));
+                                            (short)blockID, 2));
                                     blockPoint = new Vector3(result1.x + 1.5f, result1.y + 0.5f, result1.z + 0.5f);
                                     return true;
                                 }
@@ -959,14 +959,13 @@ public partial class PlayerMove
 
 
                             case BlockFaces.PositiveY:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
-                                        result1.z + 0.5f)) == null)
+                                if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 1.5f,
+                                        result1.z + 0.5f)) == BlockShape.Empty)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                         new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f),
                                         new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                itemID], 0));
+                                            (short)blockID, 0));
                                     blockPoint = new Vector3(result1.x + 0.5f, result1.y + 1.5f, result1.z + 0.5f);
                                     return true;
                                 }
@@ -974,14 +973,13 @@ public partial class PlayerMove
                                 break;
 
                             case BlockFaces.PositiveZ:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                        result1.z + 1.5f)) == null)
+                                if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                        result1.z + 1.5f)) == BlockShape.Empty)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                         new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f),
                                         new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                itemID], 4));
+                                            (short)blockID, 4));
                                     blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z + 1.5f);
                                     return true;
                                 }
@@ -989,14 +987,13 @@ public partial class PlayerMove
                                 break;
 
                             case BlockFaces.NegativeX:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
-                                        result1.z + 0.5f)) == null)
+                                if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x - 0.5f, result1.y + 0.5f,
+                                        result1.z + 0.5f)) == BlockShape.Empty)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                         new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f),
                                         new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                itemID], 1));
+                                            (short)blockID, 1));
                                     blockPoint = new Vector3(result1.x - 0.5f, result1.y + 0.5f, result1.z + 0.5f);
                                     return true;
                                 }
@@ -1008,14 +1005,13 @@ public partial class PlayerMove
                                 return false;
 
                             case BlockFaces.NegativeZ:
-                                if (WorldHelper.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
-                                        result1.z - 0.5f)) == null)
+                                if (WorldUpdateablesMediator.instance.GetBlockShape(new Vector3(result1.x + 0.5f, result1.y + 0.5f,
+                                        result1.z - 0.5f)) == BlockShape.Empty)
                                 {
-                                    WorldHelper.instance.SendPlaceBlockOperation(
+                                    WorldUpdateablesMediator.instance.SendPlaceBlockOperation(
                                         new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f),
                                         new BlockData(
-                                            (short)ItemIDToBlockID.ItemIDToBlockIDDic[
-                                                itemID], 3));
+                                            (short)blockID, 3));
                                     blockPoint = new Vector3(result1.x + 0.5f, result1.y + 0.5f, result1.z - 0.5f);
                                     return true;
                                 }

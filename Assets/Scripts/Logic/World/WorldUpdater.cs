@@ -11,14 +11,17 @@ namespace monogameMinecraftShared.World
     public class WorldUpdater
     {
         public VoxelWorld world;
-        public WorldUpdater(VoxelWorld world)
+        public bool isGoingToStop = false;
+        public WorldAccessor worldAccessor;
+        public WorldUpdater(VoxelWorld world, WorldAccessor worldAccessor)
         {
             this.world = world;
+            this.worldAccessor = worldAccessor;
         }
 
         public void Init()
         {
-            
+            isGoingToStop = false;
             queuedChunkUpdatePoints = new Queue<IChunkUpdateOperation>();
             chunksNeededRebuild = new List<Chunk>();
             tryUpdateWorldBlocksThread = new Thread(UpdateWorldBlocksThread);
@@ -31,12 +34,12 @@ namespace monogameMinecraftShared.World
 
             while (true)
             {
-                if (VoxelWorld.currentWorld.isGoingToQuitWorld || VoxelWorld.currentWorld.worldID != world.worldID)
+                if (VoxelWorld.currentWorld.isGoingToQuitWorld || VoxelWorld.currentWorld.worldID != world.worldID|| isGoingToStop==true)
                 {
                     Debug.Log("quit update world block thread");
                     return;
                 }
-                Thread.Sleep(25);
+                Thread.Sleep(15);
 
                 //    Debug.WriteLine("sleep");
 
@@ -50,7 +53,7 @@ namespace monogameMinecraftShared.World
                         {
                             IChunkUpdateOperation updateOper = queuedChunkUpdatePoints.Dequeue();
                             updateOper.Update();
-                            chunksNeededRebuild.Add(Chunk.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos((Vector3)updateOper.position)));
+                            chunksNeededRebuild.Add(worldAccessor.GetChunk(ChunkCoordsHelper.Vec3ToChunkPos((Vector3)updateOper.position)));
                         }
 
                         processedUpdateCount++;
@@ -74,7 +77,7 @@ namespace monogameMinecraftShared.World
         public List<Chunk> chunksNeededRebuild;
 
 
-        public readonly float maxDelayedTime = 0.1f;
+        public readonly float maxDelayedTime = 0.05f;
         public readonly int maxChunkUpdateCountOnce = 100;
         public float delayedTime = 0f;
 
@@ -113,10 +116,10 @@ namespace monogameMinecraftShared.World
                                 chunk.isChunkMapUpdated=true;
 
 
-                                if (Chunk.GetChunk(
+                                if (worldAccessor.GetChunk(
                                         new Vector2Int(chunk.chunkPos.x - Chunk.chunkWidth, chunk.chunkPos.y)) != null)
                                 {
-                                    Chunk.GetChunk(
+                                    worldAccessor.GetChunk(
                                             new Vector2Int(chunk.chunkPos.x - Chunk.chunkWidth, chunk.chunkPos.y))
                                         .isChunkMapUpdated = true;
                                 }
@@ -125,10 +128,10 @@ namespace monogameMinecraftShared.World
                                 // if (chunkNeededUpdate.rightChunk != null && chunkNeededUpdate.rightChunk.isMapGenCompleted == true)
 
                                 //  chunkNeededUpdate.rightChunk.BuildChunk();
-                                if (Chunk.GetChunk(
+                                if (worldAccessor.GetChunk(
                                         new Vector2Int(chunk.chunkPos.x + Chunk.chunkWidth, chunk.chunkPos.y)))
                                 {
-                                    Chunk.GetChunk(
+                                    worldAccessor.GetChunk(
                                             new Vector2Int(chunk.chunkPos.x + Chunk.chunkWidth, chunk.chunkPos.y))
                                         .isChunkMapUpdated = true;
                                 }
@@ -138,11 +141,11 @@ namespace monogameMinecraftShared.World
                                 //       {
                                 //         chunkNeededUpdate.backChunk.BuildChunk();
                                 //     }
-                                if (Chunk.GetChunk(
+                                if (worldAccessor.GetChunk(
                                         new Vector2Int(chunk.chunkPos.x, chunk.chunkPos.y - Chunk.chunkWidth)) !=
                                     null)
                                 {
-                                    Chunk.GetChunk(
+                                    worldAccessor.GetChunk(
                                             new Vector2Int(chunk.chunkPos.x, chunk.chunkPos.y - Chunk.chunkWidth))
                                         .isChunkMapUpdated = true;
                                 }
@@ -152,10 +155,10 @@ namespace monogameMinecraftShared.World
                                 //     {
                                 //      chunkNeededUpdate.frontChunk.BuildChunk();
                                 //     }
-                                if (Chunk.GetChunk(
+                                if (worldAccessor.GetChunk(
                                         new Vector2Int(chunk.chunkPos.x, chunk.chunkPos.y + Chunk.chunkWidth)) != null)
                                 {
-                                    Chunk.GetChunk(
+                                    worldAccessor.GetChunk(
                                             new Vector2Int(chunk.chunkPos.x, chunk.chunkPos.y + Chunk.chunkWidth))
                                         .isChunkMapUpdated = true;
                                 }

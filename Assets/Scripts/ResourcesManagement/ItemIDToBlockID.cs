@@ -1,10 +1,85 @@
 using System.Collections.Generic;
 
-public class ItemIDToBlockID 
+public class ItemIDToBlockIDMapper:IItemIDToBlockIDMapper
 {
-    public static Dictionary<BlockData,int> blockIDToItemIDDic=new Dictionary<BlockData, int>();
-    public static Dictionary<int, BlockData> ItemIDToBlockIDDic=new Dictionary<int, BlockData>();
-    public static void InitDic(){
+    public ItemIDToBlockIDMapper()
+    {
+
+    }
+
+   
+    public Dictionary<BlockData,int> blockIDToItemIDDic=new Dictionary<BlockData, int>();
+    public Dictionary<int, BlockData> ItemIDToBlockIDDic=new Dictionary<int, BlockData>();
+
+    public bool CanMapToBlockID(int itemID)
+    {
+        if (ItemIDToBlockIDDic.ContainsKey(itemID))
+        {
+            if (ItemIDToBlockIDDic[itemID] != -1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;   
+            }
+           
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public BlockData ToBlockID(int itemID)
+    {
+        if (ItemIDToBlockIDDic.ContainsKey(itemID))
+        {
+            return ItemIDToBlockIDDic[itemID];
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+
+
+    public bool CanMapToItemID(BlockData blockID)
+    {
+        if (blockIDToItemIDDic.ContainsKey(blockID.blockID))
+        {
+            if (blockIDToItemIDDic[blockID.blockID] != -1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public int ToItemID(BlockData blockID)
+    {
+        if (blockIDToItemIDDic.ContainsKey(blockID))
+        {
+            return blockIDToItemIDDic[blockID];
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    public void Initialize()
+    {
+        InitDic();
+    }
+    public void InitDic(){
         blockIDToItemIDDic.Clear();
         blockIDToItemIDDic.TryAdd(0,-1);
         blockIDToItemIDDic.TryAdd(1,1);
@@ -33,6 +108,7 @@ public class ItemIDToBlockID
         blockIDToItemIDDic.TryAdd(109, 109);
         blockIDToItemIDDic.TryAdd(110, 110);
         blockIDToItemIDDic.TryAdd(111, 111);
+        ItemIDToBlockIDDic.TryAdd(156, -1);
         ItemIDToBlockIDDic.Clear();
         ItemIDToBlockIDDic.TryAdd(0,-1);
         ItemIDToBlockIDDic.TryAdd(1,1);
@@ -67,7 +143,7 @@ public class ItemIDToBlockID
         ItemIDToBlockIDDic.TryAdd(111, 111);
 
         ItemIDToBlockIDDic.TryAdd(155, -1);
-        ItemIDToBlockIDDic.TryAdd(156, -1);
+        ItemIDToBlockIDDic.TryAdd(156, 156);
         ItemIDToBlockIDDic.TryAdd(157, -1);
         ItemIDToBlockIDDic.TryAdd(158, -1);
         //   ItemIDToBlockIDDic.TryAdd();

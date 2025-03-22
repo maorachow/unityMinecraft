@@ -31,7 +31,7 @@ public class VoxelWorld
     public static VoxelWorld currentWorld=worlds[0];
 
     public SimplePriorityQueue<Vector2Int> chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
-    public SimplePriorityQueue<ChunkLoadingQueueItem> chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
+    public SimplePriorityQueue<Chunk> chunkLoadingQueue = new SimplePriorityQueue<Chunk>();
     public SimplePriorityQueue<Vector2Int> chunkUnloadingQueue = new SimplePriorityQueue<Vector2Int>();
     public MyChunkObjectPool chunkPool = new MyChunkObjectPool();
     public bool isWorldDataSaved = false;
@@ -49,6 +49,7 @@ public class VoxelWorld
 
     public EntityManager entityManager;
     public ItemEntityManager itemEntityManager;
+    public WorldAccessor worldAccessor;
     public Chunk GetChunk(Vector2Int chunkPos)
     {
      //   Debug.Log(VoxelWorld.currentWorld.chunks.Count);
@@ -69,22 +70,23 @@ public class VoxelWorld
     {
         while (true)
         {
-            Thread.Sleep(50);
-         //   Debug.Log("run");   
             
-            if (VoxelWorld.currentWorld.isGoingToQuitWorld == true)
+         //   Debug.Log("running world ID:"+worldID);   
+            
+            if (isGoingToQuitWorld == true)
             {
                 return;
             }
             foreach (var cl in allChunkLoaders)
             {
-           //     Debug.Log(cl.chunkLoadingCenter);
+                //     Debug.Log(cl.chunkLoadingCenter);
                 if (cl.isChunksNeedLoading == true)
                 {
-                    cl.TryUpdateWorldThread();
+                    cl.TryUpdateWorldThread(this);
                 }
 
             }
+            Thread.Sleep(50);
         }
       
     }
@@ -111,7 +113,7 @@ public class VoxelWorld
                  Chunks[keys[i]].isChunkPosInited=false;
               } 
              }*/
-            Thread.Sleep(200);
+           
             if (isGoingToQuitWorld == true)
             {
                 return;
@@ -142,6 +144,7 @@ public class VoxelWorld
                     chunkUnloadingQueue.Enqueue(c.Key, 0);
                 }
             }
+            Thread.Sleep(200);
         }
 
 
@@ -154,7 +157,7 @@ public class VoxelWorld
 
         while (true)
         {
-            Thread.Sleep(5);
+            
             if (isGoingToQuitWorld == true)
             {
                 return;
@@ -168,7 +171,7 @@ public class VoxelWorld
                     c.Value.isModifiedInGame = true;
                     if (c.Value.isMeshBuildCompleted == true)
                     {
-                        chunkLoadingQueue.Enqueue(new ChunkLoadingQueueItem(c.Value, true), -50);
+                        chunkLoadingQueue.Enqueue(c.Value, -50);
                     }
                     else
                     {
@@ -178,7 +181,7 @@ public class VoxelWorld
                     c.Value.isChunkMapUpdated = false;
                 }
             }
-
+            Thread.Sleep(5);
 
 
         }
@@ -195,6 +198,7 @@ public class VoxelWorld
     {
      //   Debug.Log("disable");
         //  Debug.Log(chunkUnloadingQueue.Count);
+
         if (chunkUnloadingQueue.Count > 0)
         {
 
@@ -209,20 +213,21 @@ public class VoxelWorld
                         chunkPool.Remove(c.gameObject);
                         chunkUnloadingQueue.Dequeue();
                         //  Debug.Log("completed");
-                        return;
+                       return;
                     }
                     else
                     {
-                        blockedDisablingCount++;
-                        if (blockedDisablingCount > 15)
-                        {
-                            blockedDisablingCount = 0;
-                            GameObject.Destroy(c.gameObject);
-                            chunkUnloadingQueue.Dequeue();
-                            Debug.Log("destroy");
-                            return;
-                        }
                         return;
+                        /*   blockedDisablingCount++;
+                           if (blockedDisablingCount > 15)
+                           {
+                               blockedDisablingCount = 0;
+                               GameObject.Destroy(c.gameObject);
+                               chunkUnloadingQueue.Dequeue();
+                               Debug.Log("destroy");
+                               return;
+                           }*/
+                         
                     }
                 }
 
@@ -246,6 +251,11 @@ public class VoxelWorld
     {
         chunkSpawningQueue.Enqueue(chunkPos,
           priority);
+    }
+
+    public void EnqueueBuildingChunk(Chunk c, int buildingPriority)
+    {
+        chunkLoadingQueue.Enqueue(c,buildingPriority);
     }
 
     public void SpawnChunks()
@@ -282,7 +292,7 @@ public class VoxelWorld
         }
         else
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 1; i++)
             {
                 if (chunkSpawningQueue.Count > 0)
                 {
@@ -322,7 +332,7 @@ public class VoxelWorld
             {
                 if (chunkLoadingQueue.Count > 0)
                 {
-                    if (chunkLoadingQueue.First.c == null)
+                    if (chunkLoadingQueue.First == null)
                     {
                         chunkLoadingQueue.Dequeue();
                         continue;
@@ -331,7 +341,7 @@ public class VoxelWorld
 
 
 
-                    chunkLoadingQueue.First.c.StartLoadChunk();
+                    chunkLoadingQueue.First.StartLoadChunk();
 
 
 
@@ -347,7 +357,7 @@ public class VoxelWorld
             {
                 if (chunkLoadingQueue.Count > 0)
                 {
-                    if (chunkLoadingQueue.First.c == null)
+                    if (chunkLoadingQueue.First == null)
                     {
                         chunkLoadingQueue.Dequeue();
                         continue;
@@ -356,7 +366,7 @@ public class VoxelWorld
 
 
 
-                    chunkLoadingQueue.First.c.StartLoadChunk();
+                    chunkLoadingQueue.First.StartLoadChunk();
 
 
 
@@ -498,7 +508,8 @@ public class VoxelWorld
         this.curWorldSaveName = curWorldSaveName;
         this.worldGenType = worldGenType;
         this.worldID = worldID;
-        worldUpdater = new WorldUpdater(this);
+        worldAccessor = new WorldAccessor(this);
+        worldUpdater = new WorldUpdater(this, worldAccessor);
         entityManager = new EntityManager(this);
         itemEntityManager = new ItemEntityManager(this);
     }
@@ -612,7 +623,7 @@ public class VoxelWorld
         itemEntityManager.FetchItemEntityData();
         itemEntityManager.SpawnItemEntityFromFile();
         chunkSpawningQueue = new SimplePriorityQueue<Vector2Int>();
-        chunkLoadingQueue = new SimplePriorityQueue<ChunkLoadingQueueItem>();
+        chunkLoadingQueue = new SimplePriorityQueue<Chunk>();
         chunkUnloadingQueue = new SimplePriorityQueue<Vector2Int>();
         isGoingToQuitWorld = false;
         updateAllChunkLoadersThread = Task.Run(TryUpdateAllChunkLoadersThread);

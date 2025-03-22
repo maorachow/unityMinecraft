@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,13 @@ using Newtonsoft.Json;
 using UnityEditor;
 using System.IO;
 using MessagePack;
-public class AssetBundlePacker : Editor
+using System.Runtime.InteropServices;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+
+public unsafe class AssetBundlePacker : Editor
 {
+    
     [MenuItem("Tools/CreatAssetBundle for Android")]
   
     static void CreatAssetBundle()
@@ -17,8 +23,12 @@ public class AssetBundlePacker : Editor
         {
             Directory.CreateDirectory(path);
         }
-        BuildPipeline.BuildAssetBundles(path, BuildAssetBundleOptions.None, BuildTarget.Android);
-        UnityEngine.Debug.Log("Android Finish!");
+     //   BuildPipeline.BuildAssetBundles(path, BuildAssetBundleOptions.None, BuildTarget.Android);
+     //   UnityEngine.Debug.Log("Android Finish!");
+
+     UnsafeChunkMapData<BlockData> data = new UnsafeChunkMapData<BlockData>(16, 256, 16);
+        Debug.Log(data[15,255,15].blockID);
+        data.Dispose();
     }
 
     [MenuItem("Tools/CreatAssetBundle for IOS")]
@@ -47,6 +57,7 @@ public class AssetBundlePacker : Editor
         UnityEngine.Debug.Log("Windows Finish!");
     }
        [MenuItem("Tools/GenerateBlockInfoDicJson")]
+    [Obsolete]
     static void GenerateBlockInfoDicJson(){
           string path =  Application.dataPath+"/AssetBundles/jsonData";
           FileStream fs=File.Create(path+"/blockterraininfo.dat");
@@ -68,7 +79,8 @@ public class AssetBundlePacker : Editor
      
           })*/
     }
-      [MenuItem("Tools/GenerateItemBlockDicJson")]
+    [Obsolete]
+    [MenuItem("Tools/GenerateItemBlockDicJson")]
     static void GenerateItemBlockDicJson(){
          string path =  Application.dataPath+"/AssetBundles/jsonData"; 
            FileStream fs=File.Create(path+"/itemblockinfo.dat");

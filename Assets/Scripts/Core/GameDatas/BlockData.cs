@@ -14,8 +14,8 @@ public enum BlockShape
     Fence = 6,
     Door = 7,
     WallAttachment = 8,
-    SolidTransparent = 9
-
+    SolidTransparent = 9,
+    Empty=10
 }
 [MessagePackObject]
  

@@ -24,7 +24,7 @@ public static partial class VoxelCast
                         Vector3Int blockPos = ChunkCoordsHelper.Vec3ToBlockPos(new Vector3(originAligned.x + i, originAligned.y + j, originAligned.z + k));
                         SimpleAxisAlignedBB blockBounds;
                         
-                            BlockData data = WorldHelper.instance.GetBlockData(blockPos);
+                            BlockData data = WorldUpdateablesMediator.instance.GetBlockData(blockPos);
 
 
                             blockBounds = BlockBoundingBoxUtility.GetBoundingBoxSelectable(blockPos.x, blockPos.y, blockPos.z, data);
@@ -71,7 +71,7 @@ public static partial class VoxelCast
                         Vector3Int blockPos = ChunkCoordsHelper.Vec3ToBlockPos(new Vector3(originAligned.x + i, originAligned.y + j, originAligned.z + k));
                         SimpleAxisAlignedBB blockBounds;
 
-                        BlockData data = WorldHelper.instance.GetBlockData(blockPos);
+                        BlockData data = WorldUpdateablesMediator.instance.GetBlockData(blockPos);
 
 
                         blockBounds = BlockBoundingBoxUtility.GetBoundingBoxSelectable(blockPos.x, blockPos.y, blockPos.z, data);
